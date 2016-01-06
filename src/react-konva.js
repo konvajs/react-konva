@@ -1,8 +1,6 @@
 // Adapted from ReactART:
 // https://github.com/reactjs/react-art
-
-"use strict";
-var Konva = require('konva');
+import Konva from 'konva';
 
 
 var React = require('react');
@@ -374,5 +372,6 @@ var shapes = [
 shapes.forEach(function(shapeName) {
   ReactKonva[shapeName] = createComponent(shapeName, RenderableMixin, ShapeMixin);
 });
+
 
 module.exports = ReactKonva;
