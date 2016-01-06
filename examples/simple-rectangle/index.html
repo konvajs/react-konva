@@ -6,17 +6,61 @@
 <body>
 
   <div id="container">
-    <p>If you're seeing this message, it means you haven't generated the bundle file for this example. Try running:</p>
-
-    <pre><code>
-    npm install
-    npm run build
-    </code></pre>
-
-    <p>then reload the page.</p>
+      Stage will be here...
   </div>
 
-  <script src="bundle.js"></script>
+  <script type="text/javascript" src="https://rawgit.com/konvajs/konva/master/konva.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.js"></script>
+  <!-- // <script type="text/javascript" src="https://fb.me/react-with-addons-0.14.0.js"></script> -->
+  <script type="text/javascript" src="../../dist/react-konva.global.js"></script>
+  <script type="text/javascript" src="https://fb.me/react-dom-0.14.0.js"></script>
+  
+
+  <script  type="text/babel">
+      const {Layer, Rect, Stage, Group } = ReactKonva;
+      const Konva = window.Konva;
+
+
+      class MyRect extends React.Component {
+        changeSize() {
+            this.refs.rect.to({
+                scaleX: Math.random() + 0.8,
+                scaleY: Math.random() + 0.8,
+                duration: 0.2
+            })
+        }
+        render() {
+            return (
+                <Group>
+                    <Rect
+                        ref="rect"
+                        width="50"
+                        height="50"
+                        fill="green"
+                        draggable="true"
+                        onDragEnd={this.changeSize.bind(this)}
+                        onDragStart={this.changeSize.bind(this)}
+                    />
+                </Group>
+            );
+        }
+      }
+
+      var App = React.createClass({
+        render: function() {
+            return (
+                <Stage width={700} height={700}>
+                    <Layer>
+                        <MyRect/>
+                    </Layer>
+                </Stage>
+            );
+        }
+      });
+
+
+      ReactDOM.render(<App/>, document.getElementById('container'));
+  </script>
 
 </body>
 </html>

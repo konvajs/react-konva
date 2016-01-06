@@ -54,14 +54,13 @@ var ReactKonva =
 
 	'use strict';
 
-	var _konva = __webpack_require__(2);
-
-	var _konva2 = _interopRequireDefault(_konva);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var React = __webpack_require__(3); // Adapted from ReactART:
+	// Adapted from ReactART:
 	// https://github.com/reactjs/react-art
+
+	var Konva = __webpack_require__(2);
+	var React = __webpack_require__(3);
+	window.React = React;
+	// window.React
 
 	var ReactInstanceMap = __webpack_require__(49);
 	var ReactMultiChild = __webpack_require__(116);
@@ -179,7 +178,7 @@ var ReactKonva =
 
 	  componentDidMount: function componentDidMount() {
 
-	    this.node = new _konva2.default.Stage({
+	    this.node = new Konva.Stage({
 	      container: this.domNode,
 	      width: this.props.width,
 	      height: this.props.height
@@ -241,7 +240,7 @@ var ReactKonva =
 	var GroupMixin = {
 	  mountComponent: function mountComponent(rootID, transaction, context) {
 	    // this.node = Mode.Group();
-	    this.node = new _konva2.default[this.constructor.displayName]();
+	    this.node = new Konva[this.constructor.displayName]();
 	    var props = this._currentElement.props;
 	    this.applyNodeProps(emptyObject, props);
 	    this.mountAndInjectChildren(props.children, transaction, context);
@@ -371,7 +370,7 @@ var ReactKonva =
 
 	  mountComponent: function mountComponent(rootID, transaction, context) {
 	    // this.node = Mode.Shape();
-	    this.node = new _konva2.default[this.constructor.displayName]();
+	    this.node = new Konva[this.constructor.displayName]();
 	    var props = this._currentElement.props;
 	    this.applyNodeProps(emptyObject, props);
 	    return this.node;

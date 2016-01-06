@@ -1,7 +1,9 @@
 // Adapted from ReactART:
 // https://github.com/reactjs/react-art
-import Konva from 'konva';
+
+var Konva = require('konva');
 var React = require('react');
+window.React = React;
 
 
 var ReactInstanceMap = require('react/lib/ReactInstanceMap');
