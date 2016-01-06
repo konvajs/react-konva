@@ -10,7 +10,7 @@ module.exports = {
         library: "ReactKonva"
     },
     externals: {
-        "react": "React",
+        // "react": "React",
         "konva": "Konva"
     },
     module: {
