@@ -1,12 +1,13 @@
 // Adapted from ReactART:
 // https://github.com/reactjs/react-art
 import Konva from 'konva';
-
-
 var React = require('react');
+
+
 var ReactInstanceMap = require('react/lib/ReactInstanceMap');
 var ReactMultiChild = require('react/lib/ReactMultiChild');
-var ReactUpdates = require('react/lib/ReactUpdates');
+// var ReactUpdates = require('react/lib/ReactUpdates');
+var ReactReconcileTransaction = require('react/lib/ReactReconcileTransaction');
 
 var assign = require('react/lib/Object.assign');
 var emptyObject = require('fbjs/lib/emptyObject');
@@ -135,7 +136,7 @@ var Stage = React.createClass({
             height: this.props.height
         });
 
-        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+        var transaction = ReactReconcileTransaction.getPooled();
         
         transaction.perform(
             this.mountAndInjectChildren,
@@ -144,7 +145,7 @@ var Stage = React.createClass({
             transaction,
             ReactInstanceMap.get(this)._context
         );
-        ReactUpdates.ReactReconcileTransaction.release(transaction);
+        ReactReconcileTransaction.release(transaction);
     },
 
   componentDidUpdate: function(oldProps) {
@@ -157,7 +158,7 @@ var Stage = React.createClass({
       });
     }
 
-    var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+    var transaction = ReactReconcileTransaction.getPooled();
     transaction.perform(
       this.updateChildren,
       this,
@@ -165,7 +166,7 @@ var Stage = React.createClass({
       transaction,
       ReactInstanceMap.get(this)._context
     );
-    ReactUpdates.ReactReconcileTransaction.release(transaction);
+    ReactReconcileTransaction.release(transaction);
 
     if (node.render) {
       node.render();
