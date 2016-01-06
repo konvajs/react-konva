@@ -6,7 +6,7 @@ var React = require('react');
 
 var ReactInstanceMap = require('react/lib/ReactInstanceMap');
 var ReactMultiChild = require('react/lib/ReactMultiChild');
-// var ReactUpdates = require('react/lib/ReactUpdates');
+var ReactUpdates = require('react/lib/ReactUpdates');
 var ReactReconcileTransaction = require('react/lib/ReactReconcileTransaction');
 
 var assign = require('react/lib/Object.assign');

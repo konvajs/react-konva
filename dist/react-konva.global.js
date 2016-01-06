@@ -65,7 +65,7 @@ var ReactKonva =
 
 	var ReactInstanceMap = __webpack_require__(4);
 	var ReactMultiChild = __webpack_require__(5);
-	// var ReactUpdates = require('react/lib/ReactUpdates');
+	var ReactUpdates = __webpack_require__(25);
 	var ReactReconcileTransaction = __webpack_require__(41);
 
 	var assign = __webpack_require__(19);
