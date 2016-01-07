@@ -10,7 +10,7 @@
   ],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "BSD-3-Clause",
-  "main": "lib/react-konva.js",
+  "main": "./src/react-konva.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:lavrton/react-konva.git"
@@ -34,7 +34,6 @@
     "webpack": "^1.12.9"
   },
   "scripts": {
-    "build": "babel src/react-konva.js -o ./dist/react-konva.common.js",
-    "compile": "webpack --progress --profile --colors"
+    "build": "webpack --progress --profile --colors"
   }
 }

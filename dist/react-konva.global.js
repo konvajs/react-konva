@@ -60,7 +60,6 @@ var ReactKonva =
 	var Konva = __webpack_require__(2);
 	var React = __webpack_require__(3);
 	window.React = React;
-	// window.React
 
 	var ReactInstanceMap = __webpack_require__(49);
 	var ReactMultiChild = __webpack_require__(116);
