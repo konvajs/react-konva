@@ -84,7 +84,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
 
   
     removeChild: function(child) {
-        child._mountImage.eject();
+        child._mountImage.destroy();
         child._mountImage = null;
     },
 
@@ -115,7 +115,19 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
             if (this._renderedChildren.hasOwnProperty(key)) {
                 var child = this._renderedChildren[key];
                 child._mountImage = mountedImages[i];
-                mountedImages[i].moveTo(this.node);
+                // runtime check for moveTo method
+                // it is possible that child component with be not Konva.Node instance
+                // for instance <noscript> for null element
+                if (mountedImages[i].moveTo) {
+                  mountedImages[i].moveTo(this.node);
+                } else {
+                  var message =
+                    "Looks like one of child element is not Konva.Node." +
+                    "react-konva do not support in for now."
+                    "if you have empty(null) child, replace it with <Group/>"
+                  console.error(message, this);
+
+                }
                 i++;
             }
         }

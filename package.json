@@ -10,7 +10,7 @@
   ],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "BSD-3-Clause",
-  "main": "lib/react-konva.js",
+  "main": "./src/react-konva.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:lavrton/react-konva.git"
