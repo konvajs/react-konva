@@ -34,7 +34,6 @@
     "webpack": "^1.12.9"
   },
   "scripts": {
-    "build": "babel src/react-konva.js -o ./dist/react-konva.common.js",
-    "compile": "webpack --progress --profile --colors"
+    "build": "webpack --progress --profile --colors"
   }
 }
