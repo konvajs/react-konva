@@ -37,47 +37,17 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
     // TODO: test and rewrite
     moveChild: function(child, toIndex) {
         var childNode = child._mountImage;
-        var mostRecentlyPlacedChild = this._mostRecentlyPlacedChild;
-        if (mostRecentlyPlacedChild == null) {
-            // I'm supposed to be first.
-            if (childNode.previousSibling) {
-                if (this.node.firstChild) {
-                    childNode.injectBefore(this.node.firstChild);
-                } else {
-                    childNode.inject(this.node);
-                }
-            }
-        } else {
-            // I'm supposed to be after the previous one.
-            if (mostRecentlyPlacedChild.nextSibling !== childNode) {
-                if (mostRecentlyPlacedChild.nextSibling) {
-                    childNode.injectBefore(mostRecentlyPlacedChild.nextSibling);
-                } else {
-                    childNode.moveTo(this.node);
-                }
-            }
+        if (childNode.index !== toIndex) {
+          childNode.setZIndex(toIndex);
         }
-        this._mostRecentlyPlacedChild = childNode;
     },
 
 
     createChild: function(child, childNode) {
         child._mountImage = childNode;
-        var mostRecentlyPlacedChild = this._mostRecentlyPlacedChild;
-        if (mostRecentlyPlacedChild == null) {
-          // I'm supposed to be first.
-          if (this.node.firstChild) {
-            childNode.injectBefore(this.node.firstChild);
-          } else {
-            childNode.moveTo(this.node);
-          }
-        } else {
-          // I'm supposed to be after the previous one.
-          if (mostRecentlyPlacedChild.nextSibling) {
-            childNode.injectBefore(mostRecentlyPlacedChild.nextSibling);
-          } else {
-            childNode.moveTo(this.node);
-          }
+        childNode.moveTo(this.node);
+        if (child._mountIndex !== childNode.index) {
+          childNode.setZIndex(child._mountIndex );
         }
         this._mostRecentlyPlacedChild = childNode;
     },
