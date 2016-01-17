@@ -6,19 +6,16 @@ React Konva is a JavaScript library for drawing complex canvas graphics using [R
 
 It provides declarative and reactive bindings to the [Konva Framework](http://konvajs.github.io/).
 
+# [DEMO](http://jsbin.com/camene/edit?html,js,output)
 
 ```bash
 npm instal react konva react-konva --save
 ```
 
 ```javascript
-var React = require('react');
-var ReactDOM = require('react-dom');
-var ReacKonva = require('./react-konva');
-var Layer = ReacKonva.Layer;
-var Rect = ReacKonva.Rect;
-var Stage = ReacKonva.Stage;
-var Group = ReacKonva.Group;
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Layer, Rect, Stage, Group} from 'react-konva';
 
 
 
@@ -27,7 +24,6 @@ class MyRect extends React.Component {
         return (
             <Group>
                 <Rect
-                    ref="bla"
                     width="50"
                     height="50"
                     fill="green"
@@ -45,10 +41,7 @@ var App = React.createClass({
 
   render: function() {
     return (
-      <Stage
-        width={700}
-        height={700}
-      >
+      <Stage width={700} height={700}>
         <Layer>
             <MyRect/>
         </Layer>
