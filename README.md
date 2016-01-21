@@ -9,7 +9,8 @@ It provides declarative and reactive bindings to the [Konva Framework](http://ko
 # [DEMO](http://jsbin.com/camene/edit?html,js,output)
 
 ```bash
-npm instal react konva react-konva --save
+npm instal react konva --save
+npm install https://github.com/lavrton/react-konva.git -- save # not published in npm yet
 ```
 
 ```javascript
