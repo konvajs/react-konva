@@ -38,24 +38,28 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
     moveChild: function(child, toIndex) {
         var childNode = child._mountImage;
         if (childNode.index !== toIndex) {
-          childNode.setZIndex(toIndex);
+            childNode.setZIndex(toIndex);
+	        var layer = childNode.getLayer();
+		    layer && layer.batchDraw();
         }
     },
-
 
     createChild: function(child, childNode) {
         child._mountImage = childNode;
         childNode.moveTo(this.node);
         if (child._mountIndex !== childNode.index) {
-          childNode.setZIndex(child._mountIndex );
+            childNode.setZIndex(child._mountIndex);
         }
         this._mostRecentlyPlacedChild = childNode;
+    	var layer = childNode.getLayer();
+    	layer && layer.batchDraw();
     },
 
-  
     removeChild: function(child) {
-        child._mountImage.destroy();
-        child._mountImage = null;
+	       var layer = child._mountImage.getLayer();
+           child._mountImage.destroy();
+	       layer && layer.batchDraw();
+           child._mountImage = null;
     },
 
     updateChildrenAtRoot: function(nextChildren, transaction) {
@@ -120,7 +124,7 @@ var Stage = React.createClass({
         });
 
         var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-        
+
         transaction.perform(
             this.mountAndInjectChildren,
             this,
@@ -170,13 +174,13 @@ var Stage = React.createClass({
     // TODO: ART's Canvas Mode overrides surface title and cursor
     return (
       React.createElement('div', {
-        ref: function(c)  {return this.domNode = c;}.bind(this), 
-        accesskey: props.accesskey, 
-        className: props.className, 
-        draggable: props.draggable, 
-        role: props.role, 
-        style: props.style, 
-        tabindex: props.tabindex, 
+        ref: function(c)  {return this.domNode = c;}.bind(this),
+        accesskey: props.accesskey,
+        className: props.className,
+        draggable: props.draggable,
+        role: props.role,
+        style: props.style,
+        tabindex: props.tabindex,
         title: props.title}
       )
     );
@@ -270,26 +274,36 @@ var NodeMixin = {
   },
 
   applyNodeProps: function(oldProps, props) {
-    for(var key in oldProps) {
-      var isEvent = (key.slice(0,2) === 'on');
-      var toRemove = (oldProps[key] !== props[key]);
-      if (isEvent && toRemove) {
-        this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
+      var updatedProps = {};
+  	  var hasUpdates = false;
+      for (var key in oldProps) {
+          var isEvent = key.slice(0, 2) === 'on';
+  	      var toRemove = oldProps[key] !== props[key];
+  	      if (isEvent && toRemove) {
+              this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
+  	      }
       }
-    }
-    for(var key in props) {
-      var isEvent = (key.slice(0,2) === 'on');
-      var toAdd = (oldProps[key] !== props[key]);
-      if (isEvent && toAdd) {
-        this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
-      }
-    }
-    
+  	  for (var key in props) {
+          if (key === 'children') {
+  			continue;
+  		  }
+  	      var isEvent = key.slice(0, 2) === 'on';
+  	      var toAdd = oldProps[key] !== props[key];
+  	      if (isEvent && toAdd) {
+  	           this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
+  	      }
+  		  if (props[key] !==  this.node.getAttr(key) && !isEvent) {
+  			   hasUpdates = true;
+  			   updatedProps[key] = props[key];
+  		  }
+  	   }
 
-    this.node.setAttrs(props);
-    var layer = this.node.getLayer();
-    layer && layer.batchDraw();
-  },
+       if (hasUpdates) {
+  			this.node.setAttrs(updatedProps);
+  			var layer = this.node.getLayer();
+  			layer && layer.batchDraw();
+  		}
+    },
 
   mountComponentIntoNode: function(rootID, container) {
     throw new Error(
