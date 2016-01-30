@@ -1,7 +1,7 @@
 {
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "0.14.0",
+  "version": "0.5.0",
   "keywords": [
     "react",
     "canvas",
@@ -16,12 +16,11 @@
     "url": "git@github.com:lavrton/react-konva.git"
   },
   "dependencies": {
-    "konva": "^0.10.0",
     "fbjs": "^0.2.0"
   },
   "peerDependencies": {
-    "react": "^0.13.0 || ^0.14.0",
-    "konva": "^0.11.0"
+    "react": ">=0.14.0",
+    "konva": ">=0.10.0"
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",
