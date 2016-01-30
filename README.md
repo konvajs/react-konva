@@ -72,4 +72,7 @@ All `react-konva` components correspond to `Konva` components of the same
 name. All the parameters available for `Konva` objects are valid props for
 corresponding `react-konva` components, unless otherwise noted.
 
+Core shapes are: Rect, Circle, Ellipse, Line, Image, Text, TextPath, Star, Label, SVG Path, RegularPolygon.
+Also you can create custom shape.
+
 To get more info about `Konva` you can read [Konva Overview](http://konvajs.github.io/docs/overview.html).
