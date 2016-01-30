@@ -59,6 +59,8 @@ var ReactKonva =
 
 	var Konva = __webpack_require__(2);
 	var React = __webpack_require__(3);
+
+	// hack for react-konva.gloval.js build
 	window.React = React;
 
 	var ReactInstanceMap = __webpack_require__(49);
@@ -93,6 +95,8 @@ var ReactKonva =
 	    var childNode = child._mountImage;
 	    if (childNode.index !== toIndex) {
 	      childNode.setZIndex(toIndex);
+	      var layer = childNode.getLayer();
+	      layer && layer.batchDraw();
 	    }
 	  },
 
@@ -103,10 +107,14 @@ var ReactKonva =
 	      childNode.setZIndex(child._mountIndex);
 	    }
 	    this._mostRecentlyPlacedChild = childNode;
+	    var layer = childNode.getLayer();
+	    layer && layer.batchDraw();
 	  },
 
 	  removeChild: function removeChild(child) {
+	    var layer = child._mountImage.getLayer();
 	    child._mountImage.destroy();
+	    layer && layer.batchDraw();
 	    child._mountImage = null;
 	  },
 
@@ -191,20 +199,13 @@ var ReactKonva =
 	  },
 
 	  render: function render() {
-	    // This is going to be a placeholder because we don't know what it will
-	    // actually resolve to because ART may render canvas, vml or svg tags here.
-	    // We only allow a subset of properties since others might conflict with
-	    // ART's properties.
 	    var props = this.props;
 
-	    // TODO: ART's Canvas Mode overrides surface title and cursor
 	    return React.createElement('div', {
 	      ref: (function (c) {
 	        return this.domNode = c;
 	      }).bind(this),
-	      accesskey: props.accesskey,
 	      className: props.className,
-	      draggable: props.draggable,
 	      role: props.role,
 	      style: props.style,
 	      tabindex: props.tabindex,
@@ -258,45 +259,20 @@ var ReactKonva =
 	  },
 
 	  putEventListener: function putEventListener(type, listener) {
-	    var subscriptions = this.subscriptions || (this.subscriptions = {});
-	    var listeners = this.listeners || (this.listeners = {});
-	    listeners[type] = listener;
-	    if (listener) {
-	      if (!subscriptions[type]) {
-	        subscriptions[type] = this.node.subscribe(type, listener, this);
-	      }
-	    } else {
-	      if (subscriptions[type]) {
-	        subscriptions[type]();
-	        delete subscriptions[type];
-	      }
-	    }
+	    // NOPE...
 	  },
 
 	  handleEvent: function handleEvent(event) {
-	    var listener = this.listeners[event.type];
-	    if (!listener) {
-	      return;
-	    }
-	    if (typeof listener === 'function') {
-	      listener.call(this, event);
-	    } else if (listener.handleEvent) {
-	      listener.handleEvent(event);
-	    }
+	    // NOPE...
 	  },
 
 	  destroyEventListeners: function destroyEventListeners() {
-	    var subscriptions = this.subscriptions;
-	    if (subscriptions) {
-	      for (var type in subscriptions) {
-	        subscriptions[type]();
-	      }
-	    }
-	    this.subscriptions = null;
-	    this.listeners = null;
+	    // NOPE...
 	  },
 
 	  applyNodeProps: function applyNodeProps(oldProps, props) {
+	    var updatedProps = {};
+	    var hasUpdates = false;
 	    for (var key in oldProps) {
 	      var isEvent = key.slice(0, 2) === 'on';
 	      var toRemove = oldProps[key] !== props[key];
@@ -305,39 +281,34 @@ var ReactKonva =
 	      }
 	    }
 	    for (var key in props) {
+	      if (key === 'children') {
+	        continue;
+	      }
 	      var isEvent = key.slice(0, 2) === 'on';
 	      var toAdd = oldProps[key] !== props[key];
 	      if (isEvent && toAdd) {
 	        this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
 	      }
+	      if (props[key] !== this.node.getAttr(key) && !isEvent) {
+	        hasUpdates = true;
+	        updatedProps[key] = props[key];
+	      }
 	    }
 
-	    this.node.setAttrs(props);
-	    var layer = this.node.getLayer();
-	    layer && layer.batchDraw();
+	    if (hasUpdates) {
+	      this.node.setAttrs(updatedProps);
+	      var layer = this.node.getLayer();
+	      layer && layer.batchDraw();
+	    }
 	  },
+
+	  unmountComponent: function unmountComponent() {},
 
 	  mountComponentIntoNode: function mountComponentIntoNode(rootID, container) {
 	    throw new Error('You cannot render an ART component standalone. ' + 'You need to wrap it in a Stage.');
 	  }
 
 	};
-
-	// Group
-
-	var Group = createComponent('Group', NodeMixin, ContainerMixin, GroupMixin);
-
-	var Layer = createComponent('Layer', NodeMixin, ContainerMixin, GroupMixin);
-
-	// Renderables
-
-	var RenderableMixin = assign({}, NodeMixin, {
-
-	  unmountComponent: function unmountComponent() {
-	    this.destroyEventListeners();
-	  }
-
-	});
 
 	var ShapeMixin = {
 
@@ -363,16 +334,21 @@ var ReactKonva =
 
 	};
 
+	var Group = createComponent('Group', NodeMixin, ContainerMixin, GroupMixin);
+	var Layer = createComponent('Layer', NodeMixin, ContainerMixin, GroupMixin);
+	var FastLayer = createComponent('FastLayer', NodeMixin, ContainerMixin, GroupMixin);
+
 	var ReactKonva = {
 	  Stage: Stage,
 	  Group: Group,
-	  Layer: Layer
+	  Layer: Layer,
+	  FastLayer: FastLayer
 	};
 
 	var shapes = ['Rect', 'Circle', 'Ellipse', 'Wedge', 'Line', 'Sprite', 'Image', 'Text', 'TextPath', 'Star', 'Ring', 'Arc', 'Label', 'Tag', 'Path', 'RegularPolygon', 'Arrow', 'Shape'];
 
 	shapes.forEach(function (shapeName) {
-	  ReactKonva[shapeName] = createComponent(shapeName, RenderableMixin, ShapeMixin);
+	  ReactKonva[shapeName] = createComponent(shapeName, NodeMixin, ShapeMixin);
 	});
 
 	module.exports = ReactKonva;

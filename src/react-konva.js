@@ -3,6 +3,8 @@
 
 var Konva = require('konva');
 var React = require('react');
+
+// hack for react-konva.gloval.js build
 window.React = React;
 
 
@@ -165,19 +167,12 @@ var Stage = React.createClass({
   },
 
   render: function() {
-    // This is going to be a placeholder because we don't know what it will
-    // actually resolve to because ART may render canvas, vml or svg tags here.
-    // We only allow a subset of properties since others might conflict with
-    // ART's properties.
     var props = this.props;
 
-    // TODO: ART's Canvas Mode overrides surface title and cursor
     return (
       React.createElement('div', {
         ref: function(c)  {return this.domNode = c;}.bind(this),
-        accesskey: props.accesskey,
         className: props.className,
-        draggable: props.draggable,
         role: props.role,
         style: props.style,
         tabindex: props.tabindex,
@@ -235,42 +230,15 @@ var NodeMixin = {
   },
 
   putEventListener: function(type, listener) {
-    var subscriptions = this.subscriptions || (this.subscriptions = {});
-    var listeners = this.listeners || (this.listeners = {});
-    listeners[type] = listener;
-    if (listener) {
-      if (!subscriptions[type]) {
-        subscriptions[type] = this.node.subscribe(type, listener, this);
-      }
-    } else {
-      if (subscriptions[type]) {
-        subscriptions[type]();
-        delete subscriptions[type];
-      }
-    }
+      // NOPE...
   },
 
   handleEvent: function(event) {
-    var listener = this.listeners[event.type];
-    if (!listener) {
-      return;
-    }
-    if (typeof listener === 'function') {
-      listener.call(this, event);
-    } else if (listener.handleEvent) {
-      listener.handleEvent(event);
-    }
+      // NOPE...
   },
 
   destroyEventListeners: function() {
-    var subscriptions = this.subscriptions;
-    if (subscriptions) {
-      for (var type in subscriptions) {
-        subscriptions[type]();
-      }
-    }
-    this.subscriptions = null;
-    this.listeners = null;
+     // NOPE...
   },
 
   applyNodeProps: function(oldProps, props) {
@@ -305,6 +273,10 @@ var NodeMixin = {
   		}
     },
 
+    unmountComponent: function() {
+
+    },
+
   mountComponentIntoNode: function(rootID, container) {
     throw new Error(
       'You cannot render an ART component standalone. ' +
@@ -313,23 +285,6 @@ var NodeMixin = {
   }
 
 };
-
-// Group
-
-var Group = createComponent('Group', NodeMixin, ContainerMixin, GroupMixin);
-
-var Layer = createComponent('Layer', NodeMixin, ContainerMixin, GroupMixin);
-
-
-// Renderables
-
-var RenderableMixin = assign({}, NodeMixin, {
-
-  unmountComponent: function() {
-    this.destroyEventListeners();
-  }
-
-});
 
 var ShapeMixin = {
 
@@ -356,10 +311,16 @@ var ShapeMixin = {
 };
 
 
+var Group = createComponent('Group', NodeMixin, ContainerMixin, GroupMixin);
+var Layer = createComponent('Layer', NodeMixin, ContainerMixin, GroupMixin);
+var FastLayer = createComponent('FastLayer', NodeMixin, ContainerMixin, GroupMixin);
+
+
 var ReactKonva = {
   Stage: Stage,
   Group: Group,
   Layer: Layer,
+  FastLayer: FastLayer
 };
 
 var shapes = [
@@ -368,7 +329,7 @@ var shapes = [
 ];
 
 shapes.forEach(function(shapeName) {
-  ReactKonva[shapeName] = createComponent(shapeName, RenderableMixin, ShapeMixin);
+  ReactKonva[shapeName] = createComponent(shapeName, NodeMixin, ShapeMixin);
 });
 
 
