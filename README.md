@@ -8,10 +8,21 @@ It provides declarative and reactive bindings to the [Konva Framework](http://ko
 
 # [DEMO](http://jsbin.com/camene/edit?html,js,output)
 
+An attempt to make [React](http://facebook.github.io/react/) work with the HTML5 canvas library. The goal is to have
+similar declarative markup as normal React and to have similar data-flow model.
+
+Currently you can use all `Konva` components as React components and all `Konva`
+events are supported on them in same way as normal browser events are supported.
+
+You can even inspect the components in React dev tools.
+
+## Installation
+
 ```bash
-npm instal react konva --save
-npm install https://github.com/lavrton/react-konva.git --save # not published in npm yet
+npm instal react konva react-konva --save
 ```
+
+## Example
 
 ```javascript
 import React from 'react';
@@ -55,3 +66,10 @@ var App = React.createClass({
 ReactDOM.render(<App/>, document.getElementById('container'));
 ```
 
+
+
+All `react-konva` components correspond to `Konva` components of the same
+name. All the parameters available for `Konva` objects are valid props for
+corresponding `react-konva` components, unless otherwise noted.
+
+To get more info about `Konva` you can read [Konva Overview](http://konvajs.github.io/docs/overview.html).
