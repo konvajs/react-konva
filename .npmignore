@@ -1,6 +1,7 @@
 node_modules
 npm-debug.log
 .DS_Store
-src
 examples
-gulpfile.js
+webpack.config.js
+react-konva.png
+dist
