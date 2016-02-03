@@ -32,26 +32,31 @@ import {Layer, Rect, Stage, Group} from 'react-konva';
 
 
 class MyRect extends React.Component {
+    constructor(...args) {
+      super(...args);
+      this.state = {
+        color: 'green'
+      };
+      this.handleClick = this.handleClick.bind(this);
+    }
+    handleClick() {
+      this.setState({
+        color: Konva.Util.getRandomColor()
+      });
+    }
     render() {
         return (
-            <Group>
-                <Rect
-                    width="50"
-                    height="50"
-                    fill="green"
-                    draggable="true"
-                    onDragEnd={(e) => {
-                        console.log('drag end');
-                    }}
-                />
-            </Group>
+            <Rect
+                x={10} y={10} width={50} height={50}
+                fill={this.state.color}
+                shadowBlur={10}
+                onClick={this.handleClick}
+            />
         );
     }
 }
 
-var App = React.createClass({
-
-  render: function() {
+function App() {
     return (
       <Stage width={700} height={700}>
         <Layer>
@@ -59,8 +64,7 @@ var App = React.createClass({
         </Layer>
       </Stage>
     );
-  }
-});
+}
 
 
 ReactDOM.render(<App/>, document.getElementById('container'));
