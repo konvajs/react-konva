@@ -92,7 +92,7 @@ To get more info about `Konva` you can read [Konva Overview](http://konvajs.gith
 
 [react-art](https://github.com/reactjs/react-art) allows you to draw graphics on a page. It also supports SVG for output. But it has no support of events of shapes.
 
-react-konva vs vanilla canvas
+### react-konva vs vanilla canvas
 
 Performance is one of the main buzz word in react hype.
 
