@@ -32,26 +32,31 @@ import {Layer, Rect, Stage, Group} from 'react-konva';
 
 
 class MyRect extends React.Component {
+    constructor(...args) {
+      super(...args);
+      this.state = {
+        color: 'green'
+      };
+      this.handleClick = this.handleClick.bind(this);
+    }
+    handleClick() {
+      this.setState({
+        color: Konva.Util.getRandomColor()
+      });
+    }
     render() {
         return (
-            <Group>
-                <Rect
-                    width="50"
-                    height="50"
-                    fill="green"
-                    draggable="true"
-                    onDragEnd={(e) => {
-                        console.log('drag end');
-                    }}
-                />
-            </Group>
+            <Rect
+                x={10} y={10} width={50} height={50}
+                fill={this.state.color}
+                shadowBlur={10}
+                onClick={this.handleClick}
+            />
         );
     }
 }
 
-var App = React.createClass({
-
-  render: function() {
+function App() {
     return (
       <Stage width={700} height={700}>
         <Layer>
@@ -59,8 +64,7 @@ var App = React.createClass({
         </Layer>
       </Stage>
     );
-  }
-});
+}
 
 
 ReactDOM.render(<App/>, document.getElementById('container'));
@@ -76,3 +80,20 @@ Core shapes are: Rect, Circle, Ellipse, Line, Image, Text, TextPath, Star, Label
 Also you can create custom shape.
 
 To get more info about `Konva` you can read [Konva Overview](http://konvajs.github.io/docs/overview.html).
+
+
+## Comparisons
+
+### react-konva vs react-canvas
+
+[react-canvas](https://github.com/Flipboard/react-canvas) is a completely different react plugin. It allows you to draw DOM-like objects (images, texts) on canvas element in very performant way. It is NOT about drawing graphics, but react-konva is exactly for drawing complex graphics on `<canvas>` element from React.
+
+### react-konva vs react-art
+
+[react-art](https://github.com/reactjs/react-art) allows you to draw graphics on a page. It also supports SVG for output. But it has no support of events of shapes.
+
+### react-konva vs vanilla canvas
+
+Performance is one of the main buzz word in react hype.
+
+I made this plugin not for performance reasons. Using vanilla <canvas> should be more performant because while using react-konva you have Konva framework on top of <canvas> and React on top of Konva. But I made this plugin to fight with application complexity. Konva helps here a lot (especially when you need events for objects on canvas, like “click” on shape, it is really hard to do with vanilla canvas). But React helps here much more as it provides very good structure for your codebase and data flow.
