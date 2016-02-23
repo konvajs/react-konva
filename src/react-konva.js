@@ -274,8 +274,9 @@ var NodeMixin = {
             for(prop in updatedProps) {
                 val = updatedProps[prop];
                 if (val instanceof Image && !val.complete) {
+                    var node = this.node;
                     val.addEventListener('load', function() {
-                        var layer = this.node.getLayer();
+                        var layer = node.getLayer();
               			layer && layer.batchDraw();
                     });
                 }
