@@ -270,6 +270,15 @@ var NodeMixin = {
   			this.node.setAttrs(updatedProps);
   			var layer = this.node.getLayer();
   			layer && layer.batchDraw();
+            for(var prop in updatedProps) {
+                val = updatedProps[prop];
+                if (val instanceof Image && !val.complete) {
+                    val.addEventListener('load', function() {
+                        var layer = this.node.getLayer();
+              			layer && layer.batchDraw();
+                    });
+                }
+            }
   		}
     },
 
