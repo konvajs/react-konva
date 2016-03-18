@@ -349,14 +349,17 @@ var ReactKonva =
 	var Layer = createComponent('Layer', NodeMixin, ContainerMixin, GroupMixin);
 	var FastLayer = createComponent('FastLayer', NodeMixin, ContainerMixin, GroupMixin);
 
+	var Label = createComponent('Label', NodeMixin, ContainerMixin, GroupMixin);
+
 	var ReactKonva = {
 	  Stage: Stage,
 	  Group: Group,
 	  Layer: Layer,
-	  FastLayer: FastLayer
+	  FastLayer: FastLayer,
+	  Label: Label
 	};
 
-	var shapes = ['Rect', 'Circle', 'Ellipse', 'Wedge', 'Line', 'Sprite', 'Image', 'Text', 'TextPath', 'Star', 'Ring', 'Arc', 'Label', 'Tag', 'Path', 'RegularPolygon', 'Arrow', 'Shape'];
+	var shapes = ['Rect', 'Circle', 'Ellipse', 'Wedge', 'Line', 'Sprite', 'Image', 'Text', 'TextPath', 'Star', 'Ring', 'Arc', 'Tag', 'Path', 'RegularPolygon', 'Arrow', 'Shape'];
 
 	shapes.forEach(function (shapeName) {
 	  ReactKonva[shapeName] = createComponent(shapeName, NodeMixin, ShapeMixin);
