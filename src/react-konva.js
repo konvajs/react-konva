@@ -2,11 +2,7 @@
 // https://github.com/reactjs/react-art
 
 var Konva = require('konva');
-var React = require('react');
-
-// hack for react-konva.gloval.js build
-window.React = React;
-
+var React = require('react/lib/React');
 
 var ReactInstanceMap = require('react/lib/ReactInstanceMap');
 var ReactMultiChild = require('react/lib/ReactMultiChild');
@@ -15,14 +11,43 @@ var ReactUpdates = require('react/lib/ReactUpdates');
 var assign = require('object-assign');
 var emptyObject = require('fbjs/lib/emptyObject');
 
+// inject React into window for usage in global all included build
+if (process.env.NODE_ENV === 'production') {
+    window.React = React;
+}
+
+
+// some patching to make Konva.Node looks like DOM nodes
+var oldAdd = Konva.Container.prototype.add;
+Konva.Container.prototype.add = function(child) {
+    child.parentNode = this;
+    oldAdd.apply(this, arguments);
+}
+
+Konva.Container.prototype.replaceChild = function(newChild, oldChild) {
+    var index = oldChild.index;
+    var parent = oldChild.parent;
+    oldChild.destroy();
+    parent.add(newChild);
+    if (newChild.index !== index) {
+        newChild.setZIndex(index);
+    }
+    parent.getLayer().batchDraw();
+}
+
+
+
+
 function createComponent(name) {
-    var ReactKonvaComponent = function(props) {
+    var ReactKonvaComponent = function(element) {
         this.node = null;
         this.subscriptions = null;
         this.listeners = null;
         this._mountImage = null;
         this._renderedChildren = null;
         this._mostRecentlyPlacedChild = null;
+        this._initialProps = element.props;
+        this._currentElement = element;
     };
 
     ReactKonvaComponent.displayName = name;
@@ -36,19 +61,20 @@ function createComponent(name) {
 
 var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
 
-    // TODO: test and rewrite
-    moveChild: function(child, toIndex) {
-        var childNode = child._mountImage;
-        if (childNode.index !== toIndex) {
-            childNode.setZIndex(toIndex);
+    moveChild: function(prevChild, lastPlacedNode, nextIndex, lastIndex) {
+        var childNode = prevChild._mountImage.node;
+        if (childNode.index !== nextIndex) {
+            childNode.setZIndex(nextIndex);
 	        var layer = childNode.getLayer();
 		    layer && layer.batchDraw();
         }
     },
 
-    createChild: function(child, childNode) {
-        child._mountImage = childNode;
+    createChild: function(child, afterNode, mountImage) {
+        child._mountImage = mountImage;
+        var childNode = mountImage.node;
         childNode.moveTo(this.node);
+        childNode.parentNode = this.node;
         if (child._mountIndex !== childNode.index) {
             childNode.setZIndex(child._mountIndex);
         }
@@ -57,9 +83,9 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
     	layer && layer.batchDraw();
     },
 
-    removeChild: function(child) {
-	       var layer = child._mountImage.getLayer();
-           child._mountImage.destroy();
+    removeChild: function(child, node) {
+           child._mountImage.node.destroy();
+           var layer = child._mountImage.node.getLayer();
 	       layer && layer.batchDraw();
            child._mountImage = null;
     },
@@ -77,8 +103,6 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
         this._updateChildren(nextChildren, transaction, context);
     },
 
-    // Shorthands
-
     mountAndInjectChildren: function(children, transaction, context) {
         var mountedImages = this.mountChildren(
             children,
@@ -94,15 +118,17 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
                 // runtime check for moveTo method
                 // it is possible that child component with be not Konva.Node instance
                 // for instance <noscript> for null element
-                if (mountedImages[i].moveTo) {
-                  mountedImages[i].moveTo(this.node);
-                } else {
-                  var message =
-                    "Looks like one of child element is not Konva.Node." +
-                    "react-konva do not support in for now."
-                    "if you have empty(null) child, replace it with <Group/>"
-                  console.error(message, this);
-
+                var node = mountedImages[i].node;
+                if ((!node instanceof Konva.Node)) {
+                    var message =
+                      "Looks like one of child element is not Konva.Node." +
+                      "react-konva do not support in for now."
+                      "if you have empty(null) child, replace it with <Group/>"
+                    console.error(message, this);
+                    continue;
+                }
+                if (node.parent !== this.node) {
+                    node.moveTo(this.node);
                 }
                 i++;
             }
@@ -183,22 +209,25 @@ var Stage = React.createClass({
 
 });
 
-// Various nodes that can go into a surface
-
 
 var GroupMixin = {
-  mountComponent: function(rootID, transaction, context) {
-    // this.node = Mode.Group();
+  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
     this.node = new Konva[this.constructor.displayName]();
-    var props = this._currentElement.props;
+    nativeParent.node.add(this.node);
+    var props = this._initialProps;
     this.applyNodeProps(emptyObject, props);
     this.mountAndInjectChildren(props.children, transaction, context);
-    return this.node;
+    return {
+        children: [],
+        node: this.node,
+        html: null,
+        text: null
+    }
   },
 
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
-    var oldProps = this._currentElement.props;
+    var oldProps = this._initialProps;
     this.applyNodeProps(oldProps, props);
     this.updateChildren(props.children, transaction, context);
     this._currentElement = nextComponent;
@@ -219,7 +248,7 @@ var NodeMixin = {
 
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
-    var oldProps = this._currentElement.props;
+    var oldProps = this._initialProps;
     this.applyNodeProps(oldProps, props);
     this.updateChildren(props.children, transaction, context);
     this._currentElement = nextComponent;
@@ -239,6 +268,10 @@ var NodeMixin = {
 
   destroyEventListeners: function() {
      // NOPE...
+  },
+
+  getNativeNode: function() {
+    return this.node;
   },
 
   applyNodeProps: function(oldProps, props) {
@@ -304,17 +337,21 @@ var ShapeMixin = {
     this._oldPath = null;
   },
 
-  mountComponent: function(rootID, transaction, context) {
-    // this.node = Mode.Shape();
+  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
     this.node = new Konva[this.constructor.displayName]();
-    var props = this._currentElement.props;
-    this.applyNodeProps(emptyObject, props);
-    return this.node;
+    nativeParent.node.add(this.node);
+    this.applyNodeProps(emptyObject, this._initialProps);
+    return {
+        children: [],
+        node: this.node,
+        html: null,
+        text: null
+    }
   },
 
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
-    var oldProps = this._currentElement.props;
+    var oldProps = this._initialProps;
     this.applyNodeProps(oldProps, props);
     this._currentElement = nextComponent;
   }

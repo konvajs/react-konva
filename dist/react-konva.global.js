@@ -60,288 +60,323 @@ var ReactKonva =
 	var Konva = __webpack_require__(2);
 	var React = __webpack_require__(3);
 
-	// hack for react-konva.gloval.js build
-	window.React = React;
+	var ReactInstanceMap = __webpack_require__(32);
+	var ReactMultiChild = __webpack_require__(33);
+	var ReactUpdates = __webpack_require__(46);
 
-	var ReactInstanceMap = __webpack_require__(33);
-	var ReactMultiChild = __webpack_require__(34);
-	var ReactUpdates = __webpack_require__(47);
+	var assign = __webpack_require__(4);
+	var emptyObject = __webpack_require__(20);
 
-	var assign = __webpack_require__(5);
-	var emptyObject = __webpack_require__(21);
+	// inject React into window for usage in global all included build
+	if (true) {
+	    window.React = React;
+	}
+
+	// some patching to make Konva.Node looks like DOM nodes
+	var oldAdd = Konva.Container.prototype.add;
+	Konva.Container.prototype.add = function (child) {
+	    child.parentNode = this;
+	    oldAdd.apply(this, arguments);
+	};
+
+	Konva.Container.prototype.replaceChild = function (newChild, oldChild) {
+	    var index = oldChild.index;
+	    var parent = oldChild.parent;
+	    oldChild.destroy();
+	    parent.add(newChild);
+	    if (newChild.index !== index) {
+	        newChild.setZIndex(index);
+	    }
+	    parent.getLayer().batchDraw();
+	};
 
 	function createComponent(name) {
-	  var ReactKonvaComponent = function ReactKonvaComponent(props) {
-	    this.node = null;
-	    this.subscriptions = null;
-	    this.listeners = null;
-	    this._mountImage = null;
-	    this._renderedChildren = null;
-	    this._mostRecentlyPlacedChild = null;
-	  };
+	    var ReactKonvaComponent = function ReactKonvaComponent(element) {
+	        this.node = null;
+	        this.subscriptions = null;
+	        this.listeners = null;
+	        this._mountImage = null;
+	        this._renderedChildren = null;
+	        this._mostRecentlyPlacedChild = null;
+	        this._initialProps = element.props;
+	        this._currentElement = element;
+	    };
 
-	  ReactKonvaComponent.displayName = name;
-	  for (var i = 1, l = arguments.length; i < l; i++) {
-	    assign(ReactKonvaComponent.prototype, arguments[i]);
-	  }
+	    ReactKonvaComponent.displayName = name;
+	    for (var i = 1, l = arguments.length; i < l; i++) {
+	        assign(ReactKonvaComponent.prototype, arguments[i]);
+	    }
 
-	  return ReactKonvaComponent;
+	    return ReactKonvaComponent;
 	}
 
 	var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
 
-	  // TODO: test and rewrite
-	  moveChild: function moveChild(child, toIndex) {
-	    var childNode = child._mountImage;
-	    if (childNode.index !== toIndex) {
-	      childNode.setZIndex(toIndex);
-	      var layer = childNode.getLayer();
-	      layer && layer.batchDraw();
-	    }
-	  },
-
-	  createChild: function createChild(child, childNode) {
-	    child._mountImage = childNode;
-	    childNode.moveTo(this.node);
-	    if (child._mountIndex !== childNode.index) {
-	      childNode.setZIndex(child._mountIndex);
-	    }
-	    this._mostRecentlyPlacedChild = childNode;
-	    var layer = childNode.getLayer();
-	    layer && layer.batchDraw();
-	  },
-
-	  removeChild: function removeChild(child) {
-	    var layer = child._mountImage.getLayer();
-	    child._mountImage.destroy();
-	    layer && layer.batchDraw();
-	    child._mountImage = null;
-	  },
-
-	  updateChildrenAtRoot: function updateChildrenAtRoot(nextChildren, transaction) {
-	    this.updateChildren(nextChildren, transaction, emptyObject);
-	  },
-
-	  mountAndInjectChildrenAtRoot: function mountAndInjectChildrenAtRoot(children, transaction) {
-	    this.mountAndInjectChildren(children, transaction, emptyObject);
-	  },
-
-	  updateChildren: function updateChildren(nextChildren, transaction, context) {
-	    this._mostRecentlyPlacedChild = null;
-	    this._updateChildren(nextChildren, transaction, context);
-	  },
-
-	  // Shorthands
-
-	  mountAndInjectChildren: function mountAndInjectChildren(children, transaction, context) {
-	    var mountedImages = this.mountChildren(children, transaction, context);
-	    // Each mount image corresponds to one of the flattened children
-	    var i = 0;
-	    for (var key in this._renderedChildren) {
-	      if (this._renderedChildren.hasOwnProperty(key)) {
-	        var child = this._renderedChildren[key];
-	        child._mountImage = mountedImages[i];
-	        // runtime check for moveTo method
-	        // it is possible that child component with be not Konva.Node instance
-	        // for instance <noscript> for null element
-	        if (mountedImages[i].moveTo) {
-	          mountedImages[i].moveTo(this.node);
-	        } else {
-	          var message = "Looks like one of child element is not Konva.Node." + "react-konva do not support in for now.";
-	          "if you have empty(null) child, replace it with <Group/>";
-	          console.error(message, this);
+	    moveChild: function moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex) {
+	        var childNode = prevChild._mountImage.node;
+	        if (childNode.index !== nextIndex) {
+	            childNode.setZIndex(nextIndex);
+	            var layer = childNode.getLayer();
+	            layer && layer.batchDraw();
 	        }
-	        i++;
-	      }
+	    },
+
+	    createChild: function createChild(child, afterNode, mountImage) {
+	        child._mountImage = mountImage;
+	        var childNode = mountImage.node;
+	        childNode.moveTo(this.node);
+	        childNode.parentNode = this.node;
+	        if (child._mountIndex !== childNode.index) {
+	            childNode.setZIndex(child._mountIndex);
+	        }
+	        this._mostRecentlyPlacedChild = childNode;
+	        var layer = childNode.getLayer();
+	        layer && layer.batchDraw();
+	    },
+
+	    removeChild: function removeChild(child, node) {
+	        child._mountImage.node.destroy();
+	        var layer = child._mountImage.node.getLayer();
+	        layer && layer.batchDraw();
+	        child._mountImage = null;
+	    },
+
+	    updateChildrenAtRoot: function updateChildrenAtRoot(nextChildren, transaction) {
+	        this.updateChildren(nextChildren, transaction, emptyObject);
+	    },
+
+	    mountAndInjectChildrenAtRoot: function mountAndInjectChildrenAtRoot(children, transaction) {
+	        this.mountAndInjectChildren(children, transaction, emptyObject);
+	    },
+
+	    updateChildren: function updateChildren(nextChildren, transaction, context) {
+	        this._mostRecentlyPlacedChild = null;
+	        this._updateChildren(nextChildren, transaction, context);
+	    },
+
+	    mountAndInjectChildren: function mountAndInjectChildren(children, transaction, context) {
+	        var mountedImages = this.mountChildren(children, transaction, context);
+	        // Each mount image corresponds to one of the flattened children
+	        var i = 0;
+	        for (var key in this._renderedChildren) {
+	            if (this._renderedChildren.hasOwnProperty(key)) {
+	                var child = this._renderedChildren[key];
+	                child._mountImage = mountedImages[i];
+	                // runtime check for moveTo method
+	                // it is possible that child component with be not Konva.Node instance
+	                // for instance <noscript> for null element
+	                var node = mountedImages[i].node;
+	                if (!node instanceof Konva.Node) {
+	                    var message = "Looks like one of child element is not Konva.Node." + "react-konva do not support in for now.";
+	                    "if you have empty(null) child, replace it with <Group/>";
+	                    console.error(message, this);
+	                    continue;
+	                }
+	                if (node.parent !== this.node) {
+	                    node.moveTo(this.node);
+	                }
+	                i++;
+	            }
+	        }
 	    }
-	  }
 	});
 
 	var Stage = React.createClass({
-	  displayName: 'Stage',
+	    displayName: 'Stage',
 
-	  mixins: [ContainerMixin],
+	    mixins: [ContainerMixin],
 
-	  componentDidMount: function componentDidMount() {
+	    componentDidMount: function componentDidMount() {
 
-	    this.node = new Konva.Stage({
-	      container: this.domNode,
-	      width: this.props.width,
-	      height: this.props.height
-	    });
+	        this.node = new Konva.Stage({
+	            container: this.domNode,
+	            width: this.props.width,
+	            height: this.props.height
+	        });
 
-	    var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+	        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
 
-	    transaction.perform(this.mountAndInjectChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
-	    ReactUpdates.ReactReconcileTransaction.release(transaction);
-	  },
+	        transaction.perform(this.mountAndInjectChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
+	        ReactUpdates.ReactReconcileTransaction.release(transaction);
+	    },
 
-	  componentDidUpdate: function componentDidUpdate(oldProps) {
-	    var node = this.node;
-	    if (this.props.width != oldProps.width || this.props.height != oldProps.height) {
-	      node.size({
-	        width: +this.props.width,
-	        height: +this.props.height
-	      });
+	    componentDidUpdate: function componentDidUpdate(oldProps) {
+	        var node = this.node;
+	        if (this.props.width != oldProps.width || this.props.height != oldProps.height) {
+	            node.size({
+	                width: +this.props.width,
+	                height: +this.props.height
+	            });
+	        }
+
+	        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+	        transaction.perform(this.updateChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
+	        ReactUpdates.ReactReconcileTransaction.release(transaction);
+
+	        if (node.render) {
+	            node.render();
+	        }
+	    },
+
+	    componentWillUnmount: function componentWillUnmount() {
+	        this.unmountChildren();
+	    },
+
+	    render: function render() {
+	        var props = this.props;
+
+	        return React.createElement('div', {
+	            ref: function (c) {
+	                return this.domNode = c;
+	            }.bind(this),
+	            className: props.className,
+	            role: props.role,
+	            style: props.style,
+	            tabindex: props.tabindex,
+	            title: props.title });
 	    }
-
-	    var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-	    transaction.perform(this.updateChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
-	    ReactUpdates.ReactReconcileTransaction.release(transaction);
-
-	    if (node.render) {
-	      node.render();
-	    }
-	  },
-
-	  componentWillUnmount: function componentWillUnmount() {
-	    this.unmountChildren();
-	  },
-
-	  render: function render() {
-	    var props = this.props;
-
-	    return React.createElement('div', {
-	      ref: function (c) {
-	        return this.domNode = c;
-	      }.bind(this),
-	      className: props.className,
-	      role: props.role,
-	      style: props.style,
-	      tabindex: props.tabindex,
-	      title: props.title });
-	  }
 
 	});
 
-	// Various nodes that can go into a surface
-
 	var GroupMixin = {
-	  mountComponent: function mountComponent(rootID, transaction, context) {
-	    // this.node = Mode.Group();
-	    this.node = new Konva[this.constructor.displayName]();
-	    var props = this._currentElement.props;
-	    this.applyNodeProps(emptyObject, props);
-	    this.mountAndInjectChildren(props.children, transaction, context);
-	    return this.node;
-	  },
+	    mountComponent: function mountComponent(transaction, nativeParent, nativeContainerInfo, context) {
+	        this.node = new Konva[this.constructor.displayName]();
+	        nativeParent.node.add(this.node);
+	        var props = this._initialProps;
+	        this.applyNodeProps(emptyObject, props);
+	        this.mountAndInjectChildren(props.children, transaction, context);
+	        return {
+	            children: [],
+	            node: this.node,
+	            html: null,
+	            text: null
+	        };
+	    },
 
-	  receiveComponent: function receiveComponent(nextComponent, transaction, context) {
-	    var props = nextComponent.props;
-	    var oldProps = this._currentElement.props;
-	    this.applyNodeProps(oldProps, props);
-	    this.updateChildren(props.children, transaction, context);
-	    this._currentElement = nextComponent;
-	  },
+	    receiveComponent: function receiveComponent(nextComponent, transaction, context) {
+	        var props = nextComponent.props;
+	        var oldProps = this._initialProps;
+	        this.applyNodeProps(oldProps, props);
+	        this.updateChildren(props.children, transaction, context);
+	        this._currentElement = nextComponent;
+	    },
 
-	  unmountComponent: function unmountComponent() {
-	    this.destroyEventListeners();
-	    this.unmountChildren();
-	  }
+	    unmountComponent: function unmountComponent() {
+	        this.destroyEventListeners();
+	        this.unmountChildren();
+	    }
 	};
 
 	var NodeMixin = {
 
-	  construct: function construct(element) {
-	    this._currentElement = element;
-	  },
+	    construct: function construct(element) {
+	        this._currentElement = element;
+	    },
 
-	  receiveComponent: function receiveComponent(nextComponent, transaction, context) {
-	    var props = nextComponent.props;
-	    var oldProps = this._currentElement.props;
-	    this.applyNodeProps(oldProps, props);
-	    this.updateChildren(props.children, transaction, context);
-	    this._currentElement = nextComponent;
-	  },
+	    receiveComponent: function receiveComponent(nextComponent, transaction, context) {
+	        var props = nextComponent.props;
+	        var oldProps = this._initialProps;
+	        this.applyNodeProps(oldProps, props);
+	        this.updateChildren(props.children, transaction, context);
+	        this._currentElement = nextComponent;
+	    },
 
-	  getPublicInstance: function getPublicInstance() {
-	    return this.node;
-	  },
+	    getPublicInstance: function getPublicInstance() {
+	        return this.node;
+	    },
 
-	  putEventListener: function putEventListener(type, listener) {
-	    // NOPE...
-	  },
+	    putEventListener: function putEventListener(type, listener) {
+	        // NOPE...
+	    },
 
-	  handleEvent: function handleEvent(event) {
-	    // NOPE...
-	  },
+	    handleEvent: function handleEvent(event) {
+	        // NOPE...
+	    },
 
-	  destroyEventListeners: function destroyEventListeners() {
-	    // NOPE...
-	  },
+	    destroyEventListeners: function destroyEventListeners() {
+	        // NOPE...
+	    },
 
-	  applyNodeProps: function applyNodeProps(oldProps, props) {
-	    var updatedProps = {};
-	    var hasUpdates = false;
-	    for (var key in oldProps) {
-	      var isEvent = key.slice(0, 2) === 'on';
-	      var toRemove = oldProps[key] !== props[key];
-	      if (isEvent && toRemove) {
-	        this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
-	      }
-	    }
-	    for (var key in props) {
-	      if (key === 'children') {
-	        continue;
-	      }
-	      var isEvent = key.slice(0, 2) === 'on';
-	      var toAdd = oldProps[key] !== props[key];
-	      if (isEvent && toAdd) {
-	        this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
-	      }
-	      if (!isEvent && (props[key] !== oldProps[key] || props[key] !== this.node.getAttr(key))) {
-	        hasUpdates = true;
-	        updatedProps[key] = props[key];
-	      }
-	    }
+	    getNativeNode: function getNativeNode() {
+	        return this.node;
+	    },
 
-	    if (hasUpdates) {
-	      this.node.setAttrs(updatedProps);
-	      var layer = this.node.getLayer();
-	      layer && layer.batchDraw();
-	      var val, prop;
-	      for (prop in updatedProps) {
-	        val = updatedProps[prop];
-	        if (val instanceof Image && !val.complete) {
-	          var node = this.node;
-	          val.addEventListener('load', function () {
-	            var layer = node.getLayer();
-	            layer && layer.batchDraw();
-	          });
+	    applyNodeProps: function applyNodeProps(oldProps, props) {
+	        var updatedProps = {};
+	        var hasUpdates = false;
+	        for (var key in oldProps) {
+	            var isEvent = key.slice(0, 2) === 'on';
+	            var toRemove = oldProps[key] !== props[key];
+	            if (isEvent && toRemove) {
+	                this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
+	            }
 	        }
-	      }
+	        for (var key in props) {
+	            if (key === 'children') {
+	                continue;
+	            }
+	            var isEvent = key.slice(0, 2) === 'on';
+	            var toAdd = oldProps[key] !== props[key];
+	            if (isEvent && toAdd) {
+	                this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
+	            }
+	            if (!isEvent && (props[key] !== oldProps[key] || props[key] !== this.node.getAttr(key))) {
+	                hasUpdates = true;
+	                updatedProps[key] = props[key];
+	            }
+	        }
+
+	        if (hasUpdates) {
+	            this.node.setAttrs(updatedProps);
+	            var layer = this.node.getLayer();
+	            layer && layer.batchDraw();
+	            var val, prop;
+	            for (prop in updatedProps) {
+	                val = updatedProps[prop];
+	                if (val instanceof Image && !val.complete) {
+	                    var node = this.node;
+	                    val.addEventListener('load', function () {
+	                        var layer = node.getLayer();
+	                        layer && layer.batchDraw();
+	                    });
+	                }
+	            }
+	        }
+	    },
+
+	    unmountComponent: function unmountComponent() {},
+
+	    mountComponentIntoNode: function mountComponentIntoNode(rootID, container) {
+	        throw new Error('You cannot render an ART component standalone. ' + 'You need to wrap it in a Stage.');
 	    }
-	  },
-
-	  unmountComponent: function unmountComponent() {},
-
-	  mountComponentIntoNode: function mountComponentIntoNode(rootID, container) {
-	    throw new Error('You cannot render an ART component standalone. ' + 'You need to wrap it in a Stage.');
-	  }
 
 	};
 
 	var ShapeMixin = {
 
-	  construct: function construct(element) {
-	    this._currentElement = element;
-	    this._oldPath = null;
-	  },
+	    construct: function construct(element) {
+	        this._currentElement = element;
+	        this._oldPath = null;
+	    },
 
-	  mountComponent: function mountComponent(rootID, transaction, context) {
-	    // this.node = Mode.Shape();
-	    this.node = new Konva[this.constructor.displayName]();
-	    var props = this._currentElement.props;
-	    this.applyNodeProps(emptyObject, props);
-	    return this.node;
-	  },
+	    mountComponent: function mountComponent(transaction, nativeParent, nativeContainerInfo, context) {
+	        this.node = new Konva[this.constructor.displayName]();
+	        nativeParent.node.add(this.node);
+	        this.applyNodeProps(emptyObject, this._initialProps);
+	        return {
+	            children: [],
+	            node: this.node,
+	            html: null,
+	            text: null
+	        };
+	    },
 
-	  receiveComponent: function receiveComponent(nextComponent, transaction, context) {
-	    var props = nextComponent.props;
-	    var oldProps = this._currentElement.props;
-	    this.applyNodeProps(oldProps, props);
-	    this._currentElement = nextComponent;
-	  }
+	    receiveComponent: function receiveComponent(nextComponent, transaction, context) {
+	        var props = nextComponent.props;
+	        var oldProps = this._initialProps;
+	        this.applyNodeProps(oldProps, props);
+	        this._currentElement = nextComponent;
+	    }
 
 	};
 
@@ -352,17 +387,17 @@ var ReactKonva =
 	var Label = createComponent('Label', NodeMixin, ContainerMixin, GroupMixin);
 
 	var ReactKonva = {
-	  Stage: Stage,
-	  Group: Group,
-	  Layer: Layer,
-	  FastLayer: FastLayer,
-	  Label: Label
+	    Stage: Stage,
+	    Group: Group,
+	    Layer: Layer,
+	    FastLayer: FastLayer,
+	    Label: Label
 	};
 
 	var shapes = ['Rect', 'Circle', 'Ellipse', 'Wedge', 'Line', 'Sprite', 'Image', 'Text', 'TextPath', 'Star', 'Ring', 'Arc', 'Tag', 'Path', 'RegularPolygon', 'Arrow', 'Shape'];
 
 	shapes.forEach(function (shapeName) {
-	  ReactKonva[shapeName] = createComponent(shapeName, NodeMixin, ShapeMixin);
+	    ReactKonva[shapeName] = createComponent(shapeName, NodeMixin, ShapeMixin);
 	});
 
 	module.exports = ReactKonva;
@@ -375,15 +410,6 @@ var ReactKonva =
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = __webpack_require__(4);
-
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -399,19 +425,19 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var ReactChildren = __webpack_require__(6);
-	var ReactComponent = __webpack_require__(16);
-	var ReactClass = __webpack_require__(22);
-	var ReactDOMFactories = __webpack_require__(27);
-	var ReactElement = __webpack_require__(9);
-	var ReactElementValidator = __webpack_require__(28);
-	var ReactPropTypes = __webpack_require__(30);
-	var ReactVersion = __webpack_require__(31);
+	var ReactChildren = __webpack_require__(5);
+	var ReactComponent = __webpack_require__(15);
+	var ReactClass = __webpack_require__(21);
+	var ReactDOMFactories = __webpack_require__(26);
+	var ReactElement = __webpack_require__(8);
+	var ReactElementValidator = __webpack_require__(27);
+	var ReactPropTypes = __webpack_require__(29);
+	var ReactVersion = __webpack_require__(30);
 
-	var onlyChild = __webpack_require__(32);
-	var warning = __webpack_require__(11);
+	var onlyChild = __webpack_require__(31);
+	var warning = __webpack_require__(10);
 
 	var createElement = ReactElement.createElement;
 	var createFactory = ReactElement.createFactory;
@@ -475,7 +501,7 @@ var ReactKonva =
 	module.exports = React;
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 	/* eslint-disable no-unused-vars */
@@ -520,7 +546,7 @@ var ReactKonva =
 
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -536,11 +562,11 @@ var ReactKonva =
 
 	'use strict';
 
-	var PooledClass = __webpack_require__(7);
-	var ReactElement = __webpack_require__(9);
+	var PooledClass = __webpack_require__(6);
+	var ReactElement = __webpack_require__(8);
 
-	var emptyFunction = __webpack_require__(12);
-	var traverseAllChildren = __webpack_require__(14);
+	var emptyFunction = __webpack_require__(11);
+	var traverseAllChildren = __webpack_require__(13);
 
 	var twoArgumentPooler = PooledClass.twoArgumentPooler;
 	var fourArgumentPooler = PooledClass.fourArgumentPooler;
@@ -708,7 +734,7 @@ var ReactKonva =
 	module.exports = ReactChildren;
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -724,7 +750,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * Static poolers. Several custom versions for each potential number of
@@ -832,7 +858,7 @@ var ReactKonva =
 	module.exports = PooledClass;
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -886,7 +912,7 @@ var ReactKonva =
 	module.exports = invariant;
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -902,12 +928,12 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var ReactCurrentOwner = __webpack_require__(10);
+	var ReactCurrentOwner = __webpack_require__(9);
 
-	var warning = __webpack_require__(11);
-	var canDefineProperty = __webpack_require__(13);
+	var warning = __webpack_require__(10);
+	var canDefineProperty = __webpack_require__(12);
 
 	// The Symbol used to tag the ReactElement type. If there is no native Symbol
 	// nor polyfill, then a plain number is used for performance.
@@ -1178,7 +1204,7 @@ var ReactKonva =
 	module.exports = ReactElement;
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports) {
 
 	/**
@@ -1214,7 +1240,7 @@ var ReactKonva =
 	module.exports = ReactCurrentOwner;
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1229,7 +1255,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var emptyFunction = __webpack_require__(12);
+	var emptyFunction = __webpack_require__(11);
 
 	/**
 	 * Similar to invariant but only logs a warning if the condition is not met.
@@ -1275,7 +1301,7 @@ var ReactKonva =
 	module.exports = warning;
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1317,7 +1343,7 @@ var ReactKonva =
 	module.exports = emptyFunction;
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1346,7 +1372,7 @@ var ReactKonva =
 	module.exports = canDefineProperty;
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1362,12 +1388,12 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactElement = __webpack_require__(9);
+	var ReactCurrentOwner = __webpack_require__(9);
+	var ReactElement = __webpack_require__(8);
 
-	var getIteratorFn = __webpack_require__(15);
-	var invariant = __webpack_require__(8);
-	var warning = __webpack_require__(11);
+	var getIteratorFn = __webpack_require__(14);
+	var invariant = __webpack_require__(7);
+	var warning = __webpack_require__(10);
 
 	var SEPARATOR = '.';
 	var SUBSEPARATOR = ':';
@@ -1540,7 +1566,7 @@ var ReactKonva =
 	module.exports = traverseAllChildren;
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports) {
 
 	/**
@@ -1585,7 +1611,7 @@ var ReactKonva =
 	module.exports = getIteratorFn;
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1601,13 +1627,13 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactNoopUpdateQueue = __webpack_require__(17);
-	var ReactInstrumentation = __webpack_require__(18);
+	var ReactNoopUpdateQueue = __webpack_require__(16);
+	var ReactInstrumentation = __webpack_require__(17);
 
-	var canDefineProperty = __webpack_require__(13);
-	var emptyObject = __webpack_require__(21);
-	var invariant = __webpack_require__(8);
-	var warning = __webpack_require__(11);
+	var canDefineProperty = __webpack_require__(12);
+	var emptyObject = __webpack_require__(20);
+	var invariant = __webpack_require__(7);
+	var warning = __webpack_require__(10);
 
 	/**
 	 * Base class helpers for the updating state of a component.
@@ -1711,7 +1737,7 @@ var ReactKonva =
 	module.exports = ReactComponent;
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1727,7 +1753,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(10);
 
 	function warnTDZ(publicInstance, callerName) {
 	  if (false) {
@@ -1811,7 +1837,7 @@ var ReactKonva =
 	module.exports = ReactNoopUpdateQueue;
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1827,12 +1853,12 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactDebugTool = __webpack_require__(19);
+	var ReactDebugTool = __webpack_require__(18);
 
 	module.exports = { debugTool: ReactDebugTool };
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1848,8 +1874,8 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactInvalidSetStateWarningDevTool = __webpack_require__(20);
-	var warning = __webpack_require__(11);
+	var ReactInvalidSetStateWarningDevTool = __webpack_require__(19);
+	var warning = __webpack_require__(10);
 
 	var eventHandlers = [];
 	var handlerDoesThrowForEvent = {};
@@ -1909,7 +1935,7 @@ var ReactKonva =
 	module.exports = ReactDebugTool;
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1925,7 +1951,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(10);
 
 	if (false) {
 	  var processingChildContext = false;
@@ -1950,7 +1976,7 @@ var ReactKonva =
 	module.exports = ReactInvalidSetStateWarningDevTool;
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1974,7 +2000,7 @@ var ReactKonva =
 	module.exports = emptyObject;
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -1990,19 +2016,19 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var ReactComponent = __webpack_require__(16);
-	var ReactElement = __webpack_require__(9);
-	var ReactPropTypeLocations = __webpack_require__(23);
-	var ReactPropTypeLocationNames = __webpack_require__(25);
-	var ReactNoopUpdateQueue = __webpack_require__(17);
+	var ReactComponent = __webpack_require__(15);
+	var ReactElement = __webpack_require__(8);
+	var ReactPropTypeLocations = __webpack_require__(22);
+	var ReactPropTypeLocationNames = __webpack_require__(24);
+	var ReactNoopUpdateQueue = __webpack_require__(16);
 
-	var emptyObject = __webpack_require__(21);
-	var invariant = __webpack_require__(8);
-	var keyMirror = __webpack_require__(24);
-	var keyOf = __webpack_require__(26);
-	var warning = __webpack_require__(11);
+	var emptyObject = __webpack_require__(20);
+	var invariant = __webpack_require__(7);
+	var keyMirror = __webpack_require__(23);
+	var keyOf = __webpack_require__(25);
+	var warning = __webpack_require__(10);
 
 	var MIXINS_KEY = keyOf({ mixins: null });
 
@@ -2702,7 +2728,7 @@ var ReactKonva =
 	module.exports = ReactClass;
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -2718,7 +2744,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var keyMirror = __webpack_require__(24);
+	var keyMirror = __webpack_require__(23);
 
 	var ReactPropTypeLocations = keyMirror({
 	  prop: null,
@@ -2729,7 +2755,7 @@ var ReactKonva =
 	module.exports = ReactPropTypeLocations;
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -2745,7 +2771,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * Constructs an enumeration with keys equal to their value.
@@ -2781,7 +2807,7 @@ var ReactKonva =
 	module.exports = keyMirror;
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -2810,7 +2836,7 @@ var ReactKonva =
 	module.exports = ReactPropTypeLocationNames;
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2849,7 +2875,7 @@ var ReactKonva =
 	module.exports = keyOf;
 
 /***/ },
-/* 27 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -2865,10 +2891,10 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactElement = __webpack_require__(9);
-	var ReactElementValidator = __webpack_require__(28);
+	var ReactElement = __webpack_require__(8);
+	var ReactElementValidator = __webpack_require__(27);
 
-	var mapObject = __webpack_require__(29);
+	var mapObject = __webpack_require__(28);
 
 	/**
 	 * Create a factory that creates HTML tag elements.
@@ -3030,7 +3056,7 @@ var ReactKonva =
 	module.exports = ReactDOMFactories;
 
 /***/ },
-/* 28 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -3053,15 +3079,15 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactElement = __webpack_require__(9);
-	var ReactPropTypeLocations = __webpack_require__(23);
-	var ReactPropTypeLocationNames = __webpack_require__(25);
-	var ReactCurrentOwner = __webpack_require__(10);
+	var ReactElement = __webpack_require__(8);
+	var ReactPropTypeLocations = __webpack_require__(22);
+	var ReactPropTypeLocationNames = __webpack_require__(24);
+	var ReactCurrentOwner = __webpack_require__(9);
 
-	var canDefineProperty = __webpack_require__(13);
-	var getIteratorFn = __webpack_require__(15);
-	var invariant = __webpack_require__(8);
-	var warning = __webpack_require__(11);
+	var canDefineProperty = __webpack_require__(12);
+	var getIteratorFn = __webpack_require__(14);
+	var invariant = __webpack_require__(7);
+	var warning = __webpack_require__(10);
 
 	function getDeclarationErrorAddendum() {
 	  if (ReactCurrentOwner.current) {
@@ -3316,7 +3342,7 @@ var ReactKonva =
 	module.exports = ReactElementValidator;
 
 /***/ },
-/* 29 */
+/* 28 */
 /***/ function(module, exports) {
 
 	/**
@@ -3371,7 +3397,7 @@ var ReactKonva =
 	module.exports = mapObject;
 
 /***/ },
-/* 30 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -3387,11 +3413,11 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactElement = __webpack_require__(9);
-	var ReactPropTypeLocationNames = __webpack_require__(25);
+	var ReactElement = __webpack_require__(8);
+	var ReactPropTypeLocationNames = __webpack_require__(24);
 
-	var emptyFunction = __webpack_require__(12);
-	var getIteratorFn = __webpack_require__(15);
+	var emptyFunction = __webpack_require__(11);
+	var getIteratorFn = __webpack_require__(14);
 
 	/**
 	 * Collection of methods that allow declaration and validation of props that are
@@ -3756,7 +3782,7 @@ var ReactKonva =
 	module.exports = ReactPropTypes;
 
 /***/ },
-/* 31 */
+/* 30 */
 /***/ function(module, exports) {
 
 	/**
@@ -3775,7 +3801,7 @@ var ReactKonva =
 	module.exports = '15.0.1';
 
 /***/ },
-/* 32 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -3790,9 +3816,9 @@ var ReactKonva =
 	 */
 	'use strict';
 
-	var ReactElement = __webpack_require__(9);
+	var ReactElement = __webpack_require__(8);
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * Returns the first child in a collection of children and verifies that there
@@ -3813,7 +3839,7 @@ var ReactKonva =
 	module.exports = onlyChild;
 
 /***/ },
-/* 33 */
+/* 32 */
 /***/ function(module, exports) {
 
 	/**
@@ -3866,7 +3892,7 @@ var ReactKonva =
 	module.exports = ReactInstanceMap;
 
 /***/ },
-/* 34 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -3882,15 +3908,15 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactComponentEnvironment = __webpack_require__(35);
-	var ReactMultiChildUpdateTypes = __webpack_require__(36);
+	var ReactComponentEnvironment = __webpack_require__(34);
+	var ReactMultiChildUpdateTypes = __webpack_require__(35);
 
-	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactReconciler = __webpack_require__(37);
-	var ReactChildReconciler = __webpack_require__(40);
+	var ReactCurrentOwner = __webpack_require__(9);
+	var ReactReconciler = __webpack_require__(36);
+	var ReactChildReconciler = __webpack_require__(39);
 
-	var flattenChildren = __webpack_require__(54);
-	var invariant = __webpack_require__(8);
+	var flattenChildren = __webpack_require__(53);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * Make an update for markup to be rendered and inserted at a supplied index.
@@ -4273,7 +4299,7 @@ var ReactKonva =
 	module.exports = ReactMultiChild;
 
 /***/ },
-/* 35 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4289,7 +4315,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	var injected = false;
 
@@ -4329,7 +4355,7 @@ var ReactKonva =
 	module.exports = ReactComponentEnvironment;
 
 /***/ },
-/* 36 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4345,7 +4371,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var keyMirror = __webpack_require__(24);
+	var keyMirror = __webpack_require__(23);
 
 	/**
 	 * When a component's children are updated, a series of update configuration
@@ -4366,7 +4392,7 @@ var ReactKonva =
 	module.exports = ReactMultiChildUpdateTypes;
 
 /***/ },
-/* 37 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4382,8 +4408,8 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactRef = __webpack_require__(38);
-	var ReactInstrumentation = __webpack_require__(18);
+	var ReactRef = __webpack_require__(37);
+	var ReactInstrumentation = __webpack_require__(17);
 
 	/**
 	 * Helper to call ReactRef.attachRefs with this composite component, split out
@@ -4501,7 +4527,7 @@ var ReactKonva =
 	module.exports = ReactReconciler;
 
 /***/ },
-/* 38 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4517,7 +4543,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactOwner = __webpack_require__(39);
+	var ReactOwner = __webpack_require__(38);
 
 	var ReactRef = {};
 
@@ -4584,7 +4610,7 @@ var ReactKonva =
 	module.exports = ReactRef;
 
 /***/ },
-/* 39 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4600,7 +4626,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * ReactOwners are capable of storing references to owned components.
@@ -4681,7 +4707,7 @@ var ReactKonva =
 	module.exports = ReactOwner;
 
 /***/ },
-/* 40 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4697,12 +4723,12 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactReconciler = __webpack_require__(37);
+	var ReactReconciler = __webpack_require__(36);
 
-	var instantiateReactComponent = __webpack_require__(41);
-	var shouldUpdateReactComponent = __webpack_require__(51);
-	var traverseAllChildren = __webpack_require__(14);
-	var warning = __webpack_require__(11);
+	var instantiateReactComponent = __webpack_require__(40);
+	var shouldUpdateReactComponent = __webpack_require__(50);
+	var traverseAllChildren = __webpack_require__(13);
+	var warning = __webpack_require__(10);
 
 	function instantiateChild(childInstances, child, name) {
 	  // We found a component instance.
@@ -4810,7 +4836,7 @@ var ReactKonva =
 	module.exports = ReactChildReconciler;
 
 /***/ },
-/* 41 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4826,14 +4852,14 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var ReactCompositeComponent = __webpack_require__(42);
-	var ReactEmptyComponent = __webpack_require__(52);
-	var ReactNativeComponent = __webpack_require__(53);
+	var ReactCompositeComponent = __webpack_require__(41);
+	var ReactEmptyComponent = __webpack_require__(51);
+	var ReactNativeComponent = __webpack_require__(52);
 
-	var invariant = __webpack_require__(8);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(7);
+	var warning = __webpack_require__(10);
 
 	// To avoid a cyclic dependency, we create the final class in this module
 	var ReactCompositeComponentWrapper = function (element) {
@@ -4926,7 +4952,7 @@ var ReactKonva =
 	module.exports = instantiateReactComponent;
 
 /***/ },
-/* 42 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4942,25 +4968,25 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var ReactComponentEnvironment = __webpack_require__(35);
-	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactElement = __webpack_require__(9);
-	var ReactErrorUtils = __webpack_require__(43);
-	var ReactInstanceMap = __webpack_require__(33);
-	var ReactInstrumentation = __webpack_require__(18);
-	var ReactNodeTypes = __webpack_require__(44);
-	var ReactPerf = __webpack_require__(45);
-	var ReactPropTypeLocations = __webpack_require__(23);
-	var ReactPropTypeLocationNames = __webpack_require__(25);
-	var ReactReconciler = __webpack_require__(37);
-	var ReactUpdateQueue = __webpack_require__(46);
+	var ReactComponentEnvironment = __webpack_require__(34);
+	var ReactCurrentOwner = __webpack_require__(9);
+	var ReactElement = __webpack_require__(8);
+	var ReactErrorUtils = __webpack_require__(42);
+	var ReactInstanceMap = __webpack_require__(32);
+	var ReactInstrumentation = __webpack_require__(17);
+	var ReactNodeTypes = __webpack_require__(43);
+	var ReactPerf = __webpack_require__(44);
+	var ReactPropTypeLocations = __webpack_require__(22);
+	var ReactPropTypeLocationNames = __webpack_require__(24);
+	var ReactReconciler = __webpack_require__(36);
+	var ReactUpdateQueue = __webpack_require__(45);
 
-	var emptyObject = __webpack_require__(21);
-	var invariant = __webpack_require__(8);
-	var shouldUpdateReactComponent = __webpack_require__(51);
-	var warning = __webpack_require__(11);
+	var emptyObject = __webpack_require__(20);
+	var invariant = __webpack_require__(7);
+	var shouldUpdateReactComponent = __webpack_require__(50);
+	var warning = __webpack_require__(10);
 
 	function getDeclarationErrorAddendum(component) {
 	  var owner = component._currentElement._owner || null;
@@ -5717,7 +5743,7 @@ var ReactKonva =
 	module.exports = ReactCompositeComponent;
 
 /***/ },
-/* 43 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -5798,7 +5824,7 @@ var ReactKonva =
 	module.exports = ReactErrorUtils;
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -5814,9 +5840,9 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactElement = __webpack_require__(9);
+	var ReactElement = __webpack_require__(8);
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	var ReactNodeTypes = {
 	  NATIVE: 0,
@@ -5840,7 +5866,7 @@ var ReactKonva =
 	module.exports = ReactNodeTypes;
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -5941,7 +5967,7 @@ var ReactKonva =
 	module.exports = ReactPerf;
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -5957,12 +5983,12 @@ var ReactKonva =
 
 	'use strict';
 
-	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactInstanceMap = __webpack_require__(33);
-	var ReactUpdates = __webpack_require__(47);
+	var ReactCurrentOwner = __webpack_require__(9);
+	var ReactInstanceMap = __webpack_require__(32);
+	var ReactUpdates = __webpack_require__(46);
 
-	var invariant = __webpack_require__(8);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(7);
+	var warning = __webpack_require__(10);
 
 	function enqueueUpdate(internalInstance) {
 	  ReactUpdates.enqueueUpdate(internalInstance);
@@ -6161,7 +6187,7 @@ var ReactKonva =
 	module.exports = ReactUpdateQueue;
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -6177,16 +6203,16 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var CallbackQueue = __webpack_require__(48);
-	var PooledClass = __webpack_require__(7);
-	var ReactFeatureFlags = __webpack_require__(49);
-	var ReactPerf = __webpack_require__(45);
-	var ReactReconciler = __webpack_require__(37);
-	var Transaction = __webpack_require__(50);
+	var CallbackQueue = __webpack_require__(47);
+	var PooledClass = __webpack_require__(6);
+	var ReactFeatureFlags = __webpack_require__(48);
+	var ReactPerf = __webpack_require__(44);
+	var ReactReconciler = __webpack_require__(36);
+	var Transaction = __webpack_require__(49);
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	var dirtyComponents = [];
 	var asapCallbackQueue = CallbackQueue.getPooled();
@@ -6407,7 +6433,7 @@ var ReactKonva =
 	module.exports = ReactUpdates;
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -6423,11 +6449,11 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var PooledClass = __webpack_require__(7);
+	var PooledClass = __webpack_require__(6);
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * A specialized pseudo-event module to help keep track of components waiting to
@@ -6517,7 +6543,7 @@ var ReactKonva =
 	module.exports = CallbackQueue;
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports) {
 
 	/**
@@ -6543,7 +6569,7 @@ var ReactKonva =
 	module.exports = ReactFeatureFlags;
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -6559,7 +6585,7 @@ var ReactKonva =
 
 	'use strict';
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	/**
 	 * `Transaction` creates a black box that is able to wrap any method such that
@@ -6779,7 +6805,7 @@ var ReactKonva =
 	module.exports = Transaction;
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports) {
 
 	/**
@@ -6826,7 +6852,7 @@ var ReactKonva =
 	module.exports = shouldUpdateReactComponent;
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports) {
 
 	/**
@@ -6861,7 +6887,7 @@ var ReactKonva =
 	module.exports = ReactEmptyComponent;
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -6877,9 +6903,9 @@ var ReactKonva =
 
 	'use strict';
 
-	var _assign = __webpack_require__(5);
+	var _assign = __webpack_require__(4);
 
-	var invariant = __webpack_require__(8);
+	var invariant = __webpack_require__(7);
 
 	var autoGenerateWrapperClass = null;
 	var genericComponentClass = null;
@@ -6961,7 +6987,7 @@ var ReactKonva =
 	module.exports = ReactNativeComponent;
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -6977,8 +7003,8 @@ var ReactKonva =
 
 	'use strict';
 
-	var traverseAllChildren = __webpack_require__(14);
-	var warning = __webpack_require__(11);
+	var traverseAllChildren = __webpack_require__(13);
+	var warning = __webpack_require__(10);
 
 	/**
 	 * @param {function} traverseContext Context passed through traversal.
