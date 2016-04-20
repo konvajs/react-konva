@@ -2,13 +2,11 @@ var webpack = require('webpack');
 
 module.exports = {
     entry: [
-        './src/react-konva.js'
+        './src/bundle.js'
     ],
     output: {
         path: __dirname,
-        filename: './dist/react-konva.global.js',
-        libraryTarget: "var",
-        library: "ReactKonva"
+        filename: './dist/react-konva.bundle.js'
     },
     externals: {
         // "react": "React",

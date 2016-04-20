@@ -11,11 +11,6 @@ var ReactUpdates = require('react/lib/ReactUpdates');
 var assign = require('object-assign');
 var emptyObject = require('fbjs/lib/emptyObject');
 
-// inject React into window for usage in global all included build
-if (process.env.NODE_ENV === 'production') {
-    window.React = React;
-}
-
 
 // some patching to make Konva.Node looks like DOM nodes
 var oldAdd = Konva.Container.prototype.add;
