@@ -4,6 +4,6 @@ var ReactKonva = require('./react-konva');
 
 window.React = React;
 window.ReactDOM = ReactDOM;
-window.ReacKonva = ReacKonva;
+window.ReactKonva = ReactKonva;
 
 module.exports = ReactKonva;
