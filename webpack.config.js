@@ -6,7 +6,9 @@ module.exports = {
     ],
     output: {
         path: __dirname,
-        filename: './dist/react-konva.bundle.js'
+        filename: './dist/react-konva.bundle.js',
+        libraryTarget: "var",
+        library: "ReactKonva"
     },
     externals: {
         // "react": "React",
