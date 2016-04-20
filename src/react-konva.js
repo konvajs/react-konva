@@ -12,7 +12,7 @@ var ReactInstanceMap = require('react/lib/ReactInstanceMap');
 var ReactMultiChild = require('react/lib/ReactMultiChild');
 var ReactUpdates = require('react/lib/ReactUpdates');
 
-var assign = require('react/lib/Object.assign');
+var assign = require('object-assign');
 var emptyObject = require('fbjs/lib/emptyObject');
 
 function createComponent(name) {
@@ -260,7 +260,7 @@ var NodeMixin = {
   	      if (isEvent && toAdd) {
   	           this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
   	      }
-  		  if (props[key] !==  this.node.getAttr(key) && !isEvent) {
+  		  if (!isEvent && ((props[key] !== oldProps[key]) || (props[key] !==  this.node.getAttr(key)))) {
   			   hasUpdates = true;
   			   updatedProps[key] = props[key];
   		  }
