@@ -79,10 +79,10 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
     },
 
     removeChild: function(child, node) {
-           child._mountImage.node.destroy();
-           var layer = child._mountImage.node.getLayer();
-	       layer && layer.batchDraw();
-           child._mountImage = null;
+        var layer = child._mountImage.node.getLayer();
+        child._mountImage.node.destroy();
+	    layer && layer.batchDraw();
+        child._mountImage = null;
     },
 
     updateChildrenAtRoot: function(nextChildren, transaction) {
@@ -156,6 +156,10 @@ var Stage = React.createClass({
             ReactInstanceMap.get(this)._context
         );
         ReactUpdates.ReactReconcileTransaction.release(transaction);
+    },
+
+    componentWillReceiveProps: function() {
+        
     },
 
   componentDidUpdate: function(oldProps) {
