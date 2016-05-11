@@ -6,7 +6,7 @@ React Konva is a JavaScript library for drawing complex canvas graphics using [R
 
 It provides declarative and reactive bindings to the [Konva Framework](http://konvajs.github.io/).
 
-# [DEMO](http://jsbin.com/camene/edit?html,js,output)
+# [DEMO](http://jsbin.com/camene/edit?js,output)
 
 An attempt to make [React](http://facebook.github.io/react/) work with the HTML5 canvas library. The goal is to have
 similar declarative markup as normal React and to have similar data-flow model.
