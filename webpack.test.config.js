@@ -2,13 +2,17 @@ var webpack = require('webpack');
 
 module.exports = {
     entry: [
-        './test/test.js'
+        './test/tests.js'
     ],
     output: {
         path: __dirname,
-        filename: './test/test.bundle.js',
-        libraryTarget: "var",
-        library: "ReactKonva"
+        filename: './test/tests.bundle.js'
+    },
+    externals: {
+        'cheerio': 'window',
+        'react/addons': true,
+        'react/lib/ExecutionEnvironment': true,
+        'react/lib/ReactContext': true
     },
     module: {
         loaders: [

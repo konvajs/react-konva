@@ -134,12 +134,21 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
 
 
 var Stage = React.createClass({
+    propTypes: {
+        width: React.PropTypes.oneOf([
+            React.PropTypes.number,
+            React.PropTypes.string,
+        ]),
+        height: React.PropTypes.oneOf([
+            React.PropTypes.number,
+            React.PropTypes.string,
+        ])
+    },
     displayName: 'Stage',
 
     mixins: [ContainerMixin],
 
     componentDidMount: function() {
-
         this.node = new Konva.Stage({
             container: this.domNode,
             width: this.props.width,
@@ -159,53 +168,56 @@ var Stage = React.createClass({
     },
 
     componentWillReceiveProps: function() {
-        
+
     },
 
-  componentDidUpdate: function(oldProps) {
-    var node = this.node;
-    if (this.props.width != oldProps.width ||
-        this.props.height != oldProps.height) {
-      node.size({
-        width: +this.props.width,
-        height: +this.props.height
-      });
+    getStage: function() {
+        return this.node;
+    },
+
+    componentDidUpdate: function(oldProps) {
+        var node = this.node;
+        if (this.props.width != oldProps.width ||
+            this.props.height != oldProps.height) {
+            node.size({
+                width: +this.props.width,
+                height: +this.props.height
+            });
+        }
+
+        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+        transaction.perform(
+            this.updateChildren,
+            this,
+            this.props.children,
+            transaction,
+            ReactInstanceMap.get(this)._context
+        );
+        ReactUpdates.ReactReconcileTransaction.release(transaction);
+
+        if (node.render) {
+            node.render();
+        }
+    },
+
+    componentWillUnmount: function() {
+        this.unmountChildren();
+    },
+
+    render: function() {
+        var props = this.props;
+
+        return (
+            React.createElement('div', {
+                ref: function(c)  {return this.domNode = c;}.bind(this),
+                className: props.className,
+                role: props.role,
+                style: props.style,
+                tabindex: props.tabindex,
+                title: props.title}
+            )
+        );
     }
-
-    var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-    transaction.perform(
-      this.updateChildren,
-      this,
-      this.props.children,
-      transaction,
-      ReactInstanceMap.get(this)._context
-    );
-    ReactUpdates.ReactReconcileTransaction.release(transaction);
-
-    if (node.render) {
-      node.render();
-    }
-  },
-
-  componentWillUnmount: function() {
-    this.unmountChildren();
-  },
-
-  render: function() {
-    var props = this.props;
-
-    return (
-      React.createElement('div', {
-        ref: function(c)  {return this.domNode = c;}.bind(this),
-        className: props.className,
-        role: props.role,
-        style: props.style,
-        tabindex: props.tabindex,
-        title: props.title}
-      )
-    );
-  }
-
 });
 
 

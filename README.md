@@ -81,6 +81,45 @@ Also you can create custom shape.
 
 To get more info about `Konva` you can read [Konva Overview](http://konvajs.github.io/docs/overview.html).
 
+## Documentation
+
+### Getting reference to "native" object
+
+To get reference of Konva instance of a node you can use `ref` property.
+
+```javascript
+class MyShape extends React.Component {
+    componentDidMount() {
+        // log Konva.Circle instance
+        console.log(this.refs.circle);
+    }
+    render() {
+        return (
+            <Circle ref="circle" radius={50} fill="black"/>
+        );
+    }
+}
+```
+
+That will work for all nodes except `Stage`. To get `Stage` instance you have to use:
+
+```javascript
+class App extends React.Component {
+    componentDidMount() {
+        // log stage react wrapper
+        console.log(this.refs.stage);
+        // log Konva.Stage instance
+        console.log(this.refs.stage.getStage());
+    }
+    render() {
+        return (
+            <Stage ref="stage" width="300" height="300"/>
+        );
+    }
+}
+```
+
+
 
 ## Comparisons
 
