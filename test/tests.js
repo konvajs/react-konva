@@ -1,8 +1,9 @@
-var React = require('react');
-const { expect } = require('chai');
-var { shallow, mount, render } = require('enzyme');
-var {Stage, Layer}  = require('../src/react-konva');
+import React from 'react';
+import { expect } from 'chai';
+import { shallow, mount, render } from 'enzyme';
+import {Stage, Layer, Rect} from '../src/react-konva';
 import Konva from 'konva';
+
 
 class App extends React.Component {
     render() {
@@ -22,9 +23,19 @@ describe("Test references", function() {
         const stageRef = instance.refs.stage;
         expect(stageRef.getStage() instanceof Konva.Stage).to.equal(true);
     });
+
     it("can get layer instance", function() {
         const wrapper = mount(<App/>);
         const instance = wrapper.instance();
         expect(instance.refs.layer instanceof Konva.Layer).to.equal(true);
+    });
+});
+
+describe.only('Test props setting', function() {
+    it('test', () => {
+        const wrapper = shallow(<Rect fill="black"/>);
+        console.log(wrapper);
+        // const instance = wrapper.instance();
+        // expect(instance.node instanceof Konva.Rect).to.equal(true);
     });
 });

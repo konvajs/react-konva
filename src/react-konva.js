@@ -46,6 +46,7 @@ function createComponent(name) {
     };
 
     ReactKonvaComponent.displayName = name;
+
     for (var i = 1, l = arguments.length; i < l; i++) {
         assign(ReactKonvaComponent.prototype, arguments[i]);
     }
@@ -128,6 +129,9 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
                 i++;
             }
         }
+    },
+    mountAndAddChildren() {
+        console.log('mountAndAddChildren')
     }
 });
 
@@ -135,11 +139,11 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
 
 var Stage = React.createClass({
     propTypes: {
-        width: React.PropTypes.oneOf([
+        width: React.PropTypes.oneOfType([
             React.PropTypes.number,
             React.PropTypes.string,
         ]),
-        height: React.PropTypes.oneOf([
+        height: React.PropTypes.oneOfType([
             React.PropTypes.number,
             React.PropTypes.string,
         ])
@@ -154,7 +158,7 @@ var Stage = React.createClass({
             width: this.props.width,
             height: this.props.height
         });
-
+        this._debugID = this._reactInternalInstance._debugID;
         var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
 
         transaction.perform(
@@ -165,10 +169,6 @@ var Stage = React.createClass({
             ReactInstanceMap.get(this)._context
         );
         ReactUpdates.ReactReconcileTransaction.release(transaction);
-    },
-
-    componentWillReceiveProps: function() {
-
     },
 
     getStage: function() {
@@ -194,10 +194,6 @@ var Stage = React.createClass({
             ReactInstanceMap.get(this)._context
         );
         ReactUpdates.ReactReconcileTransaction.release(transaction);
-
-        if (node.render) {
-            node.render();
-        }
     },
 
     componentWillUnmount: function() {
@@ -245,7 +241,6 @@ var GroupMixin = {
   },
 
   unmountComponent: function() {
-    this.destroyEventListeners();
     this.unmountChildren();
   }
 }
@@ -275,10 +270,6 @@ var NodeMixin = {
 
   handleEvent: function(event) {
       // NOPE...
-  },
-
-  destroyEventListeners: function() {
-     // NOPE...
   },
 
   getNativeNode: function() {
@@ -350,7 +341,9 @@ var ShapeMixin = {
 
   mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
     this.node = new Konva[this.constructor.displayName]();
-    nativeParent.node.add(this.node);
+    if (nativeParent) {
+        nativeParent.node.add(this.node);
+    }
     this.applyNodeProps(emptyObject, this._initialProps);
     return {
         children: [],
