@@ -49,5 +49,6 @@
     "test:watch": "webpack-dev-server --config webpack.test.config.js --progress --profile --colors",
     "test": "npm run test:compile && npm run test:run && npm run test:clean",
     "build": "webpack --progress --profile --colors"
-  }
+  },
+  "typings": "react-konva.d.ts"
 }
