@@ -20464,100 +20464,6 @@ var ReactKonva =
 	    }
 	});
 
-	var Stage = React.createClass({
-	    propTypes: {
-	        width: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
-	        height: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string])
-	    },
-	    displayName: 'Stage',
-
-	    mixins: [ContainerMixin],
-
-	    componentDidMount: function componentDidMount() {
-	        this.node = new Konva.Stage({
-	            container: this.domNode,
-	            width: this.props.width,
-	            height: this.props.height
-	        });
-	        this._debugID = this._reactInternalInstance._debugID;
-	        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-
-	        transaction.perform(this.mountAndInjectChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
-	        ReactUpdates.ReactReconcileTransaction.release(transaction);
-	    },
-
-	    componentWillReceiveProps: function componentWillReceiveProps() {},
-
-	    getStage: function getStage() {
-	        return this.node;
-	    },
-
-	    componentDidUpdate: function componentDidUpdate(oldProps) {
-	        var node = this.node;
-	        if (this.props.width != oldProps.width || this.props.height != oldProps.height) {
-	            node.size({
-	                width: +this.props.width,
-	                height: +this.props.height
-	            });
-	        }
-
-	        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-	        transaction.perform(this.updateChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
-	        ReactUpdates.ReactReconcileTransaction.release(transaction);
-
-	        if (node.render) {
-	            node.render();
-	        }
-	    },
-
-	    componentWillUnmount: function componentWillUnmount() {
-	        this.unmountChildren();
-	    },
-
-	    render: function render() {
-	        var props = this.props;
-
-	        return React.createElement('div', {
-	            ref: function (c) {
-	                return this.domNode = c;
-	            }.bind(this),
-	            className: props.className,
-	            role: props.role,
-	            style: props.style,
-	            tabindex: props.tabindex,
-	            title: props.title });
-	    }
-	});
-
-	var GroupMixin = {
-	    mountComponent: function mountComponent(transaction, nativeParent, nativeContainerInfo, context) {
-	        this.node = new Konva[this.constructor.displayName]();
-	        nativeParent.node.add(this.node);
-	        var props = this._initialProps;
-	        this.applyNodeProps(emptyObject, props);
-	        this.mountAndInjectChildren(props.children, transaction, context);
-	        return {
-	            children: [],
-	            node: this.node,
-	            html: null,
-	            text: null
-	        };
-	    },
-
-	    receiveComponent: function receiveComponent(nextComponent, transaction, context) {
-	        var props = nextComponent.props;
-	        var oldProps = this._initialProps;
-	        this.applyNodeProps(oldProps, props);
-	        this.updateChildren(props.children, transaction, context);
-	        this._currentElement = nextComponent;
-	    },
-
-	    unmountComponent: function unmountComponent() {
-	        this.destroyEventListeners();
-	        this.unmountChildren();
-	    }
-	};
-
 	var NodeMixin = {
 
 	    construct: function construct(element) {
@@ -20566,7 +20472,7 @@ var ReactKonva =
 
 	    receiveComponent: function receiveComponent(nextComponent, transaction, context) {
 	        var props = nextComponent.props;
-	        var oldProps = this._initialProps;
+	        var oldProps = this._currentElement.props || this._initialProps;
 	        this.applyNodeProps(oldProps, props);
 	        this.updateChildren(props.children, transaction, context);
 	        this._currentElement = nextComponent;
@@ -20581,10 +20487,6 @@ var ReactKonva =
 	    },
 
 	    handleEvent: function handleEvent(event) {
-	        // NOPE...
-	    },
-
-	    destroyEventListeners: function destroyEventListeners() {
 	        // NOPE...
 	    },
 
@@ -20643,6 +20545,86 @@ var ReactKonva =
 
 	};
 
+	var Stage = React.createClass({
+	    propTypes: {
+	        width: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
+	        height: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string])
+	    },
+	    displayName: 'Stage',
+
+	    mixins: [ContainerMixin],
+
+	    componentDidMount: function componentDidMount() {
+	        this.node = new Konva.Stage({
+	            container: this.domNode,
+	            width: this.props.width,
+	            height: this.props.height
+	        });
+	        this.applyNodeProps(emptyObject, this.props);
+	        this._debugID = this._reactInternalInstance._debugID;
+	        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+
+	        transaction.perform(this.mountAndInjectChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
+	        ReactUpdates.ReactReconcileTransaction.release(transaction);
+
+	        this.node.draw();
+	    },
+
+	    getStage: function getStage() {
+	        return this.node;
+	    },
+
+	    componentDidUpdate: function componentDidUpdate(oldProps) {
+	        var node = this.node;
+
+	        this.applyNodeProps(oldProps, this.props);
+
+	        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+	        transaction.perform(this.updateChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
+	        ReactUpdates.ReactReconcileTransaction.release(transaction);
+	    },
+
+	    componentWillUnmount: function componentWillUnmount() {
+	        this.unmountChildren();
+	    },
+
+	    applyNodeProps: NodeMixin.applyNodeProps,
+
+	    render: function render() {
+	        var props = this.props;
+
+	        return React.createElement('div', {
+	            ref: function (c) {
+	                return this.domNode = c;
+	            }.bind(this),
+	            className: props.className,
+	            role: props.role,
+	            style: props.style,
+	            tabindex: props.tabindex,
+	            title: props.title });
+	    }
+	});
+
+	var GroupMixin = {
+	    mountComponent: function mountComponent(transaction, nativeParent, nativeContainerInfo, context) {
+	        this.node = new Konva[this.constructor.displayName]();
+	        nativeParent.node.add(this.node);
+	        var props = this._initialProps;
+	        this.applyNodeProps(emptyObject, props);
+	        this.mountAndInjectChildren(props.children, transaction, context);
+	        return {
+	            children: [],
+	            node: this.node,
+	            html: null,
+	            text: null
+	        };
+	    },
+
+	    unmountComponent: function unmountComponent() {
+	        this.unmountChildren();
+	    }
+	};
+
 	var ShapeMixin = {
 
 	    construct: function construct(element) {
@@ -20666,7 +20648,7 @@ var ReactKonva =
 
 	    receiveComponent: function receiveComponent(nextComponent, transaction, context) {
 	        var props = nextComponent.props;
-	        var oldProps = this._initialProps;
+	        var oldProps = this._currentElement.props || this._initialProps;
 	        this.applyNodeProps(oldProps, props);
 	        this._currentElement = nextComponent;
 	    }
