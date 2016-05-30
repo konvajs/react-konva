@@ -136,116 +136,6 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
 });
 
 
-
-var Stage = React.createClass({
-    propTypes: {
-        width: React.PropTypes.oneOfType([
-            React.PropTypes.number,
-            React.PropTypes.string,
-        ]),
-        height: React.PropTypes.oneOfType([
-            React.PropTypes.number,
-            React.PropTypes.string,
-        ])
-    },
-    displayName: 'Stage',
-
-    mixins: [ContainerMixin],
-
-    componentDidMount: function() {
-        this.node = new Konva.Stage({
-            container: this.domNode,
-            width: this.props.width,
-            height: this.props.height
-        });
-        this._debugID = this._reactInternalInstance._debugID;
-        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-
-        transaction.perform(
-            this.mountAndInjectChildren,
-            this,
-            this.props.children,
-            transaction,
-            ReactInstanceMap.get(this)._context
-        );
-        ReactUpdates.ReactReconcileTransaction.release(transaction);
-    },
-
-    getStage: function() {
-        return this.node;
-    },
-
-    componentDidUpdate: function(oldProps) {
-        var node = this.node;
-        if (this.props.width != oldProps.width ||
-            this.props.height != oldProps.height) {
-            node.size({
-                width: +this.props.width,
-                height: +this.props.height
-            });
-        }
-
-        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-        transaction.perform(
-            this.updateChildren,
-            this,
-            this.props.children,
-            transaction,
-            ReactInstanceMap.get(this)._context
-        );
-        ReactUpdates.ReactReconcileTransaction.release(transaction);
-    },
-
-    componentWillUnmount: function() {
-        this.unmountChildren();
-    },
-
-    render: function() {
-        var props = this.props;
-
-        return (
-            React.createElement('div', {
-                ref: function(c)  {return this.domNode = c;}.bind(this),
-                className: props.className,
-                role: props.role,
-                style: props.style,
-                tabindex: props.tabindex,
-                title: props.title}
-            )
-        );
-    }
-});
-
-
-var GroupMixin = {
-  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
-    this.node = new Konva[this.constructor.displayName]();
-    nativeParent.node.add(this.node);
-    var props = this._initialProps;
-    this.applyNodeProps(emptyObject, props);
-    this.mountAndInjectChildren(props.children, transaction, context);
-    return {
-        children: [],
-        node: this.node,
-        html: null,
-        text: null
-    }
-  },
-
-  receiveComponent: function(nextComponent, transaction, context) {
-    var props = nextComponent.props;
-    var oldProps = this._initialProps;
-    this.applyNodeProps(oldProps, props);
-    this.updateChildren(props.children, transaction, context);
-    this._currentElement = nextComponent;
-  },
-
-  unmountComponent: function() {
-    this.unmountChildren();
-  }
-}
-
-
 var NodeMixin = {
 
   construct: function(element) {
@@ -254,7 +144,7 @@ var NodeMixin = {
 
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
-    var oldProps = this._initialProps;
+    var oldProps = this._currentElement.props || this._initialProps;
     this.applyNodeProps(oldProps, props);
     this.updateChildren(props.children, transaction, context);
     this._currentElement = nextComponent;
@@ -332,6 +222,108 @@ var NodeMixin = {
 
 };
 
+
+var Stage = React.createClass({
+    propTypes: {
+        width: React.PropTypes.oneOfType([
+            React.PropTypes.number,
+            React.PropTypes.string,
+        ]),
+        height: React.PropTypes.oneOfType([
+            React.PropTypes.number,
+            React.PropTypes.string,
+        ])
+    },
+    displayName: 'Stage',
+
+    mixins: [ContainerMixin],
+
+    componentDidMount: function() {
+        this.node = new Konva.Stage({
+            container: this.domNode,
+            width: this.props.width,
+            height: this.props.height
+        });
+        this.applyNodeProps(emptyObject, this.props);
+        this._debugID = this._reactInternalInstance._debugID;
+        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+
+        transaction.perform(
+            this.mountAndInjectChildren,
+            this,
+            this.props.children,
+            transaction,
+            ReactInstanceMap.get(this)._context
+        );
+        ReactUpdates.ReactReconcileTransaction.release(transaction);
+
+        this.node.draw();
+    },
+
+    getStage: function() {
+        return this.node;
+    },
+
+    componentDidUpdate: function(oldProps) {
+        var node = this.node;
+
+        this.applyNodeProps(oldProps, this.props);
+
+        var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
+        transaction.perform(
+            this.updateChildren,
+            this,
+            this.props.children,
+            transaction,
+            ReactInstanceMap.get(this)._context
+        );
+        ReactUpdates.ReactReconcileTransaction.release(transaction);
+    },
+
+    componentWillUnmount: function() {
+        this.unmountChildren();
+    },
+
+    applyNodeProps: NodeMixin.applyNodeProps,
+
+    render: function() {
+        var props = this.props;
+
+        return (
+            React.createElement('div', {
+                ref: function(c)  {return this.domNode = c;}.bind(this),
+                className: props.className,
+                role: props.role,
+                style: props.style,
+                tabindex: props.tabindex,
+                title: props.title}
+            )
+        );
+    }
+});
+
+
+var GroupMixin = {
+  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
+    this.node = new Konva[this.constructor.displayName]();
+    nativeParent.node.add(this.node);
+    var props = this._initialProps;
+    this.applyNodeProps(emptyObject, props);
+    this.mountAndInjectChildren(props.children, transaction, context);
+    return {
+        children: [],
+        node: this.node,
+        html: null,
+        text: null
+    }
+  },
+
+  unmountComponent: function() {
+    this.unmountChildren();
+  }
+}
+
+
 var ShapeMixin = {
 
   construct: function(element) {
@@ -355,7 +347,7 @@ var ShapeMixin = {
 
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
-    var oldProps = this._initialProps;
+    var oldProps = this._currentElement.props || this._initialProps;
     this.applyNodeProps(oldProps, props);
     this._currentElement = nextComponent;
   }
