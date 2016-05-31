@@ -130,7 +130,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
             }
         }
     },
-    mountAndAddChildren() {
+    mountAndAddChildren: function() {
         console.log('mountAndAddChildren')
     }
 });
