@@ -1,7 +1,0 @@
-node_modules
-npm-debug.log
-.DS_Store
-examples
-webpack.config.js
-react-konva.png
-dist
