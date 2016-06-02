@@ -7,8 +7,6 @@ import Konva from 'konva';
 import sinon from 'sinon';
 
 
-
-
 describe("Test references", function() {
     let instance;
     class App extends React.Component {
@@ -123,9 +121,21 @@ describe('Test props setting', function() {
         expect(rect.eventListeners.click.length).to.equal(1);
         expect(rect.eventListeners.click[0].handler).to.equal(props2.onClick);
     });
+
+    it('updating props should call layer redraw', () => {
+        const layer = instance.refs.layer;
+        sinon.spy(layer, 'batchDraw');
+        wrapper.setProps({rectProps: {
+            fill: 'green'
+        }});
+        wrapper.setProps({rectProps: {
+            fill: 'red'
+        }});
+        expect(layer.batchDraw.callCount).to.equal(2);
+    });
 });
 
-describe('test lifecycle methids', () => {
+describe('test lifecycle methods', () => {
     let instance, wrapper;
 
     class SubComponent extends React.Component {
@@ -214,9 +224,7 @@ describe('test lifecycle methids', () => {
         props.skipsub = props;
         wrapper.setProps(props);
         expect(stage.findOne('Rect')).to.equal(undefined);
-
         // This line don't work... why????
         // expect(props.componentWillUnmount.called).to.equal(true);
     });
-
 });

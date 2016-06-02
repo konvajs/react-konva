@@ -59,6 +59,9 @@ class MyRect extends React.Component {
 }
 
 function App() {
+    // Stage - is a div wrapper
+    // Layer - is a <canvas> element on the page
+    // so you can use several canvases. It may help you to improve performance a lot.
     return (
       <Stage width={700} height={700}>
         <Layer>
@@ -73,7 +76,6 @@ ReactDOM.render(<App/>, document.getElementById('container'));
 ```
 
 
-
 All `react-konva` components correspond to `Konva` components of the same
 name. All the parameters available for `Konva` objects are valid props for
 corresponding `react-konva` components, unless otherwise noted.
@@ -83,11 +85,31 @@ Also you can create custom shape.
 
 To get more info about `Konva` you can read [Konva Overview](http://konvajs.github.io/docs/overview.html).
 
+
+
+
+## Comparisons
+
+### react-konva vs react-canvas
+
+[react-canvas](https://github.com/Flipboard/react-canvas) is a completely different react plugin. It allows you to draw DOM-like objects (images, texts) on canvas element in very performant way. It is NOT about drawing graphics, but react-konva is exactly for drawing complex graphics on `<canvas>` element from React.
+
+### react-konva vs react-art
+
+[react-art](https://github.com/reactjs/react-art) allows you to draw graphics on a page. It also supports SVG for output. But it has no support of events of shapes.
+
+### react-konva vs vanilla canvas
+
+Performance is one of the main buzz word in react hype.
+
+I made this plugin not for performance reasons. Using vanilla <canvas> should be more performant because while using react-konva you have Konva framework on top of <canvas> and React on top of Konva. But I made this plugin to fight with application complexity. Konva helps here a lot (especially when you need events for objects on canvas, like “click” on shape, it is really hard to do with vanilla canvas). But React helps here much more as it provides very good structure for your codebase and data flow.
+
+
 ## Documentation
 
-### Getting reference to "native" object
+### Getting reference to Konva objects
 
-To get reference of Konva instance of a node you can use `ref` property.
+To get reference of `Konva` instance of a node you can use `ref` property.
 
 ```javascript
 class MyShape extends React.Component {
@@ -121,20 +143,41 @@ class App extends React.Component {
 }
 ```
 
+### Animations
 
+For complex animation I recommend to use React methods. Somethings like:
+* [https://github.com/chenglou/react-motion](https://github.com/chenglou/react-motion)
+* [https://github.com/chenglou/react-tween-state](https://github.com/chenglou/react-tween-state)
 
-## Comparisons
+But for simple cases you can use `Konva` methods:
 
-### react-konva vs react-canvas
+[http://jsbin.com/puroji/2/edit?js,output](http://jsbin.com/puroji/2/edit?js,output)
+```javascript
+class MyRect extends React.Component {
+    changeSize() {
+        const rect = this.refs.rect;
 
-[react-canvas](https://github.com/Flipboard/react-canvas) is a completely different react plugin. It allows you to draw DOM-like objects (images, texts) on canvas element in very performant way. It is NOT about drawing graphics, but react-konva is exactly for drawing complex graphics on `<canvas>` element from React.
-
-### react-konva vs react-art
-
-[react-art](https://github.com/reactjs/react-art) allows you to draw graphics on a page. It also supports SVG for output. But it has no support of events of shapes.
-
-### react-konva vs vanilla canvas
-
-Performance is one of the main buzz word in react hype.
-
-I made this plugin not for performance reasons. Using vanilla <canvas> should be more performant because while using react-konva you have Konva framework on top of <canvas> and React on top of Konva. But I made this plugin to fight with application complexity. Konva helps here a lot (especially when you need events for objects on canvas, like “click” on shape, it is really hard to do with vanilla canvas). But React helps here much more as it provides very good structure for your codebase and data flow.
+        // to() is a method of `Konva.Node` instances
+        rect.to({
+            scaleX: Math.random() + 0.8,
+            scaleY: Math.random() + 0.8,
+            duration: 0.2
+        });
+    }
+    render() {
+        return (
+            <Group>
+                <Rect
+                    ref="rect"
+                    width="50"
+                    height="50"
+                    fill="green"
+                    draggable="true"
+                    onDragEnd={this.changeSize.bind(this)}
+                    onDragStart={this.changeSize.bind(this)}
+                />
+          </Group>
+        );
+    }
+}
+```

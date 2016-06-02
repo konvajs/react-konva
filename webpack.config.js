@@ -11,7 +11,7 @@ module.exports = {
         library: "ReactKonva"
     },
     externals: {
-        'Konva': 'Konva'
+        'konva': 'Konva'
     },
     module: {
         loaders: [
