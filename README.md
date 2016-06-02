@@ -105,7 +105,10 @@ Performance is one of the main buzz word in react hype.
 I made this plugin not for performance reasons. Using vanilla <canvas> should be more performant because while using react-konva you have Konva framework on top of <canvas> and React on top of Konva. But I made this plugin to fight with application complexity. Konva helps here a lot (especially when you need events for objects on canvas, like “click” on shape, it is really hard to do with vanilla canvas). But React helps here much more as it provides very good structure for your codebase and data flow.
 
 
-## Documentation
+## Documentation and Examples
+
+**Note: you can find a lot of demos and examples of using Konva there: [http://konvajs.github.io/](http://konvajs.github.io/)**
+
 
 ### Getting reference to Konva objects
 
