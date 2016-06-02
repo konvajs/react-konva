@@ -50,5 +50,10 @@
     "test": "npm run test:compile && npm run test:run && npm run test:clean",
     "build": "webpack --progress --profile --colors"
   },
-  "typings": "react-konva.d.ts"
+  "typings": "react-konva.d.ts",
+  "files": [
+    "README.md",
+    "./src/react-konva.js",
+    "react-konva.d.ts"
+  ],
 }
