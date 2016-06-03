@@ -53,7 +53,7 @@
   "typings": "react-konva.d.ts",
   "files": [
     "README.md",
-    "./src/react-konva.js",
+    "src/react-konva.js",
     "react-konva.d.ts"
   ]
 }
