@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "react": "^15.1.0",
-    "konva": ">=0.10.0"
+    "konva": ">=0.14.0"
   },
   "devDependencies": {
     "babel-core": "^6.9.0",
