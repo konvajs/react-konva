@@ -3,6 +3,7 @@
 
 var Konva = require('konva');
 var React = require('react/lib/React');
+var computeLayout = require('css-layout');
 
 var ReactInstanceMap = require('react/lib/ReactInstanceMap');
 var ReactMultiChild = require('react/lib/ReactMultiChild');
@@ -27,7 +28,12 @@ Konva.Container.prototype.replaceChild = function(newChild, oldChild) {
     if (newChild.index !== index) {
         newChild.setZIndex(index);
     }
-    parent.getLayer().batchDraw();
+    var reactElement = parent.reactElement || this.reactElement;
+    if (reactElement) {
+      reactElement.batchRedrawLayer();
+    } else {
+      parent.getLayer().batchDraw();
+    }
 }
 
 
@@ -61,8 +67,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
         var childNode = prevChild._mountImage.node;
         if (childNode.index !== nextIndex) {
             childNode.setZIndex(nextIndex);
-	        var layer = childNode.getLayer();
-		    layer && layer.batchDraw();
+            this.batchRedrawLayer();
         }
     },
 
@@ -75,15 +80,13 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
             childNode.setZIndex(child._mountIndex);
         }
         this._mostRecentlyPlacedChild = childNode;
-    	var layer = childNode.getLayer();
-    	layer && layer.batchDraw();
+        this.batchRedrawLayer();
     },
 
     removeChild: function(child, node) {
         var layer = child._mountImage.node.getLayer();
         child._mountImage.node.destroy();
-	    layer && layer.batchDraw();
-        child._mountImage = null;
+        this.batchRedrawLayer();
     },
 
     updateChildrenAtRoot: function(nextChildren, transaction) {
@@ -135,90 +138,179 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
     }
 });
 
+function createLayoutNode (konvaNode) {
+    var children = [];
+
+    if (typeof konvaNode.getChildren === 'function') {
+        let konvaNodeChildren = konvaNode.getChildren()
+        konvaNodeChildren.forEach(function (child) {
+            children.push(createLayoutNode(child));
+        })
+    }
+
+    var result = {
+        node: konvaNode,
+        layout: {
+            width: undefined, // computeLayout will mutate
+            height: undefined, // computeLayout will mutate
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+        },
+        style: konvaNode.reactElement.getStyle(),
+        children: children
+    };
+
+    applySizeToStyle(konvaNode, result.style);
+
+    return result
+}
+
+function nodeHasOwnSize (konvaNode) {
+    let className = konvaNode.getClassName();
+    return (className == 'Stage' || className == 'Layer' || className == 'FastLayer');
+}
+
+function applySizeToStyle (konvaNode, style) {
+    if (nodeHasOwnSize(konvaNode)) {
+        style.x = konvaNode.x();
+        style.y = konvaNode.y();
+        style.width = konvaNode.width();
+        style.height = konvaNode.height();
+    }
+}
+
+function applyLayout (layoutNode, parentLeft, parentTop) {
+    parentLeft = (typeof parentLeft === 'number') ? parentLeft : 0
+    parentTop = (typeof parentTop === 'number') ? parentTop : 0
+
+    if (!nodeHasOwnSize(layoutNode.node)) {
+      layoutNode.node.x(layoutNode.layout.left + parentLeft);
+      layoutNode.node.y(layoutNode.layout.top + parentTop);
+      layoutNode.node.width(layoutNode.layout.width);
+      layoutNode.node.height(layoutNode.layout.height);
+    }
+
+    if (layoutNode.children && layoutNode.children.length > 0) {
+        layoutNode.children.forEach(function (child) {
+            applyLayout(child, layoutNode.node.x(), layoutNode.node.y());
+        });
+    }
+}
 
 var NodeMixin = {
+    hasStyle: function() {
+        var element = this._currentElement || this
+        let result = (typeof element.props === 'object' && typeof element.props.style === 'object')
+        return result
+    },
 
-  construct: function(element) {
-    this._currentElement = element;
-  },
+    getStyle: function() {
+        var element = this._currentElement || this
+        return this.hasStyle() ? element.props.style : {};
+    },
 
-  receiveComponent: function(nextComponent, transaction, context) {
-    var props = nextComponent.props;
-    var oldProps = this._currentElement.props || this._initialProps;
-    this.applyNodeProps(oldProps, props);
-    this.updateChildren(props.children, transaction, context);
-    this._currentElement = nextComponent;
-  },
+    // This should be called only on layer and stage nodes
+    recomputeLayout: function () {
+        if (this.hasStyle()) {
+            console.log('recomputeLayout: TRY');
+            var layoutTree = createLayoutNode(this.node);
+            computeLayout(layoutTree);
 
-  getPublicInstance: function() {
-    return this.node;
-  },
+            console.log('recomputeLayout: APPLY', layoutTree);
+            applyLayout(layoutTree, 0, 0);
+        }
+    },
 
-  putEventListener: function(type, listener) {
-      // NOPE...
-  },
+    batchRedrawLayer: function () {
+        var layer = this.node.getLayer()
+        if (layer) {
+          layer.reactElement.recomputeLayout()
+          layer.batchDraw()
+        }
+    },
 
-  handleEvent: function(event) {
-      // NOPE...
-  },
+    construct: function(element) {
+        this._currentElement = element;
+    },
 
-  getNativeNode: function() {
-    return this.node;
-  },
+    receiveComponent: function(nextComponent, transaction, context) {
+        var props = nextComponent.props;
+        var oldProps = this._currentElement.props || this._initialProps;
+        this.applyNodeProps(oldProps, props);
+        this.updateChildren(props.children, transaction, context);
+        this._currentElement = nextComponent;
+    },
 
-  applyNodeProps: function(oldProps, props) {
-      var updatedProps = {};
-  	  var hasUpdates = false;
-      for (var key in oldProps) {
-          var isEvent = key.slice(0, 2) === 'on';
-  	      var toRemove = oldProps[key] !== props[key];
-  	      if (isEvent && toRemove) {
-              this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
-  	      }
-      }
-  	  for (var key in props) {
-          if (key === 'children') {
-  			continue;
-  		  }
-  	      var isEvent = key.slice(0, 2) === 'on';
-  	      var toAdd = oldProps[key] !== props[key];
-  	      if (isEvent && toAdd) {
-  	           this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
-  	      }
-  		  if (!isEvent && ((props[key] !== oldProps[key]) || (props[key] !==  this.node.getAttr(key)))) {
-  			   hasUpdates = true;
-  			   updatedProps[key] = props[key];
-  		  }
-  	   }
+    getPublicInstance: function() {
+        return this.node;
+    },
 
-       if (hasUpdates) {
-  			this.node.setAttrs(updatedProps);
-  			var layer = this.node.getLayer();
-  			layer && layer.batchDraw();
+    putEventListener: function(type, listener) {
+        // NOPE...
+    },
+
+    handleEvent: function(event) {
+        // NOPE...
+    },
+
+    getNativeNode: function() {
+        return this.node;
+    },
+
+    applyNodeProps: function(oldProps, props) {
+        console.log('applyNodeProps', this.node.nodeType, 'props', props, 'this.props', this.props)
+        var updatedProps = {};
+        var hasUpdates = false;
+        for (var key in oldProps) {
+            var isEvent = key.slice(0, 2) === 'on';
+            var toRemove = oldProps[key] !== props[key];
+            if (isEvent && toRemove) {
+                this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
+            }
+        }
+        for (var key in props) {
+            if (key === 'children') {
+                continue;
+            }
+            var isEvent = key.slice(0, 2) === 'on';
+            var toAdd = oldProps[key] !== props[key];
+            if (isEvent && toAdd) {
+                this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
+            }
+            if (!isEvent && ((props[key] !== oldProps[key]) || (props[key] !==  this.node.getAttr(key)))) {
+                hasUpdates = true;
+                updatedProps[key] = props[key];
+            }
+        }
+
+        if (hasUpdates) {
+            this.node.setAttrs(updatedProps);
+            this.batchRedrawLayer()
             var val, prop;
             for(prop in updatedProps) {
                 val = updatedProps[prop];
                 if (val instanceof Image && !val.complete) {
-                    var node = this.node;
+                    var self = this;
                     val.addEventListener('load', function() {
-                        var layer = node.getLayer();
-              			layer && layer.batchDraw();
+                        self.batchRedrawLayer();
                     });
                 }
             }
-  		}
+        }
     },
 
     unmountComponent: function() {
 
     },
 
-  mountComponentIntoNode: function(rootID, container) {
-    throw new Error(
-      'You cannot render an ART component standalone. ' +
-      'You need to wrap it in a Stage.'
-    );
-  }
+    mountComponentIntoNode: function(rootID, container) {
+        throw new Error(
+            'You cannot render a Konva component standalone. ' +
+            'You need to wrap it in a Stage.'
+        );
+    }
 
 };
 
@@ -244,6 +336,7 @@ var Stage = React.createClass({
             width: this.props.width,
             height: this.props.height
         });
+        this.node.reactElement = this;
         this.applyNodeProps(emptyObject, this.props);
         this._debugID = this._reactInternalInstance._debugID;
         var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
@@ -257,6 +350,7 @@ var Stage = React.createClass({
         );
         ReactUpdates.ReactReconcileTransaction.release(transaction);
 
+        this.recomputeLayout();
         this.node.draw();
     },
 
@@ -286,6 +380,11 @@ var Stage = React.createClass({
 
     applyNodeProps: NodeMixin.applyNodeProps,
 
+    hasStyle: NodeMixin.hasStyle,
+    getStyle: NodeMixin.getStyle,
+    recomputeLayout: NodeMixin.recomputeLayout,
+    batchRedrawLayer: NodeMixin.batchRedrawLayer,
+
     render: function() {
         var props = this.props;
 
@@ -304,53 +403,55 @@ var Stage = React.createClass({
 
 
 var GroupMixin = {
-  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
-    this.node = new Konva[this.constructor.displayName]();
-    nativeParent.node.add(this.node);
-    var props = this._initialProps;
-    this.applyNodeProps(emptyObject, props);
-    this.mountAndInjectChildren(props.children, transaction, context);
-    return {
-        children: [],
-        node: this.node,
-        html: null,
-        text: null
-    }
-  },
+    mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
+        this.node = new Konva[this.constructor.displayName]();
+        this.node.reactElement = this;
+        nativeParent.node.add(this.node);
+        var props = this._initialProps;
+        this.applyNodeProps(emptyObject, props);
+        this.mountAndInjectChildren(props.children, transaction, context);
+        return {
+            children: [],
+            node: this.node,
+            html: null,
+            text: null
+        }
+    },
 
-  unmountComponent: function() {
-    this.unmountChildren();
-  }
+    unmountComponent: function() {
+        this.unmountChildren();
+    }
 }
 
 
 var ShapeMixin = {
 
-  construct: function(element) {
-    this._currentElement = element;
-    this._oldPath = null;
-  },
+    construct: function(element) {
+        this._currentElement = element;
+        this._oldPath = null;
+    },
 
-  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
-    this.node = new Konva[this.constructor.displayName]();
-    if (nativeParent) {
-        nativeParent.node.add(this.node);
-    }
-    this.applyNodeProps(emptyObject, this._initialProps);
-    return {
-        children: [],
-        node: this.node,
-        html: null,
-        text: null
-    }
-  },
+    mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
+        this.node = new Konva[this.constructor.displayName]();
+        this.node.reactElement = this;
+        if (nativeParent) {
+            nativeParent.node.add(this.node);
+        }
+        this.applyNodeProps(emptyObject, this._initialProps);
+        return {
+            children: [],
+            node: this.node,
+            html: null,
+            text: null
+        }
+    },
 
-  receiveComponent: function(nextComponent, transaction, context) {
-    var props = nextComponent.props;
-    var oldProps = this._currentElement.props || this._initialProps;
-    this.applyNodeProps(oldProps, props);
-    this._currentElement = nextComponent;
-  }
+    receiveComponent: function(nextComponent, transaction, context) {
+        var props = nextComponent.props;
+        var oldProps = this._currentElement.props || this._initialProps;
+        this.applyNodeProps(oldProps, props);
+        this._currentElement = nextComponent;
+    }
 
 };
 
