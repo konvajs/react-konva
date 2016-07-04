@@ -295,7 +295,7 @@ var Stage = React.createClass({
                 className: props.className,
                 role: props.role,
                 style: props.style,
-                tabindex: props.tabindex,
+                tabIndex: props.tabIndex,
                 title: props.title}
             )
         );
