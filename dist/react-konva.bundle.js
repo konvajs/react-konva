@@ -21155,10 +21155,12 @@ var ReactKonva =
 	        continue;
 	      }
 	      var isEvent = key.slice(0, 2) === 'on';
-	      var toRemove = oldProps[key] !== props[key];
-	      if (isEvent && toRemove) {
+	      var propChanged = oldProps[key] !== props[key];
+	      if (isEvent && propChanged) {
 	        this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
-	      } else if (toRemove) {
+	      }
+	      var toRemove = !props.hasOwnProperty(key);
+	      if (toRemove) {
 	        this.node.setAttr(key, undefined);
 	      }
 	    }
