@@ -183,8 +183,8 @@ var NodeMixin = {
       var propChanged = (oldProps[key] !== props[key]);
       if (isEvent && propChanged) {
         var eventName = key.substr(2).toLowerCase();
-        if (eventName.substr(7) === "content") {
-          eventName = eventName.substr(7) + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+        if (eventName.substr(0, 7) === "content") {
+          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
         }
         this.node.off(eventName, oldProps[key]);
       }
@@ -201,8 +201,8 @@ var NodeMixin = {
       var toAdd = oldProps[key] !== props[key];
       if (isEvent && toAdd) {
         var eventName = key.substr(2).toLowerCase();
-        if (eventName.substr(7) === "content") {
-          eventName = eventName.substr(7) + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+        if (eventName.substr(0, 7) === "content") {
+          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
         }
         this.node.on(eventName, props[key]);
       }
