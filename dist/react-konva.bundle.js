@@ -21157,7 +21157,11 @@ var ReactKonva =
 	      var isEvent = key.slice(0, 2) === 'on';
 	      var propChanged = oldProps[key] !== props[key];
 	      if (isEvent && propChanged) {
-	        this.node.off(key.slice(2, key.length).toLowerCase(), oldProps[key]);
+	        var eventName = key.substr(2).toLowerCase();
+	        if (eventName.substr(0, 7) === "content") {
+	          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+	        }
+	        this.node.off(eventName, oldProps[key]);
 	      }
 	      var toRemove = !props.hasOwnProperty(key);
 	      if (toRemove) {
@@ -21171,7 +21175,11 @@ var ReactKonva =
 	      var isEvent = key.slice(0, 2) === 'on';
 	      var toAdd = oldProps[key] !== props[key];
 	      if (isEvent && toAdd) {
-	        this.node.on(key.slice(2, key.length).toLowerCase(), props[key]);
+	        var eventName = key.substr(2).toLowerCase();
+	        if (eventName.substr(0, 7) === "content") {
+	          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+	        }
+	        this.node.on(eventName, props[key]);
 	      }
 	      if (!isEvent && (props[key] !== oldProps[key] || props[key] !== this.node.getAttr(key))) {
 	        hasUpdates = true;
