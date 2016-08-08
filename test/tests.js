@@ -66,6 +66,31 @@ describe("Test stage component", function() {
     stage.simulateMouseDown({x: 50, y: 50});
     expect(eventCount).to.equal(1);
   });
+
+  it('can attach stage content events', function() {
+    let eventCount = 0;
+    const handleEvent = () => {
+      eventCount += 1;
+    };
+
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref="stage" width="300" height="300" onContentMouseDown={handleEvent}>
+            <Layer ref="layer">
+              <Rect ref="rect" width={100} height={100}/>
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App/>);
+    const instance = wrapper.instance();
+    const stage = instance.refs.stage.getStage();
+    stage.simulateMouseDown({x: 50, y: 50});
+    expect(eventCount).to.equal(1);
+  });
 });
 
 describe('Test props setting', function() {
