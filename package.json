@@ -31,7 +31,7 @@
     "babel-register": "^6.9.0",
     "chai": "^3.5.0",
     "enzyme": "^2.3.0",
-    "jsdom": "^9.4.0",
+    "jsdom": "^9.4.4",
     "konva": "^1.0.1",
     "mocha": "^3.0.0",
     "mocha-phantomjs": "^4.1.0",
