@@ -301,6 +301,7 @@ var Stage = React.createClass({
 
   componentWillUnmount: function() {
     this.unmountChildren();
+    this.node.destroy();
   },
 
   applyNodeProps: NodeMixin.applyNodeProps,

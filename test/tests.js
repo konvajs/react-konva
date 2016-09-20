@@ -91,6 +91,28 @@ describe("Test stage component", function() {
     stage.simulateMouseDown({x: 50, y: 50});
     expect(eventCount).to.equal(1);
   });
+
+  it('unmount stage should destroy it from Konva', () => {
+    class App extends React.Component {
+      render() {
+        if (this.props.skipStage) {
+          return <div />;
+        }
+        return (
+          <Stage ref="stage" width="300" height="300">
+            <Layer ref="layer">
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App/>);
+    const instance = wrapper.instance();
+    const stagesNumber = Konva.stages.length;
+    wrapper.setProps({skipStage: true});
+    expect(Konva.stages.length).to.equal(stagesNumber - 1);
+  })
 });
 
 describe('Test props setting', function() {
