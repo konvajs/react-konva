@@ -189,6 +189,7 @@ class MyRect extends React.Component {
 
 For images you need manually create native window.Image instance or `<canvas>` element
 and use it as `image` attribute of `ReactKonva.Image` component.
+
 Demo: http://jsbin.com/wedovemota/1/edit?js,output
 
 ```JavaScript
@@ -230,4 +231,47 @@ function App() {
 
 
 ReactDOM.render(<App/>, document.getElementById('container'));
+```
+
+### Using filters
+
+To apply filters you need to cache `Konva.Node` (`ref` of all `react-konva` components).
+
+DEMO: http://jsbin.com/ceyegucibe/1/edit?html,js,output
+
+```javascript
+class MyRect extends React.Component {
+    constructor(...args) {
+      super(...args);
+      this.state = {
+        color: 'green'
+      };
+      this.handleClick = this.handleClick.bind(this);
+    }
+    componentDidMount() {
+      this.rect.cache();
+    }
+    handleClick() {
+      this.setState({
+        color: Konva.Util.getRandomColor()
+      }, () => {
+        // IMPORTANT
+        // recache on update
+        this.rect.cache();
+      });
+    }
+    render() {
+        return (
+            <Rect
+                filters={[Konva.Filters.Noise]}
+                noise={1}
+                x={10} y={10} width={50} height={50}
+                fill={this.state.color}
+                shadowBlur={10}
+                ref={(node) => { this.rect = node;}}
+                onClick={this.handleClick}
+            />
+        );
+    }
+}
 ```
