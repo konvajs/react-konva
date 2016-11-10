@@ -184,3 +184,50 @@ class MyRect extends React.Component {
     }
 }
 ```
+
+### Using images
+
+For images you need manually create native window.Image instance or `<canvas>` element
+and use it as `image` attribute of `ReactKonva.Image` component.
+Demo: http://jsbin.com/wedovemota/1/edit?js,output
+
+```JavaScript
+import {Layer, Stage, Image} from 'react-konva';
+
+// try drag& drop rectangle
+class MyImage extends React.Component {
+    state = {
+      image: null
+    }
+    componentDidMount() {
+      const image = new window.Image();
+      image.src = 'http://konvajs.github.io/assets/yoda.jpg';
+      image.onload = () => {
+        this.setState({
+          image: image
+        });
+      }
+    }
+
+    render() {
+        return (
+            <Image
+              image={this.state.image}
+            />
+        );
+    }
+}
+
+function App() {
+    return (
+      <Stage width={700} height={700}>
+        <Layer>
+            <MyImage/>
+        </Layer>
+      </Stage>
+    );
+}
+
+
+ReactDOM.render(<App/>, document.getElementById('container'));
+```
