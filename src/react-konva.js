@@ -23,6 +23,7 @@ Konva.Container.prototype.replaceChild = function(newChild, oldChild) {
   var index = oldChild.index;
   var parent = oldChild.parent;
   oldChild.destroy();
+  oldChild.parentNode = null;
   parent.add(newChild);
   if (newChild.index !== index) {
     newChild.setZIndex(index);
@@ -82,6 +83,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
   removeChild: function(child, node) {
     var layer = child._mountImage.node.getLayer();
     child._mountImage.node.destroy();
+    child._mountImage.node.parentNode = null;
 	  layer && layer.batchDraw();
     child._mountImage = null;
   },
@@ -302,6 +304,7 @@ var Stage = React.createClass({
   componentWillUnmount: function() {
     this.unmountChildren();
     this.node.destroy();
+    this.node.parentNode = null;
   },
 
   applyNodeProps: NodeMixin.applyNodeProps,
