@@ -16,11 +16,11 @@
     "url": "git@github.com:lavrton/react-konva.git"
   },
   "dependencies": {
-    "fbjs": "^0.8.5",
+    "fbjs": "^0.8.6",
     "object-assign": "^4.1.0"
   },
   "peerDependencies": {
-    "react": "^15.1.0",
+    "react": "~15.5.0",
     "konva": "^1.2.2"
   },
   "devDependencies": {
@@ -35,9 +35,9 @@
     "konva": "^1.2.2",
     "mocha": "^3.1.2",
     "mocha-phantomjs": "^4.1.0",
-    "react": "^15.3.2",
-    "react-addons-test-utils": "^15.3.2",
-    "react-dom": "^15.3.2",
+    "react": "^15.4.0",
+    "react-addons-test-utils": "^15.4.0",
+    "react-dom": "^15.4.0",
     "sinon": "^2.0.0-pre",
     "webpack": "^1.13.3",
     "webpack-dev-server": "^1.16.2"
