@@ -35,7 +35,7 @@
     "konva": "^1.2.2",
     "mocha": "^3.1.2",
     "mocha-phantomjs": "^4.1.0",
-    "react": "^15.3.2",
+    "react": "^15.4.0",
     "react-addons-test-utils": "^15.3.2",
     "react-dom": "^15.3.2",
     "sinon": "^2.0.0-pre",
