@@ -1,7 +1,7 @@
 {
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "keywords": [
     "react",
     "canvas",
