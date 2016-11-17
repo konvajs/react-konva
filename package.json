@@ -20,7 +20,7 @@
     "object-assign": "^4.1.0"
   },
   "peerDependencies": {
-    "react": "~15.5.0",
+    "react": "~15.4.0",
     "konva": "^1.2.2"
   },
   "devDependencies": {
