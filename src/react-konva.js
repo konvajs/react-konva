@@ -4,9 +4,9 @@
 var Konva = require('konva');
 var React = require('react/lib/React');
 
-var ReactInstanceMap = require('react/lib/ReactInstanceMap');
-var ReactMultiChild = require('react/lib/ReactMultiChild');
-var ReactUpdates = require('react/lib/ReactUpdates');
+var ReactInstanceMap = require('react-dom/lib/ReactInstanceMap');
+var ReactMultiChild = require('react-dom/lib/ReactMultiChild');
+var ReactUpdates = require('react-dom/lib/ReactUpdates');
 
 var assign = require('object-assign');
 var emptyObject = require('fbjs/lib/emptyObject');
