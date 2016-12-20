@@ -216,8 +216,8 @@ var NodeMixin = {
 
      if (hasUpdates) {
       this.node.setAttrs(updatedProps);
-      var layer = this.node.getLayer();
-      layer && layer.batchDraw();
+      var drawingNode = this.node.getLayer() || this.node.getStage();
+      drawingNode && drawingNode.batchDraw();
       var val, prop;
       for(prop in updatedProps) {
         val = updatedProps[prop];
