@@ -221,7 +221,7 @@ var NodeMixin = {
       var val, prop;
       for(prop in updatedProps) {
         val = updatedProps[prop];
-        if (val instanceof Image && !val.complete) {
+        if (val instanceof window.Image && !val.complete) {
           var node = this.node;
           val.addEventListener('load', function() {
             var layer = node.getLayer();
