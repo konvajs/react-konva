@@ -39,7 +39,7 @@
     "react-addons-test-utils": "~15.4.0",
     "react-dom": "~15.4.0",
     "sinon": "^2.0.0-pre",
-    "webpack": "^1.13.3",
+    "webpack": "^2.2.1",
     "webpack-dev-server": "^1.16.2"
   },
   "scripts": {
