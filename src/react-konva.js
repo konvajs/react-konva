@@ -11,13 +11,12 @@ var ReactUpdates = require('react-dom/lib/ReactUpdates');
 var assign = require('object-assign');
 var emptyObject = require('fbjs/lib/emptyObject');
 
-
 // some patching to make Konva.Node looks like DOM nodes
 var oldAdd = Konva.Container.prototype.add;
 Konva.Container.prototype.add = function(child) {
   child.parentNode = this;
   oldAdd.apply(this, arguments);
-}
+};
 
 Konva.Container.prototype.replaceChild = function(newChild, oldChild) {
   var index = oldChild.index;
@@ -29,10 +28,7 @@ Konva.Container.prototype.replaceChild = function(newChild, oldChild) {
     newChild.setZIndex(index);
   }
   parent.getLayer().batchDraw();
-}
-
-
-
+};
 
 function createComponent(name) {
   var ReactKonvaComponent = function(element) {
@@ -42,6 +38,7 @@ function createComponent(name) {
     this._mountImage = null;
     this._renderedChildren = null;
     this._mostRecentlyPlacedChild = null;
+    this._nativeContainerInfo = null;
     this._initialProps = element.props;
     this._currentElement = element;
   };
@@ -55,9 +52,7 @@ function createComponent(name) {
   return ReactKonvaComponent;
 }
 
-
 var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
-
   moveChild: function(prevChild, lastPlacedNode, nextIndex, lastIndex) {
     var childNode = prevChild._mountImage.node;
     if (childNode.index !== nextIndex) {
@@ -66,7 +61,6 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
       layer && layer.batchDraw();
     }
   },
-
   createChild: function(child, afterNode, mountImage) {
     child._mountImage = mountImage;
     var childNode = mountImage.node;
@@ -76,37 +70,28 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
       childNode.setZIndex(child._mountIndex);
     }
     this._mostRecentlyPlacedChild = childNode;
-  	var layer = childNode.getLayer();
-  	layer && layer.batchDraw();
+    var layer = childNode.getLayer();
+    layer && layer.batchDraw();
   },
-
   removeChild: function(child, node) {
     var layer = child._mountImage.node.getLayer();
     child._mountImage.node.destroy();
     child._mountImage.node.parentNode = null;
-	  layer && layer.batchDraw();
+    layer && layer.batchDraw();
     child._mountImage = null;
   },
-
   updateChildrenAtRoot: function(nextChildren, transaction) {
     this.updateChildren(nextChildren, transaction, emptyObject);
   },
-
   mountAndInjectChildrenAtRoot: function(children, transaction) {
     this.mountAndInjectChildren(children, transaction, emptyObject);
   },
-
   updateChildren: function(nextChildren, transaction, context) {
     this._mostRecentlyPlacedChild = null;
     this._updateChildren(nextChildren, transaction, context);
   },
-
   mountAndInjectChildren: function(children, transaction, context) {
-    var mountedImages = this.mountChildren(
-      children,
-      transaction,
-      context
-    );
+    var mountedImages = this.mountChildren(children, transaction, context);
     // Each mount image corresponds to one of the flattened children
     var i = 0;
     for (var key in this._renderedChildren) {
@@ -117,11 +102,10 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
         // it is possible that child component with be not Konva.Node instance
         // for instance <noscript> for null element
         var node = mountedImages[i].node;
-        if ((!node instanceof Konva.Node)) {
-          var message =
-            "Looks like one of child element is not Konva.Node." +
-            "react-konva do not support in for now."
-            "if you have empty(null) child, replace it with <Group/>"
+        if (!node instanceof Konva.Node) {
+          var message = 'Looks like one of child element is not Konva.Node.' +
+            'react-konva do not support in for now.';
+          'if you have empty(null) child, replace it with <Group/>';
           console.error(message, this);
           continue;
         }
@@ -133,23 +117,16 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
     }
   },
   mountAndAddChildren: function() {
-    console.log('mountAndAddChildren')
+    console.log('mountAndAddChildren');
   }
 });
 
-
-var propsToSkip = {
-  children: true,
-  ref: true,
-  key: true
-};
+var propsToSkip = { children: true, ref: true, key: true };
 
 var NodeMixin = {
-
   construct: function(element) {
     this._currentElement = element;
   },
-
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
     var oldProps = this._currentElement.props || this._initialProps;
@@ -157,23 +134,18 @@ var NodeMixin = {
     this.updateChildren(props.children, transaction, context);
     this._currentElement = nextComponent;
   },
-
   getPublicInstance: function() {
     return this.node;
   },
-
   putEventListener: function(type, listener) {
     // NOPE...
   },
-
   handleEvent: function(event) {
     // NOPE...
   },
-
   getNativeNode: function() {
     return this.node;
   },
-
   applyNodeProps: function(oldProps, props) {
     var updatedProps = {};
     var hasUpdates = false;
@@ -182,11 +154,13 @@ var NodeMixin = {
         continue;
       }
       var isEvent = key.slice(0, 2) === 'on';
-      var propChanged = (oldProps[key] !== props[key]);
+      var propChanged = oldProps[key] !== props[key];
       if (isEvent && propChanged) {
         var eventName = key.substr(2).toLowerCase();
-        if (eventName.substr(0, 7) === "content") {
-          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+        if (eventName.substr(0, 7) === 'content') {
+          eventName = 'content' +
+            eventName.substr(7, 1).toUpperCase() +
+            eventName.substr(8);
         }
         this.node.off(eventName, oldProps[key]);
       }
@@ -203,23 +177,29 @@ var NodeMixin = {
       var toAdd = oldProps[key] !== props[key];
       if (isEvent && toAdd) {
         var eventName = key.substr(2).toLowerCase();
-        if (eventName.substr(0, 7) === "content") {
-          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+        if (eventName.substr(0, 7) === 'content') {
+          eventName = 'content' +
+            eventName.substr(7, 1).toUpperCase() +
+            eventName.substr(8);
         }
         this.node.on(eventName, props[key]);
       }
-      if (!isEvent && ((props[key] !== oldProps[key]) || (props[key] !==  this.node.getAttr(key)))) {
+      if (
+        !isEvent &&
+          (props[key] !== oldProps[key] ||
+            props[key] !== this.node.getAttr(key))
+      ) {
         hasUpdates = true;
         updatedProps[key] = props[key];
       }
     }
 
-     if (hasUpdates) {
+    if (hasUpdates) {
       this.node.setAttrs(updatedProps);
       var drawingNode = this.node.getLayer() || this.node.getStage();
       drawingNode && drawingNode.batchDraw();
       var val, prop;
-      for(prop in updatedProps) {
+      for (prop in updatedProps) {
         val = updatedProps[prop];
         if (val instanceof window.Image && !val.complete) {
           var node = this.node;
@@ -231,34 +211,29 @@ var NodeMixin = {
       }
     }
   },
-
   unmountComponent: function() {
   },
-
   mountComponentIntoNode: function(rootID, container) {
     throw new Error(
       'You cannot render an ART component standalone. ' +
-      'You need to wrap it in a Stage.'
+        'You need to wrap it in a Stage.'
     );
   }
 };
-
 
 var Stage = React.createClass({
   propTypes: {
     width: React.PropTypes.oneOfType([
       React.PropTypes.number,
-      React.PropTypes.string,
+      React.PropTypes.string
     ]),
     height: React.PropTypes.oneOfType([
       React.PropTypes.number,
-      React.PropTypes.string,
+      React.PropTypes.string
     ])
   },
   displayName: 'Stage',
-
-  mixins: [ContainerMixin],
-
+  mixins: [ ContainerMixin ],
   componentDidMount: function() {
     this.node = new Konva.Stage({
       container: this.domNode,
@@ -280,11 +255,9 @@ var Stage = React.createClass({
 
     this.node.draw();
   },
-
   getStage: function() {
     return this.node;
   },
-
   componentDidUpdate: function(oldProps) {
     var node = this.node;
 
@@ -300,74 +273,67 @@ var Stage = React.createClass({
     );
     ReactUpdates.ReactReconcileTransaction.release(transaction);
   },
-
   componentWillUnmount: function() {
     this.unmountChildren();
     this.node.destroy();
     this.node.parentNode = null;
   },
-
   applyNodeProps: NodeMixin.applyNodeProps,
-
   render: function() {
     var props = this.props;
 
-    return (
-      React.createElement('div', {
-        ref: function(c)  {return this.domNode = c;}.bind(this),
-        className: props.className,
-        role: props.role,
-        style: props.style,
-        tabIndex: props.tabIndex,
-        title: props.title}
-      )
-    );
+    return React.createElement('div', {
+      ref: (function(c) {
+        return this.domNode = c;
+      }).bind(this),
+      className: props.className,
+      role: props.role,
+      style: props.style,
+      tabIndex: props.tabIndex,
+      title: props.title
+    });
   }
 });
 
-
 var GroupMixin = {
-  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
+  mountComponent: function(
+    transaction,
+    nativeParent,
+    nativeContainerInfo,
+    context
+  ) {
+    this._nativeContainerInfo = nativeContainerInfo;
     this.node = new Konva[this.constructor.displayName]();
     nativeParent.node.add(this.node);
     var props = this._initialProps;
     this.applyNodeProps(emptyObject, props);
     this.mountAndInjectChildren(props.children, transaction, context);
-    return {
-      children: [],
-      node: this.node,
-      html: null,
-      text: null
-    }
+    return { children: [], node: this.node, html: null, text: null };
   },
-
   unmountComponent: function() {
     this.unmountChildren();
   }
-}
-
+};
 
 var ShapeMixin = {
-
   construct: function(element) {
     this._currentElement = element;
     this._oldPath = null;
   },
-
-  mountComponent: function(transaction, nativeParent, nativeContainerInfo, context) {
+  mountComponent: function(
+    transaction,
+    nativeParent,
+    nativeContainerInfo,
+    context
+  ) {
+    this._nativeContainerInfo = nativeContainerInfo;
     this.node = new Konva[this.constructor.displayName]();
     if (nativeParent) {
       nativeParent.node.add(this.node);
     }
     this.applyNodeProps(emptyObject, this._initialProps);
-    return {
-      children: [],
-      node: this.node,
-      html: null,
-      text: null
-    }
+    return { children: [], node: this.node, html: null, text: null };
   },
-
   receiveComponent: function(nextComponent, transaction, context) {
     var props = nextComponent.props;
     var oldProps = this._currentElement.props || this._initialProps;
@@ -376,10 +342,14 @@ var ShapeMixin = {
   }
 };
 
-
 var Group = createComponent('Group', NodeMixin, ContainerMixin, GroupMixin);
 var Layer = createComponent('Layer', NodeMixin, ContainerMixin, GroupMixin);
-var FastLayer = createComponent('FastLayer', NodeMixin, ContainerMixin, GroupMixin);
+var FastLayer = createComponent(
+  'FastLayer',
+  NodeMixin,
+  ContainerMixin,
+  GroupMixin
+);
 
 var Label = createComponent('Label', NodeMixin, ContainerMixin, GroupMixin);
 
@@ -392,13 +362,27 @@ var ReactKonva = {
 };
 
 var shapes = [
-  'Rect', 'Circle', 'Ellipse', 'Wedge', 'Line', 'Sprite', 'Image', 'Text', 'TextPath',
-  'Star', 'Ring', 'Arc', 'Tag', 'Path', 'RegularPolygon',  'Arrow', 'Shape'
+  'Rect',
+  'Circle',
+  'Ellipse',
+  'Wedge',
+  'Line',
+  'Sprite',
+  'Image',
+  'Text',
+  'TextPath',
+  'Star',
+  'Ring',
+  'Arc',
+  'Tag',
+  'Path',
+  'RegularPolygon',
+  'Arrow',
+  'Shape'
 ];
 
 shapes.forEach(function(shapeName) {
   ReactKonva[shapeName] = createComponent(shapeName, NodeMixin, ShapeMixin);
 });
-
 
 module.exports = ReactKonva;

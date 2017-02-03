@@ -21497,6 +21497,7 @@ var ReactKonva =
 	    this._mountImage = null;
 	    this._renderedChildren = null;
 	    this._mostRecentlyPlacedChild = null;
+	    this._nativeContainerInfo = null;
 	    this._initialProps = element.props;
 	    this._currentElement = element;
 	  };
@@ -21511,7 +21512,6 @@ var ReactKonva =
 	}
 
 	var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
-
 	  moveChild: function moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex) {
 	    var childNode = prevChild._mountImage.node;
 	    if (childNode.index !== nextIndex) {
@@ -21520,7 +21520,6 @@ var ReactKonva =
 	      layer && layer.batchDraw();
 	    }
 	  },
-
 	  createChild: function createChild(child, afterNode, mountImage) {
 	    child._mountImage = mountImage;
 	    var childNode = mountImage.node;
@@ -21533,7 +21532,6 @@ var ReactKonva =
 	    var layer = childNode.getLayer();
 	    layer && layer.batchDraw();
 	  },
-
 	  removeChild: function removeChild(child, node) {
 	    var layer = child._mountImage.node.getLayer();
 	    child._mountImage.node.destroy();
@@ -21541,20 +21539,16 @@ var ReactKonva =
 	    layer && layer.batchDraw();
 	    child._mountImage = null;
 	  },
-
 	  updateChildrenAtRoot: function updateChildrenAtRoot(nextChildren, transaction) {
 	    this.updateChildren(nextChildren, transaction, emptyObject);
 	  },
-
 	  mountAndInjectChildrenAtRoot: function mountAndInjectChildrenAtRoot(children, transaction) {
 	    this.mountAndInjectChildren(children, transaction, emptyObject);
 	  },
-
 	  updateChildren: function updateChildren(nextChildren, transaction, context) {
 	    this._mostRecentlyPlacedChild = null;
 	    this._updateChildren(nextChildren, transaction, context);
 	  },
-
 	  mountAndInjectChildren: function mountAndInjectChildren(children, transaction, context) {
 	    var mountedImages = this.mountChildren(children, transaction, context);
 	    // Each mount image corresponds to one of the flattened children
@@ -21568,8 +21562,8 @@ var ReactKonva =
 	        // for instance <noscript> for null element
 	        var node = mountedImages[i].node;
 	        if (!node instanceof Konva.Node) {
-	          var message = "Looks like one of child element is not Konva.Node." + "react-konva do not support in for now.";
-	          "if you have empty(null) child, replace it with <Group/>";
+	          var message = 'Looks like one of child element is not Konva.Node.' + 'react-konva do not support in for now.';
+	          'if you have empty(null) child, replace it with <Group/>';
 	          console.error(message, this);
 	          continue;
 	        }
@@ -21585,18 +21579,12 @@ var ReactKonva =
 	  }
 	});
 
-	var propsToSkip = {
-	  children: true,
-	  ref: true,
-	  key: true
-	};
+	var propsToSkip = { children: true, ref: true, key: true };
 
 	var NodeMixin = {
-
 	  construct: function construct(element) {
 	    this._currentElement = element;
 	  },
-
 	  receiveComponent: function receiveComponent(nextComponent, transaction, context) {
 	    var props = nextComponent.props;
 	    var oldProps = this._currentElement.props || this._initialProps;
@@ -21604,23 +21592,18 @@ var ReactKonva =
 	    this.updateChildren(props.children, transaction, context);
 	    this._currentElement = nextComponent;
 	  },
-
 	  getPublicInstance: function getPublicInstance() {
 	    return this.node;
 	  },
-
 	  putEventListener: function putEventListener(type, listener) {
 	    // NOPE...
 	  },
-
 	  handleEvent: function handleEvent(event) {
 	    // NOPE...
 	  },
-
 	  getNativeNode: function getNativeNode() {
 	    return this.node;
 	  },
-
 	  applyNodeProps: function applyNodeProps(oldProps, props) {
 	    var updatedProps = {};
 	    var hasUpdates = false;
@@ -21632,8 +21615,8 @@ var ReactKonva =
 	      var propChanged = oldProps[key] !== props[key];
 	      if (isEvent && propChanged) {
 	        var eventName = key.substr(2).toLowerCase();
-	        if (eventName.substr(0, 7) === "content") {
-	          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+	        if (eventName.substr(0, 7) === 'content') {
+	          eventName = 'content' + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
 	        }
 	        this.node.off(eventName, oldProps[key]);
 	      }
@@ -21650,8 +21633,8 @@ var ReactKonva =
 	      var toAdd = oldProps[key] !== props[key];
 	      if (isEvent && toAdd) {
 	        var eventName = key.substr(2).toLowerCase();
-	        if (eventName.substr(0, 7) === "content") {
-	          eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
+	        if (eventName.substr(0, 7) === 'content') {
+	          eventName = 'content' + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
 	        }
 	        this.node.on(eventName, props[key]);
 	      }
@@ -21668,7 +21651,7 @@ var ReactKonva =
 	      var val, prop;
 	      for (prop in updatedProps) {
 	        val = updatedProps[prop];
-	        if (val instanceof Image && !val.complete) {
+	        if (val instanceof window.Image && !val.complete) {
 	          var node = this.node;
 	          val.addEventListener('load', function () {
 	            var layer = node.getLayer();
@@ -21678,9 +21661,7 @@ var ReactKonva =
 	      }
 	    }
 	  },
-
 	  unmountComponent: function unmountComponent() {},
-
 	  mountComponentIntoNode: function mountComponentIntoNode(rootID, container) {
 	    throw new Error('You cannot render an ART component standalone. ' + 'You need to wrap it in a Stage.');
 	  }
@@ -21692,9 +21673,7 @@ var ReactKonva =
 	    height: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string])
 	  },
 	  displayName: 'Stage',
-
 	  mixins: [ContainerMixin],
-
 	  componentDidMount: function componentDidMount() {
 	    this.node = new Konva.Stage({
 	      container: this.domNode,
@@ -21710,11 +21689,9 @@ var ReactKonva =
 
 	    this.node.draw();
 	  },
-
 	  getStage: function getStage() {
 	    return this.node;
 	  },
-
 	  componentDidUpdate: function componentDidUpdate(oldProps) {
 	    var node = this.node;
 
@@ -21724,15 +21701,12 @@ var ReactKonva =
 	    transaction.perform(this.updateChildren, this, this.props.children, transaction, ReactInstanceMap.get(this)._context);
 	    ReactUpdates.ReactReconcileTransaction.release(transaction);
 	  },
-
 	  componentWillUnmount: function componentWillUnmount() {
 	    this.unmountChildren();
 	    this.node.destroy();
 	    this.node.parentNode = null;
 	  },
-
 	  applyNodeProps: NodeMixin.applyNodeProps,
-
 	  render: function render() {
 	    var props = this.props;
 
@@ -21744,51 +21718,40 @@ var ReactKonva =
 	      role: props.role,
 	      style: props.style,
 	      tabIndex: props.tabIndex,
-	      title: props.title });
+	      title: props.title
+	    });
 	  }
 	});
 
 	var GroupMixin = {
 	  mountComponent: function mountComponent(transaction, nativeParent, nativeContainerInfo, context) {
+	    this._nativeContainerInfo = nativeContainerInfo;
 	    this.node = new Konva[this.constructor.displayName]();
 	    nativeParent.node.add(this.node);
 	    var props = this._initialProps;
 	    this.applyNodeProps(emptyObject, props);
 	    this.mountAndInjectChildren(props.children, transaction, context);
-	    return {
-	      children: [],
-	      node: this.node,
-	      html: null,
-	      text: null
-	    };
+	    return { children: [], node: this.node, html: null, text: null };
 	  },
-
 	  unmountComponent: function unmountComponent() {
 	    this.unmountChildren();
 	  }
 	};
 
 	var ShapeMixin = {
-
 	  construct: function construct(element) {
 	    this._currentElement = element;
 	    this._oldPath = null;
 	  },
-
 	  mountComponent: function mountComponent(transaction, nativeParent, nativeContainerInfo, context) {
+	    this._nativeContainerInfo = nativeContainerInfo;
 	    this.node = new Konva[this.constructor.displayName]();
 	    if (nativeParent) {
 	      nativeParent.node.add(this.node);
 	    }
 	    this.applyNodeProps(emptyObject, this._initialProps);
-	    return {
-	      children: [],
-	      node: this.node,
-	      html: null,
-	      text: null
-	    };
+	    return { children: [], node: this.node, html: null, text: null };
 	  },
-
 	  receiveComponent: function receiveComponent(nextComponent, transaction, context) {
 	    var props = nextComponent.props;
 	    var oldProps = this._currentElement.props || this._initialProps;
