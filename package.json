@@ -16,31 +16,31 @@
     "url": "git@github.com:lavrton/react-konva.git"
   },
   "dependencies": {
-    "fbjs": "^0.8.6",
-    "object-assign": "^4.1.0"
+    "fbjs": "^0.8.9",
+    "object-assign": "^4.1.1"
   },
   "peerDependencies": {
-    "react": "~15.4.0",
-    "konva": "^1.2.2"
+    "react": "~15.4.2",
+    "konva": "^1.3.0"
   },
   "devDependencies": {
-    "babel-core": "^6.18.2",
-    "babel-loader": "^6.2.7",
-    "babel-preset-es2015": "^6.18.0",
-    "babel-preset-react": "^6.16.0",
-    "babel-register": "^6.18.0",
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-react": "^6.22.0",
+    "babel-register": "^6.22.0",
     "chai": "^3.5.0",
-    "enzyme": "^2.6.0",
-    "jsdom": "^9.8.3",
-    "konva": "^1.2.2",
-    "mocha": "^3.1.2",
+    "enzyme": "^2.7.1",
+    "jsdom": "^9.9.1",
+    "konva": "^1.3.0",
+    "mocha": "^3.2.0",
     "mocha-phantomjs": "^4.1.0",
-    "react": "~15.4.0",
-    "react-addons-test-utils": "~15.4.0",
-    "react-dom": "~15.4.0",
+    "react": "~15.4.2",
+    "react-addons-test-utils": "~15.4.2",
+    "react-dom": "~15.4.2",
     "sinon": "^2.0.0-pre",
-    "webpack": "^1.13.3",
-    "webpack-dev-server": "^1.16.2"
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0"
   },
   "scripts": {
     "test:compile": "webpack --config webpack.test.config.js --progress --profile --colors",
