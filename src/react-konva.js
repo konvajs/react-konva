@@ -105,7 +105,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
         if (!node instanceof Konva.Node) {
           var message = 'Looks like one of child element is not Konva.Node.' +
             'react-konva do not support in for now.';
-          'if you have empty(null) child, replace it with <Group/>';
+          ('if you have empty(null) child, replace it with <Group/>');
           console.error(message, this);
           continue;
         }
@@ -121,7 +121,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
   }
 });
 
-var propsToSkip = { children: true, ref: true, key: true };
+var propsToSkip = { children: true, ref: true, key: true, style: true };
 
 var NodeMixin = {
   construct: function(element) {
@@ -186,8 +186,7 @@ var NodeMixin = {
       }
       if (
         !isEvent &&
-          (props[key] !== oldProps[key] ||
-            props[key] !== this.node.getAttr(key))
+        (props[key] !== oldProps[key] || props[key] !== this.node.getAttr(key))
       ) {
         hasUpdates = true;
         updatedProps[key] = props[key];
@@ -211,8 +210,7 @@ var NodeMixin = {
       }
     }
   },
-  unmountComponent: function() {
-  },
+  unmountComponent: function() {},
   mountComponentIntoNode: function(rootID, container) {
     throw new Error(
       'You cannot render an ART component standalone. ' +
@@ -233,7 +231,7 @@ var Stage = React.createClass({
     ])
   },
   displayName: 'Stage',
-  mixins: [ ContainerMixin ],
+  mixins: [ContainerMixin],
   componentDidMount: function() {
     this.node = new Konva.Stage({
       container: this.domNode,
@@ -284,7 +282,7 @@ var Stage = React.createClass({
 
     return React.createElement('div', {
       ref: (function(c) {
-        return this.domNode = c;
+        return (this.domNode = c);
       }).bind(this),
       className: props.className,
       role: props.role,

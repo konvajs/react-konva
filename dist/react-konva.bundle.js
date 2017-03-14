@@ -10029,7 +10029,7 @@ var ContainerMixin = assign({}, ReactMultiChild.Mixin, {
   }
 });
 
-var propsToSkip = { children: true, ref: true, key: true };
+var propsToSkip = { children: true, ref: true, key: true, style: true };
 
 var NodeMixin = {
   construct: function construct(element) {
