@@ -1,7 +1,7 @@
 {
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "keywords": [
     "react",
     "canvas",
@@ -36,10 +36,8 @@
     "chai": "^3.5.0",
     "enzyme": "^2.8.0",
     "jsdom": "^9.12.0",
-    "konva": "^1.5.0",
     "mocha": "^3.2.0",
     "mocha-phantomjs": "^4.1.0",
-    "react": "~15.5.1",
     "react-addons-test-utils": "~15.5.0",
     "sinon": "^2.1.0",
     "webpack": "^2.3.3",
