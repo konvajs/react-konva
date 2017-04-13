@@ -16,8 +16,10 @@
     "url": "git@github.com:lavrton/react-konva.git"
   },
   "dependencies": {
+    "create-react-class": "^15.5.2",
     "fbjs": "^0.8.12",
-    "object-assign": "^4.1.1"
+    "object-assign": "^4.1.1",
+    "prop-types": "^15.5.8"
   },
   "peerDependencies": {
     "react": "~15.5.1",
@@ -25,9 +27,6 @@
     "react-dom": "~15.5.0"
   },
   "devDependencies": {
-    "react": "~15.5.1",
-    "konva": "^1.5.0",
-    "react-dom": "~15.5.0",
     "babel-core": "^6.24.1",
     "babel-loader": "^6.4.1",
     "babel-preset-es2015": "^6.24.1",
@@ -36,9 +35,13 @@
     "chai": "^3.5.0",
     "enzyme": "^2.8.0",
     "jsdom": "^9.12.0",
+    "konva": "^1.5.0",
     "mocha": "^3.2.0",
     "mocha-phantomjs": "^4.1.0",
-    "react-addons-test-utils": "~15.5.0",
+    "react": "~15.5.1",
+    "react-addons-test-utils": "^15.5.1",
+    "react-dom": "~15.5.0",
+    "react-test-renderer": "^15.5.4",
     "sinon": "^2.1.0",
     "webpack": "^2.3.3",
     "webpack-dev-server": "^2.4.2"
