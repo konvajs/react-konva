@@ -4,6 +4,9 @@
 var Konva = require('konva');
 var React = require('react/lib/React');
 
+var PropTypes = require('prop-types');
+var createClass = require('create-react-class');
+
 var ReactInstanceMap = require('react-dom/lib/ReactInstanceMap');
 var ReactMultiChild = require('react-dom/lib/ReactMultiChild');
 var ReactUpdates = require('react-dom/lib/ReactUpdates');
@@ -219,15 +222,15 @@ var NodeMixin = {
   }
 };
 
-var Stage = React.createClass({
+var Stage = createClass({
   propTypes: {
-    width: React.PropTypes.oneOfType([
-      React.PropTypes.number,
-      React.PropTypes.string
+    width: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string
     ]),
-    height: React.PropTypes.oneOfType([
-      React.PropTypes.number,
-      React.PropTypes.string
+    height: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string
     ])
   },
   displayName: 'Stage',
