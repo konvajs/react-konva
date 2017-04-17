@@ -26,3 +26,4 @@ export var Path: any;
 export var RegularPolygon: any;
 export var Arrow: any;
 export var Shape: any;
+export var Animation: any;
