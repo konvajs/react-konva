@@ -29,7 +29,7 @@ export class KonvaNodeComponent<Node extends Konva.Node, Props = Konva.NodeConfi
   // handleEvent(event: Event): void;
 }
 
-export class KonvaContainerComponent<Container extends Konva.Container, Props = Konva.ContainerConfig> extends React.Component<Props> {
+export class KonvaContainerComponent<Container extends Konva.Container, Props = Konva.ContainerConfig> extends React.Component<Props & KonvaNodeProps> {
   // moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex): void;
   // createChild(child, afterNode, mountImage): void;
   // removeChild(child, node): void;
