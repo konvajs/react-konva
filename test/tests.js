@@ -1,47 +1,45 @@
 import React from 'react';
 import { expect } from 'chai';
 import { shallow, mount, render } from 'enzyme';
-import {Stage, Layer, Rect} from '../src/react-konva';
+import { Stage, Layer, Rect } from '../src/react-konva';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon';
 
-
-describe("Test references", function() {
+describe('Test references', function() {
   let instance;
   class App extends React.Component {
     render() {
       return (
         <Stage ref="stage" width={300} height={300}>
-          <Layer ref="layer">
-          </Layer>
+          <Layer ref="layer" />
         </Stage>
       );
     }
   }
 
   beforeEach(() => {
-    const wrapper = mount(<App/>);
+    const wrapper = mount(<App />);
     instance = wrapper.instance();
   });
 
-  it("can get stage instance", function() {
+  it('can get stage instance', function() {
     const stageRef = instance.refs.stage;
     expect(stageRef.getStage() instanceof Konva.Stage).to.equal(true);
   });
 
-  it("check initial props set", function() {
+  it('check initial props set', function() {
     const stage = instance.refs.stage.getStage();
     expect(stage.width()).to.equal(300);
     expect(stage.height()).to.equal(300);
   });
 
-  it("can get layer instance", function() {
+  it('can get layer instance', function() {
     expect(instance.refs.layer instanceof Konva.Layer).to.equal(true);
   });
 });
 
-describe("Test stage component", function() {
+describe('Test stage component', function() {
   it('can attach stage events', function() {
     let eventCount = 0;
     const handleEvent = () => {
@@ -53,17 +51,17 @@ describe("Test stage component", function() {
         return (
           <Stage ref="stage" width="300" height="300" onMouseDown={handleEvent}>
             <Layer ref="layer">
-              <Rect ref="rect" width={100} height={100}/>
+              <Rect ref="rect" width={100} height={100} />
             </Layer>
           </Stage>
         );
       }
     }
 
-    const wrapper = mount(<App/>);
+    const wrapper = mount(<App />);
     const instance = wrapper.instance();
     const stage = instance.refs.stage.getStage();
-    stage.simulateMouseDown({x: 50, y: 50});
+    stage.simulateMouseDown({ x: 50, y: 50 });
     expect(eventCount).to.equal(1);
   });
 
@@ -76,19 +74,24 @@ describe("Test stage component", function() {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref="stage" width="300" height="300" onContentMouseDown={handleEvent}>
+          <Stage
+            ref="stage"
+            width="300"
+            height="300"
+            onContentMouseDown={handleEvent}
+          >
             <Layer ref="layer">
-              <Rect ref="rect" width={100} height={100}/>
+              <Rect ref="rect" width={100} height={100} />
             </Layer>
           </Stage>
         );
       }
     }
 
-    const wrapper = mount(<App/>);
+    const wrapper = mount(<App />);
     const instance = wrapper.instance();
     const stage = instance.refs.stage.getStage();
-    stage.simulateMouseDown({x: 50, y: 50});
+    stage.simulateMouseDown({ x: 50, y: 50 });
     expect(eventCount).to.equal(1);
   });
 
@@ -100,31 +103,34 @@ describe("Test stage component", function() {
         }
         return (
           <Stage ref="stage" width="300" height="300">
-            <Layer ref="layer">
-            </Layer>
+            <Layer ref="layer" />
           </Stage>
         );
       }
     }
 
-    const wrapper = mount(<App/>);
+    const wrapper = mount(<App />);
     const instance = wrapper.instance();
     const stagesNumber = Konva.stages.length;
-    wrapper.setProps({skipStage: true});
+    wrapper.setProps({ skipStage: true });
     expect(Konva.stages.length).to.equal(stagesNumber - 1);
-  })
+  });
 });
 
 describe('Test props setting', function() {
-  let instance, wrapper, rectProps = {
-    width: 100, height: 100, onClick: () => {}
-  };
+  let instance,
+    wrapper,
+    rectProps = {
+      width: 100,
+      height: 100,
+      onClick: () => {}
+    };
   class App extends React.Component {
     render() {
       return (
         <Stage ref="stage" width={300} height={300}>
           <Layer ref="layer">
-            <Rect ref="rect" {...this.props.rectProps}/>
+            <Rect ref="rect" {...this.props.rectProps} />
           </Layer>
         </Stage>
       );
@@ -132,7 +138,7 @@ describe('Test props setting', function() {
   }
 
   beforeEach(() => {
-    wrapper = mount(<App/>);
+    wrapper = mount(<App />);
     instance = wrapper.instance();
   });
 
@@ -140,15 +146,17 @@ describe('Test props setting', function() {
     const rect = instance.refs.rect;
     // set new props
     const props1 = {
-      width: 100, height: 100
+      width: 100,
+      height: 100
     };
-    wrapper.setProps({rectProps: props1});
+    wrapper.setProps({ rectProps: props1 });
     expect(rect.width()).to.equal(100);
 
     const props2 = {
-      width: 200, height: 100
+      width: 200,
+      height: 100
     };
-    wrapper.setProps({rectProps: props2});
+    wrapper.setProps({ rectProps: props2 });
     expect(rect.width()).to.equal(200);
   });
   it('can update component events', () => {
@@ -157,14 +165,14 @@ describe('Test props setting', function() {
     const props1 = {
       onClick: () => {}
     };
-    wrapper.setProps({rectProps: props1});
+    wrapper.setProps({ rectProps: props1 });
     expect(rect.eventListeners.click.length).to.equal(1);
     expect(rect.eventListeners.click[0].handler).to.equal(props1.onClick);
 
     const props2 = {
       onClick: () => {}
     };
-    wrapper.setProps({rectProps: props2});
+    wrapper.setProps({ rectProps: props2 });
     expect(rect.eventListeners.click.length).to.equal(1);
     expect(rect.eventListeners.click[0].handler).to.equal(props2.onClick);
   });
@@ -172,24 +180,30 @@ describe('Test props setting', function() {
   it('updating props should call layer redraw', () => {
     const layer = instance.refs.layer;
     sinon.spy(layer, 'batchDraw');
-    wrapper.setProps({rectProps: {
-      fill: 'green'
-    }});
-    wrapper.setProps({rectProps: {
-      fill: 'red'
-    }});
+    wrapper.setProps({
+      rectProps: {
+        fill: 'green'
+      }
+    });
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red'
+      }
+    });
     expect(layer.batchDraw.callCount).to.equal(2);
   });
 
   it('unset props', () => {
     const rect = instance.refs.rect;
-    wrapper.setProps({rectProps: {
-    fill: 'red',
-    x: 10
-    }});
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10
+      }
+    });
     expect(rect.fill()).to.equal('red');
 
-    wrapper.setProps({rectProps: {}});
+    wrapper.setProps({ rectProps: {} });
     expect(!!rect.fill()).to.equal(false);
     expect(rect.x()).to.equal(0);
   });
@@ -222,7 +236,7 @@ describe('test lifecycle methods', () => {
       this.props.componentDidUpdate();
     }
     render() {
-      return <Rect/>;
+      return <Rect />;
     }
   }
   class App extends React.Component {
@@ -230,7 +244,7 @@ describe('test lifecycle methods', () => {
       return (
         <Stage ref="stage" width={300} height={300}>
           <Layer ref="layer">
-            { this.props.skipsub ? null : <SubComponent {...this.props}/>}
+            {this.props.skipsub ? null : <SubComponent {...this.props} />}
           </Layer>
         </Stage>
       );
@@ -242,7 +256,7 @@ describe('test lifecycle methods', () => {
       componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy()
     };
-    wrapper = mount(<App {...props}/>);
+    wrapper = mount(<App {...props} />);
 
     expect(props.componentWillMount.called).to.equal(true);
     expect(props.componentDidMount.called).to.equal(true);
@@ -258,7 +272,7 @@ describe('test lifecycle methods', () => {
       componentDidUpdate: sinon.spy(),
       componentWillUnmount: sinon.spy()
     };
-    wrapper = mount(<App {...props}/>);
+    wrapper = mount(<App {...props} />);
     wrapper.update();
 
     expect(props.componentWillReceiveProps.called).to.equal(true);
@@ -277,7 +291,7 @@ describe('test lifecycle methods', () => {
       componentDidUpdate: sinon.spy(),
       componentWillUnmount: sinon.spy()
     };
-    wrapper = mount(<App {...props}/>);
+    wrapper = mount(<App {...props} />);
     const stage = wrapper.instance().refs.stage.getStage();
     expect(stage.findOne('Rect')).to.not.equal(undefined);
 
