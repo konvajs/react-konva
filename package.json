@@ -37,7 +37,7 @@
     "jsdom": "^11.1.0",
     "konva": "^1.6.3",
     "mocha": "^3.4.2",
-    "mocha-phantomjs": "^4.1.0",
+    "mocha-headless-chrome": "^1.5.0",
     "react": "~15.6.1",
     "react-addons-test-utils": "^15.6.0",
     "react-dom": "~15.6.1",
@@ -48,7 +48,7 @@
   },
   "scripts": {
     "test:compile": "webpack --config webpack.test.config.js --progress --profile --colors",
-    "test:run": "mocha-phantomjs test/index.html",
+    "test:run": "mocha-headless-chrome -f test/index.html",
     "test:clean": "rm ./test/tests.bundle.js",
     "test:watch": "webpack-dev-server --config webpack.test.config.js --progress --profile --colors",
     "test": "npm run test:compile && npm run test:run && npm run test:clean",

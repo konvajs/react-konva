@@ -3,3 +3,4 @@ node_modules
 npm-debug.log
 test/tests.bundle.js
 .DS_Store
+.idea

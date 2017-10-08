@@ -8,7 +8,7 @@ React Konva is a JavaScript library for drawing complex canvas graphics using [R
 
 It provides declarative and reactive bindings to the [Konva Framework](http://konvajs.github.io/).
 
-# [DEMO](http://jsbin.com/camene/edit?js,output)
+# [DEMO](http://jsbin.com/lixamajori/edit?js,output)
 
 An attempt to make [React](http://facebook.github.io/react/) work with the HTML5 canvas library. The goal is to have
 similar declarative markup as normal React and to have similar data-flow model.
@@ -34,45 +34,43 @@ import {Layer, Rect, Stage, Group} from 'react-konva';
 
 
 class MyRect extends React.Component {
-    constructor(...args) {
-      super(...args);
-      this.state = {
-        color: 'green'
-      };
-      this.handleClick = this.handleClick.bind(this);
-    }
-    handleClick() {
-      this.setState({
-        color: Konva.Util.getRandomColor()
-      });
-    }
-    render() {
-        return (
-            <Rect
-                x={10} y={10} width={50} height={50}
-                fill={this.state.color}
-                shadowBlur={10}
-                onClick={this.handleClick}
-            />
-        );
-    }
+  state = { color: 'green' };
+
+  handleClick = () => {
+    // window.Konva is a global variable for Konva framework namespace
+    this.setState({
+      color: window.Konva.Util.getRandomColor()
+    });
+  }
+
+  render() {
+    return (
+      <Rect
+        x={10}
+        y={10}
+        width={50}
+        height={50}
+        fill={this.state.color}
+        shadowBlur={5}
+        onClick={this.handleClick}
+      />
+    );
+  }
 }
 
-function App() {
-    // Stage - is a div wrapper
-    // Layer - is a <canvas> element on the page
-    // so you can use several canvases. It may help you to improve performance a lot.
+class App extends React.Component {
+  render() {
     return (
       <Stage width={700} height={700}>
         <Layer>
-            <MyRect/>
+          <MyRect />
         </Layer>
       </Stage>
     );
+  }
 }
 
-
-ReactDOM.render(<App/>, document.getElementById('container'));
+ReactDOM.render(<App />, document.getElementById('container'));
 ```
 
 
