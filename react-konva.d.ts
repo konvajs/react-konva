@@ -41,6 +41,9 @@ export class KonvaContainerComponent<Container extends Konva.Container, Props = 
 }
 
 export interface StageProps extends Pick<React.HTMLProps<any>, 'className' | 'role' | 'style' | 'tabIndex' | 'title'> {
+  x?: number;
+  y?: number;
+  name?: string;
   width?: number | string;
   height?: number | string;
   onContentMouseOver?(evt: any): void;
