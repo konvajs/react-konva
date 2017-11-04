@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-  entry: ['./src/react-konva-fiber.js'],
+  entry: ['./src/bundle.js'],
   output: {
     path: __dirname,
     filename: '../dist/react-konva.js',

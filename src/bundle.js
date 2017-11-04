@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var ReactKonva = require('./react-konva');
+var ReactKonva = require('./react-konva-fiber');
 
 window.React = React;
 window.ReactDOM = ReactDOM;
