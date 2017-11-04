@@ -4,7 +4,7 @@ module.exports = {
   entry: ['./src/react-konva-fiber.js'],
   output: {
     path: __dirname,
-    filename: './dist/react-konva.js',
+    filename: '../dist/react-konva.js',
     libraryTarget: 'var',
     library: 'ReactKonva'
   },
