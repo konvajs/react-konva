@@ -1,10 +1,10 @@
 var webpack = require('webpack');
 
 module.exports = {
-  entry: [ './src/bundle.js' ],
+  entry: ['./src/react-konva-fiber.js'],
   output: {
     path: __dirname,
-    filename: './dist/react-konva.bundle.js',
+    filename: './dist/react-konva.js',
     libraryTarget: 'var',
     library: 'ReactKonva'
   },
@@ -14,7 +14,7 @@ module.exports = {
       {
         test: /\.jsx?$/,
         exclude: /(node_modules|bower_components)/,
-        loader: [ 'babel-loader?presets[]=es2015' ]
+        loader: ['babel-loader?presets[]=es2015']
       }
     ]
   }

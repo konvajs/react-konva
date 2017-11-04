@@ -1,63 +1,56 @@
 {
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.1.6",
-  "keywords": [
-    "react",
-    "canvas",
-    "jsx",
-    "konva"
-  ],
+  "version": "1.5.5-beta",
+  "keywords": ["react", "canvas", "jsx", "konva"],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "BSD-3-Clause",
-  "main": "./src/react-konva.js",
+  "main": "react-konva.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:lavrton/react-konva.git"
   },
   "dependencies": {
-    "create-react-class": "^15.6.0",
     "fbjs": "^0.8.14",
-    "object-assign": "^4.1.1",
-    "prop-types": "^15.5.10"
+    "react-reconciler": "^0.2.0"
   },
   "peerDependencies": {
-    "react": "~15.6.1",
+    "react": "~16.0.0",
     "konva": "^1.6.3",
-    "react-dom": "~15.6.1"
+    "react-dom": "~16.0.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babel-register": "^6.24.1",
     "chai": "^4.1.0",
-    "enzyme": "^2.9.1",
+    "enzyme": "^3.1.0",
+    "enzyme-adapter-react-16": "^1.0.3",
     "jsdom": "^11.1.0",
     "konva": "^1.6.3",
-    "mocha": "^3.4.2",
+    "mocha": "^4.0.1",
     "mocha-headless-chrome": "^1.5.0",
-    "react": "~15.6.1",
-    "react-addons-test-utils": "^15.6.0",
-    "react-dom": "~15.6.1",
-    "react-test-renderer": "^15.6.1",
-    "sinon": "^2.4.0",
+    "react": "^16.1.0-beta",
+    "react-dom": "^16.1.0-beta",
+    "react-test-renderer": "^16.1.0-beta",
+    "sinon": "^4.1.1",
     "webpack": "^3.4.1",
     "webpack-dev-server": "^2.6.1"
   },
   "scripts": {
-    "test:compile": "webpack --config webpack.test.config.js --progress --profile --colors",
+    "test:compile":
+      "webpack --config ./webpack/webpack.test.config.js --progress --profile --colors",
     "test:run": "mocha-headless-chrome -f test/index.html",
     "test:clean": "rm ./test/tests.bundle.js",
-    "test:watch": "webpack-dev-server --config webpack.test.config.js --progress --profile --colors",
+    "test:watch":
+      "webpack-dev-server --config ./webpack/webpack.test.config.js --progress --profile --colors",
     "test": "npm run test:compile && npm run test:run && npm run test:clean",
-    "build": "webpack --progress --profile --colors"
+    "build":
+      "webpack --config ./webpack/webpack.dist.config.js --progress --profile --colors"
   },
   "typings": "react-konva.d.ts",
-  "files": [
-    "README.md",
-    "src/react-konva.js",
-    "react-konva.d.ts"
-  ]
+  "files": ["README.md", "react-konva.js", "react-konva.d.ts"]
 }

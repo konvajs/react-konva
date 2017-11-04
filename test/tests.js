@@ -1,18 +1,22 @@
 import React from 'react';
 import { expect } from 'chai';
-import { shallow, mount, render } from 'enzyme';
-import { Stage, Layer, Rect } from '../src/react-konva';
+import { shallow, mount, render, configure } from 'enzyme';
+import { Stage, Layer, Rect, Group } from '../src/react-konva-fiber';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon';
+
+import Adapter from 'enzyme-adapter-react-16';
+
+configure({ adapter: new Adapter() });
 
 describe('Test references', function() {
   let instance;
   class App extends React.Component {
     render() {
       return (
-        <Stage ref="stage" width={300} height={300}>
-          <Layer ref="layer" />
+        <Stage width={300} height={300} ref={node => (this.stage = node)}>
+          <Layer ref={node => (this.layer = node)} />
         </Stage>
       );
     }
@@ -24,18 +28,18 @@ describe('Test references', function() {
   });
 
   it('can get stage instance', function() {
-    const stageRef = instance.refs.stage;
+    const stageRef = instance.stage;
     expect(stageRef.getStage() instanceof Konva.Stage).to.equal(true);
   });
 
   it('check initial props set', function() {
-    const stage = instance.refs.stage.getStage();
+    const stage = instance.stage.getStage();
     expect(stage.width()).to.equal(300);
     expect(stage.height()).to.equal(300);
   });
 
   it('can get layer instance', function() {
-    expect(instance.refs.layer instanceof Konva.Layer).to.equal(true);
+    expect(instance.layer instanceof Konva.Layer).to.equal(true);
   });
 });
 
@@ -49,9 +53,14 @@ describe('Test stage component', function() {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref="stage" width="300" height="300" onMouseDown={handleEvent}>
-            <Layer ref="layer">
-              <Rect ref="rect" width={100} height={100} />
+          <Stage
+            ref={node => (this.stage = node)}
+            width="300"
+            height="300"
+            onMouseDown={handleEvent}
+          >
+            <Layer ref={node => (this.layer = node)}>
+              <Rect ref={node => (this.rect = node)} width={100} height={100} />
             </Layer>
           </Stage>
         );
@@ -60,7 +69,7 @@ describe('Test stage component', function() {
 
     const wrapper = mount(<App />);
     const instance = wrapper.instance();
-    const stage = instance.refs.stage.getStage();
+    const stage = instance.stage.getStage();
     stage.simulateMouseDown({ x: 50, y: 50 });
     expect(eventCount).to.equal(1);
   });
@@ -75,13 +84,13 @@ describe('Test stage component', function() {
       render() {
         return (
           <Stage
-            ref="stage"
+            ref={node => (this.stage = node)}
             width="300"
             height="300"
             onContentMouseDown={handleEvent}
           >
-            <Layer ref="layer">
-              <Rect ref="rect" width={100} height={100} />
+            <Layer ref={node => (this.layer = node)}>
+              <Rect ref={node => (this.rect = node)} width={100} height={100} />
             </Layer>
           </Stage>
         );
@@ -90,7 +99,7 @@ describe('Test stage component', function() {
 
     const wrapper = mount(<App />);
     const instance = wrapper.instance();
-    const stage = instance.refs.stage.getStage();
+    const stage = instance.stage.getStage();
     stage.simulateMouseDown({ x: 50, y: 50 });
     expect(eventCount).to.equal(1);
   });
@@ -102,8 +111,8 @@ describe('Test stage component', function() {
           return <div />;
         }
         return (
-          <Stage ref="stage" width="300" height="300">
-            <Layer ref="layer" />
+          <Stage ref={node => (this.stage = node)} width="300" height="300">
+            <Layer ref={node => (this.layer = node)} />
           </Stage>
         );
       }
@@ -114,6 +123,30 @@ describe('Test stage component', function() {
     const stagesNumber = Konva.stages.length;
     wrapper.setProps({ skipStage: true });
     expect(Konva.stages.length).to.equal(stagesNumber - 1);
+  });
+
+  it('test null event', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage
+            ref={node => (this.stage = node)}
+            width="300"
+            height="300"
+            onMouseDown={null}
+          >
+            <Layer ref={node => (this.layer = node)}>
+              <Rect ref={node => (this.rect = node)} width={100} height={100} />
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    const instance = wrapper.instance();
+    const stage = instance.stage.getStage();
+    stage.simulateMouseDown({ x: 50, y: 50 });
   });
 });
 
@@ -128,9 +161,9 @@ describe('Test props setting', function() {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref="stage" width={300} height={300}>
-          <Layer ref="layer">
-            <Rect ref="rect" {...this.props.rectProps} />
+        <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Layer ref={node => (this.layer = node)}>
+            <Rect ref={node => (this.rect = node)} {...this.props.rectProps} />
           </Layer>
         </Stage>
       );
@@ -143,7 +176,7 @@ describe('Test props setting', function() {
   });
 
   it('can update component props', () => {
-    const rect = instance.refs.rect;
+    const rect = instance.rect;
     // set new props
     const props1 = {
       width: 100,
@@ -160,7 +193,7 @@ describe('Test props setting', function() {
     expect(rect.width()).to.equal(200);
   });
   it('can update component events', () => {
-    const rect = instance.refs.rect;
+    const rect = instance.rect;
     // set new props
     const props1 = {
       onClick: () => {}
@@ -178,7 +211,7 @@ describe('Test props setting', function() {
   });
 
   it('updating props should call layer redraw', () => {
-    const layer = instance.refs.layer;
+    const layer = instance.layer;
     sinon.spy(layer, 'batchDraw');
     wrapper.setProps({
       rectProps: {
@@ -194,7 +227,7 @@ describe('Test props setting', function() {
   });
 
   it('unset props', () => {
-    const rect = instance.refs.rect;
+    const rect = instance.rect;
     wrapper.setProps({
       rectProps: {
         fill: 'red',
@@ -233,7 +266,7 @@ describe('test lifecycle methods', () => {
       this.props.componentDidUpdate();
     }
     componentWillUnmount() {
-      this.props.componentDidUpdate();
+      this.props.componentWillUnmount();
     }
     render() {
       return <Rect />;
@@ -242,9 +275,11 @@ describe('test lifecycle methods', () => {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref="stage" width={300} height={300}>
-          <Layer ref="layer">
-            {this.props.skipsub ? null : <SubComponent {...this.props} />}
+        <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Layer ref={node => (this.layer = node)}>
+            {this.props.dontDrawChildren ? null : (
+              <SubComponent {...this.props} />
+            )}
           </Layer>
         </Stage>
       );
@@ -273,9 +308,9 @@ describe('test lifecycle methods', () => {
       componentWillUnmount: sinon.spy()
     };
     wrapper = mount(<App {...props} />);
-    wrapper.update();
+    wrapper.setProps(props);
 
-    expect(props.componentWillReceiveProps.called).to.equal(true);
+    expect(props.componentWillMount.called).to.equal(true);
     expect(props.shouldComponentUpdate.called).to.equal(true);
     expect(props.componentWillUpdate.called).to.equal(true);
     expect(props.componentDidUpdate.called).to.equal(true);
@@ -292,13 +327,204 @@ describe('test lifecycle methods', () => {
       componentWillUnmount: sinon.spy()
     };
     wrapper = mount(<App {...props} />);
-    const stage = wrapper.instance().refs.stage.getStage();
+    const stage = wrapper.instance().stage.getStage();
     expect(stage.findOne('Rect')).to.not.equal(undefined);
 
-    props.skipsub = props;
+    props.dontDrawChildren = props;
     wrapper.setProps(props);
     expect(stage.findOne('Rect')).to.equal(undefined);
     // This line don't work... why????
-    // expect(props.componentWillUnmount.called).to.equal(true);
+    expect(props.componentWillUnmount.called).to.equal(true);
+  });
+});
+
+// will fail
+describe.skip('Bad structure', () => {
+  it('No dom inside Konva', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width="300" height="300">
+            <Layer>
+              <div />
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    const instance = wrapper.instance();
+    const stage = instance.stage.getStage();
+  });
+});
+
+// TODO: how to fix it?
+// react is creating new nodes before removing old one
+// that creates mess in id references
+// see: https://github.com/lavrton/react-konva/issues/119
+
+describe.skip('Check id saving', () => {
+  it('Konva can loose ids?', function() {
+    class App extends React.Component {
+      render() {
+        const kids = [
+          <Rect key="1" id="rect1" fill="red" />,
+          <Rect key="2" id="rect2" fill="green" />
+        ];
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer>
+              {this.props.drawAsGroup ? <Group>{kids}</Group> : kids}
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    const instance = wrapper.instance();
+    const stage = instance.stage.getStage();
+    expect(stage.findOne('#rect1').fill()).to.equal('red');
+    expect(stage.findOne('#rect2').fill()).to.equal('green');
+
+    wrapper.setProps({ drawAsGroup: true });
+
+    expect(stage.findOne('#rect1').fill()).to.equal('red');
+    expect(stage.findOne('#rect2').fill()).to.equal('green');
+  });
+});
+
+describe('Test drawing calls', () => {
+  it('Draw layer on mount', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer>
+              <Rect fill="red" />
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(undefined);
+    sinon.spy(Konva.Layer.prototype, 'batchDraw');
+    const wrapper = mount(<App />);
+
+    expect(Konva.Layer.prototype.batchDraw.called).to.equal(true);
+    Konva.Layer.prototype.batchDraw.restore();
+  });
+
+  it('Draw layer on node add', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer>{this.props.showRect && <Rect fill="red" />}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    sinon.spy(Konva.Layer.prototype, 'batchDraw');
+    wrapper.setProps({ showRect: true });
+
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
+    Konva.Layer.prototype.batchDraw.restore();
+  });
+
+  it('Draw layer on node remove', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer>{!this.props.hideRect && <Rect fill="red" />}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    sinon.spy(Konva.Layer.prototype, 'batchDraw');
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(0);
+    wrapper.setProps({ hideRect: true });
+
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
+    Konva.Layer.prototype.batchDraw.restore();
+  });
+});
+
+describe('test reconciler', () => {
+  it('add before', function() {
+    class App extends React.Component {
+      render() {
+        const kids = this.props.drawMany
+          ? [<Rect key="1" name="rect1" />, <Rect key="2" name="rect2" />]
+          : [<Rect key="2" name="rect2" />];
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer ref={node => (this.layer = node)}>{kids}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    sinon.spy(Konva.Layer.prototype, 'batchDraw');
+    wrapper.setProps({ drawMany: true });
+
+    const layer = wrapper.instance().layer;
+    expect(layer.children[0].name()).to.equal('rect1');
+    expect(layer.children[1].name()).to.equal('rect2');
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
+    Konva.Layer.prototype.batchDraw.restore();
+  });
+
+  it('change order', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer ref={node => (this.layer = node)}>{this.props.kids}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    let kids = [
+      <Rect key="1" name="rect1" />,
+      <Rect key="2" name="rect2" />,
+      <Rect key="3" name="rect3" />
+    ];
+    const wrapper = mount(<App kids={kids} />);
+    const layer = wrapper.instance().layer;
+
+    expect(layer.children[0].name()).to.equal('rect1');
+    expect(layer.children[1].name()).to.equal('rect2');
+    expect(layer.children[2].name()).to.equal('rect3');
+
+    kids = [
+      <Rect key="3" name="rect3" />,
+      <Rect key="1" name="rect1" />,
+      <Rect key="2" name="rect2" />
+    ];
+    wrapper.setProps({ kids });
+    expect(layer.children[0].name()).to.equal('rect3');
+    expect(layer.children[1].name()).to.equal('rect1');
+    expect(layer.children[2].name()).to.equal('rect2');
+
+    kids = [
+      <Rect key="1" name="rect1" />,
+      <Rect key="3" name="rect3" />,
+      <Rect key="2" name="rect2" />
+    ];
+    wrapper.setProps({ kids });
+
+    expect(layer.children[0].name()).to.equal('rect1');
+    expect(layer.children[1].name()).to.equal('rect3');
+    expect(layer.children[2].name()).to.equal('rect2');
   });
 });
