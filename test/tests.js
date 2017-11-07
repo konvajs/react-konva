@@ -483,6 +483,58 @@ describe('test reconciler', () => {
     Konva.Layer.prototype.batchDraw.restore();
   });
 
+  it('add before (mane)', function() {
+    class App extends React.Component {
+      render() {
+        const kids = this.props.drawMany
+          ? [
+              <Rect key="1" name="rect1" />,
+              <Rect key="2" name="rect2" />,
+              <Rect key="3" name="rect3" />
+            ]
+          : [<Rect key="1" name="rect1" />, <Rect key="3" name="rect3" />];
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer ref={node => (this.layer = node)}>{kids}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    wrapper.setProps({ drawMany: true });
+
+    const layer = wrapper.instance().layer;
+    expect(layer.children[0].name()).to.equal('rect1');
+    expect(layer.children[1].name()).to.equal('rect2');
+    expect(layer.children[2].name()).to.equal('rect3');
+  });
+
+  it('add after', function() {
+    class App extends React.Component {
+      render() {
+        const kids = this.props.drawMany
+          ? [<Rect key="1" name="rect1" />, <Rect key="2" name="rect2" />]
+          : [<Rect key="1" name="rect1" />];
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer ref={node => (this.layer = node)}>{kids}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    sinon.spy(Konva.Layer.prototype, 'batchDraw');
+    wrapper.setProps({ drawMany: true });
+
+    const layer = wrapper.instance().layer;
+    expect(layer.children[0].name()).to.equal('rect1');
+    expect(layer.children[1].name()).to.equal('rect2');
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
+    Konva.Layer.prototype.batchDraw.restore();
+  });
+
   it('change order', function() {
     class App extends React.Component {
       render() {

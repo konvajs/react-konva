@@ -545,20 +545,18 @@ var KonvaRenderer = ReactFiberReconciler({
     },
     insertBefore: function insertBefore(parentInstance, child, beforeChild) {
       invariant(child !== beforeChild, 'ReactKonva: Can not insert node before itself');
-      if (child.parent !== parentInstance) {
-        parentInstance.add(child);
-      }
-      var newIndex = Math.max(beforeChild.getZIndex() - 1, 0);
-      child.setZIndex(newIndex);
+      // remove and add back to reset zIndex
+      child.remove();
+      parentInstance.add(child);
+      child.setZIndex(beforeChild.getZIndex());
       updatePicture(parentInstance);
     },
     insertInContainerBefore: function insertInContainerBefore(parentInstance, child, beforeChild) {
       invariant(child !== beforeChild, 'ReactKonva: Can not insert node before itself');
-      if (child.parent !== parentInstance) {
-        parentInstance.add(child);
-      }
-      var newIndex = Math.max(beforeChild.getZIndex() - 1, 0);
-      child.setZIndex(newIndex);
+      // remove and add back to reset zIndex
+      child.remove();
+      parentInstance.add(child);
+      child.setZIndex(beforeChild.getZIndex());
       updatePicture(parentInstance);
     },
     removeChild: function removeChild(parentInstance, child) {
