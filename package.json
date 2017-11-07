@@ -1,7 +1,7 @@
 {
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.5.6-beta",
+  "version": "1.5.7-beta",
   "keywords": ["react", "canvas", "jsx", "konva"],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "BSD-3-Clause",

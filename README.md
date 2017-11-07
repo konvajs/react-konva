@@ -20,6 +20,12 @@ You can even inspect the components in React dev tools.
 
 ## Installation
 
+For react v16 please use:
+```bash
+npm install react@16.1.0-beta react-dom@16.1.0-beta react-konva@1.5.7-beta
+```
+For older versions:
+
 ```bash
 npm install react konva react-konva --save
 ```
