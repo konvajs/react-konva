@@ -21,7 +21,7 @@ You can even inspect the components in React dev tools.
 ## Installation
 
 ```bash
-npm install react konva react-konva konva --save
+npm install react-konva konva --save
 ```
 
 ## Example
