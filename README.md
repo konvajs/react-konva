@@ -24,6 +24,12 @@ You can even inspect the components in React dev tools.
 npm install react-konva konva --save
 ```
 
+For React `v15` use:
+
+```bash
+npm install react@15.X react-dom@15.X react-konva@1.1.6 konva
+```
+
 ## Example
 
 ```javascript
