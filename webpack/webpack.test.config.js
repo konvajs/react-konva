@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-  entry: ['./test/tests.js'],
+  entry: [__dirname + '/../test/tests.js'],
   devtool: 'eval',
   output: { path: __dirname, filename: '../test/tests.bundle.js' },
   externals: {

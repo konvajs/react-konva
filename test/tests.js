@@ -580,3 +580,5 @@ describe('test reconciler', () => {
     expect(layer.children[2].name()).to.equal('rect2');
   });
 });
+
+it('');

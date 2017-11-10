@@ -356,17 +356,6 @@ function applyNodeProps(instance, props) {
   if (hasUpdates) {
     instance.setAttrs(updatedProps);
     updatePicture(instance);
-    var val, prop;
-    for (prop in updatedProps) {
-      val = updatedProps[prop];
-      if (val instanceof window.Image && !val.complete) {
-        var node = instance;
-        val.addEventListener('load', function () {
-          var layer = node.getLayer();
-          layer && layer.batchDraw();
-        });
-      }
-    }
   }
 }
 
