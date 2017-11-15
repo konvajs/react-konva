@@ -46,6 +46,7 @@ export interface StageProps extends Pick<React.HTMLProps<any>, 'className' | 'ro
   name?: string;
   width?: number | string;
   height?: number | string;
+  draggable?: boolean;
   onContentMouseOver?(evt: any): void;
   onContentMouseMove?(evt: any): void;
   onContentMouseOut?(evt: any): void;
