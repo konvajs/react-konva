@@ -1,8 +1,13 @@
 {
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.6.2",
-  "keywords": ["react", "canvas", "jsx", "konva"],
+  "version": "1.6.3",
+  "keywords": [
+    "react",
+    "canvas",
+    "jsx",
+    "konva"
+  ],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "MIT",
   "main": "react-konva.js",
@@ -41,18 +46,18 @@
     "webpack-dev-server": "^2.6.1"
   },
   "scripts": {
-    "test:compile":
-      "webpack --config ./webpack/webpack.test.config.js --progress --profile --colors",
+    "test:compile": "webpack --config ./webpack/webpack.test.config.js --progress --profile --colors",
     "test:run": "mocha-headless-chrome -f test/index.html",
     "test:clean": "rm ./test/tests.bundle.js",
-    "test:watch":
-      "webpack-dev-server --config ./webpack/webpack.test.config.js --progress --profile --colors",
+    "test:watch": "webpack-dev-server --config ./webpack/webpack.test.config.js --progress --profile --colors",
     "test": "npm run test:compile && npm run test:run && npm run test:clean",
-    "build":
-      "webpack --config ./webpack/webpack.dist.config.js --progress --profile --colors",
-    "bundle":
-      "webpack --config ./webpack/webpack.bundle.config.js --progress --profile --colors"
+    "build": "webpack --config ./webpack/webpack.dist.config.js --progress --profile --colors",
+    "bundle": "webpack --config ./webpack/webpack.bundle.config.js --progress --profile --colors"
   },
   "typings": "react-konva.d.ts",
-  "files": ["README.md", "react-konva.js", "react-konva.d.ts"]
+  "files": [
+    "README.md",
+    "react-konva.js",
+    "react-konva.d.ts"
+  ]
 }
