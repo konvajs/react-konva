@@ -18,10 +18,15 @@ const { Component } = React;
 
 var propsToSkip = { children: true, ref: true, key: true, style: true };
 
+var warningShowed = false;
+
 function applyNodeProps(instance, props, oldProps = {}) {
-  if ('id' in props) {
-    const message = `ReactKonva: You are using "id" attribute for Konva node. In some very rare cases it may produce bugs. Currently we recommend not to use it and use "name" attribute instead.`;
+  if (!warningShowed && 'id' in props) {
+    const message = `ReactKonva: You are using "id" attribute for a Konva node. In some very rare cases it may produce bugs. Currently we recommend not to use it and use "name" attribute instead.
+You are using id = "${props.id}".
+For me info see: https://github.com/lavrton/react-konva/issues/119`;
     console.warn(message);
+    warningShowed = true;
   }
 
   var updatedProps = {};
