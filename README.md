@@ -10,7 +10,7 @@ React Konva is a JavaScript library for drawing complex canvas graphics using
 It provides declarative and reactive bindings to the
 [Konva Framework](http://konvajs.github.io/).
 
-# [OPEN DEMO](https://stackblitz.com/edit/react-konva-basic-demo?file=index.js)
+# [OPEN DEMO](https://codesandbox.io/s/5m3nwp787x)
 
 An attempt to make [React](http://facebook.github.io/react/) work with the HTML5
 canvas library. The goal is to have similar declarative markup as normal React
@@ -202,47 +202,80 @@ class MyRect extends React.Component {
 For images you need manually create native window.Image instance or `<canvas>`
 element and use it as `image` attribute of `ReactKonva.Image` component.
 
-Demo: http://jsbin.com/wedovemota/1/edit?js,output
+Demo: https://codesandbox.io/s/kw51nzpnx3
 
 ```JavaScript
-import {Layer, Stage, Image} from 'react-konva';
+import React, { Component } from "react";
+import { render } from "react-dom";
+import { Stage, Layer, Image } from "react-konva";
 
-// try drag& drop rectangle
-class MyImage extends React.Component {
-    state = {
-      image: null
-    }
-    componentDidMount() {
-      const image = new window.Image();
-      image.src = 'http://konvajs.github.io/assets/yoda.jpg';
-      image.onload = () => {
-        this.setState({
-          image: image
-        });
-      }
-    }
+// VERY IMPORTANT NOTES
+// at first we will set image state to null
+// and then we will set it to native image instanse
+// only when image is loaded
+class YodaImage extends React.Component {
+  state = {
+    image: null
+  };
+  componentDidMount() {
+    const image = new window.Image();
+    image.src = "http://konvajs.github.io/assets/yoda.jpg";
+    image.onload = () => {
+      // setState will redraw layer
+      // because "image" property is changed
+      this.setState({
+        image: image
+      });
+    };
+  }
 
-    render() {
-        return (
-            <Image
-              image={this.state.image}
-            />
-        );
-    }
+  render() {
+    return <Image image={this.state.image} />;
+  }
 }
 
-function App() {
+// here is another way to update the image
+class VaderImage extends React.Component {
+  state = {
+    image: new window.Image()
+  };
+  componentDidMount() {
+    this.state.image.src = "http://konvajs.github.io/assets/darth-vader.jpg";
+    this.state.image.onload = () => {
+      // calling set state here will do nothing
+      // because properties of Konva.Image are not changed
+      // so we need to update layer manually
+      this.imageNode.getLayer().batchDraw();
+    };
+  }
+
+  render() {
     return (
-      <Stage width={700} height={700}>
+      <Image
+        image={this.state.image}
+        y={250}
+        ref={node => {
+          this.imageNode = node;
+        }}
+      />
+    );
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer>
-            <MyImage/>
+          <YodaImage />
+          <VaderImage />
         </Layer>
       </Stage>
     );
+  }
 }
 
-
-ReactDOM.render(<App/>, document.getElementById('container'));
+render(<App />, document.getElementById("root"));
 ```
 
 ### Using filters
