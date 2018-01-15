@@ -20,6 +20,9 @@ export interface KonvaNodeProps {
   onDragStart?(evt: any): void;
   onDragMove?(evt: any): void;
   onDragEnd?(evt: any): void;
+  onDragOver?(evt: any): void;
+  onDragEnter?(evt: any): void;
+  onDragLeave?(evt: any): void;
 }
 
 export class KonvaNodeComponent<Node extends Konva.Node, Props = Konva.NodeConfig> extends React.Component<Props & KonvaNodeProps> {
