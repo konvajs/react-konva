@@ -39,6 +39,7 @@ npm install react@15.X react-dom@15.X react-konva@1.1.6 konva
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { Stage, Layer, Rect, Text } from 'react-konva';
+import Konva from 'konva';
 
 class ColoredRect extends React.Component {
   state = {
