@@ -13,6 +13,7 @@ const React = require('react');
 const Konva = require('konva');
 const ReactFiberReconciler = require('react-reconciler');
 const ReactDOMFrameScheduling = require('./ReactDOMFrameScheduling');
+const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 
 const { Component } = React;
 
@@ -327,8 +328,15 @@ const KonvaRenderer = ReactFiberReconciler({
       fiberInstance
     ) {
       instance._applyProps(instance, newProps, oldProps);
-    }
-  }
+    },
+  },
+});
+
+const foundDevTools = KonvaRenderer.injectIntoDevTools({
+  findFiberByHostInstance: ReactDOMComponentTree.getClosestInstanceFromNode,
+  bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
+  version: React.version || 16,
+  rendererPackageName: 'react-konva',
 });
 
 /** API */
