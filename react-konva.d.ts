@@ -40,16 +40,7 @@ export class KonvaContainerComponent<Container extends Konva.Container, Props = 
   // mountAndAddChildren(): void;
 }
 
-export interface StageProps extends Pick<React.HTMLProps<any>, 'className' | 'role' | 'style' | 'tabIndex' | 'title'> {
-  x?: number;
-  y?: number;
-  scale?: {x: number, y: number};
-  scaleX?: number;
-  scaleY?: number;
-  name?: string;
-  width?: number | string;
-  height?: number | string;
-  draggable?: boolean;
+export interface StageProps extends Konva.NodeConfig, Pick<React.HTMLProps<any>, "className" | "role" | "style" | "tabIndex" | "title"> {
   onContentMouseOver?(evt: any): void;
   onContentMouseMove?(evt: any): void;
   onContentMouseOut?(evt: any): void;
@@ -62,6 +53,7 @@ export interface StageProps extends Pick<React.HTMLProps<any>, 'className' | 'ro
   onContentTouchEnd?(evt: any): void;
   onContentTap?(evt: any): void;
   onContentDblTap?(evt: any): void;
+  onContentWheel?(evt: any): void;
 }
 
 /** Stage */
