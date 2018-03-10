@@ -328,8 +328,8 @@ const KonvaRenderer = ReactFiberReconciler({
       fiberInstance
     ) {
       instance._applyProps(instance, newProps, oldProps);
-    },
-  },
+    }
+  }
 });
 
 const foundDevTools = KonvaRenderer.injectIntoDevTools({
@@ -337,6 +337,9 @@ const foundDevTools = KonvaRenderer.injectIntoDevTools({
   bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
   version: React.version || 16,
   rendererPackageName: 'react-konva',
+  getInspectorDataForViewTag: (...args) => {
+    console.log(args);
+  }
 });
 
 /** API */

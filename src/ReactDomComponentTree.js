@@ -4,13 +4,6 @@ const HostText = 6;
 
 // adapted FROM: https://github.com/facebook/react/blob/master/packages/react-dom/src/client/ReactDOMComponentTree.js
 
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 const randomKey = Math.random()
   .toString(36)
   .slice(2);
@@ -21,6 +14,7 @@ const internalInstanceKey = '__reactInternalInstance$' + randomKey;
  * ReactDOMTextComponent instance ancestor.
  */
 export function getClosestInstanceFromNode(node) {
+  console.log(node);
   if (node[internalInstanceKey]) {
     return node[internalInstanceKey];
   }
@@ -37,8 +31,8 @@ export function getClosestInstanceFromNode(node) {
 
   let inst = node[internalInstanceKey];
   if (inst.tag === HostComponent || inst.tag === HostText) {
-  // In Fiber, this will always be the deepest root.
-  return inst;
+    // In Fiber, this will always be the deepest root.
+    return inst;
   }
 
   return null;
