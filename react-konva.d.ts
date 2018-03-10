@@ -47,19 +47,11 @@ export class KonvaContainerComponent<
 }
 
 export interface StageProps
-  extends Pick<
+  extends Konva.NodeConfig,
+    Pick<
       React.HTMLProps<any>,
       'className' | 'role' | 'style' | 'tabIndex' | 'title'
     > {
-  x?: number;
-  y?: number;
-  scale?: { x: number; y: number };
-  scaleX?: number;
-  scaleY?: number;
-  name?: string;
-  width?: number | string;
-  height?: number | string;
-  draggable?: boolean;
   onContentMouseOver?(evt: any): void;
   onContentMouseMove?(evt: any): void;
   onContentMouseOut?(evt: any): void;
