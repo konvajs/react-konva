@@ -1,7 +1,7 @@
 import React from 'react';
 import { expect } from 'chai';
 import { shallow, mount, render, configure } from 'enzyme';
-import { Stage, Layer, Rect, Group } from '../src/react-konva-fiber';
+import { Stage, Layer, Rect, Group } from '../src/index';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon';

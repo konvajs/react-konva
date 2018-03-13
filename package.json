@@ -1,4 +1,5 @@
 {
+  "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
   "version": "1.6.6",
@@ -10,55 +11,43 @@
   ],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "MIT",
-  "main": "react-konva.js",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:lavrton/react-konva.git"
   },
+  "source": "./src/react-konva-fiber.js",
   "dependencies": {
     "fbjs": "^0.8.16",
     "react-reconciler": "^0.7.0"
   },
   "peerDependencies": {
-    "react": "~16.2.0",
+    "react": "16.x",
     "konva": "^1.7.6",
-    "react-dom": "~16.2.0"
+    "react-dom": "16.x"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "babel-register": "^6.26.0",
     "chai": "^4.1.2",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
-    "jsdom": "^11.5.1",
     "konva": "^1.7.6",
-    "mocha": "^5.0.0",
-    "mocha-headless-chrome": "^1.8.2",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-test-renderer": "^16.2.0",
-    "sinon": "^4.2.0",
-    "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.11.1"
+    "sinon": "^4.4.3",
+    "nwb": "^0.21.5",
+    "react": "16.x",
+    "react-dom": "16.x"
   },
   "scripts": {
-    "test:compile": "webpack --config ./webpack/webpack.test.config.js --progress --profile --colors",
-    "test:run": "mocha-headless-chrome -f test/index.html",
-    "test:clean": "rm ./test/tests.bundle.js",
-    "test:watch": "webpack-dev-server --config ./webpack/webpack.test.config.js --progress --profile --colors",
-    "test": "npm run test:compile && npm run test:run && npm run test:clean",
-    "build": "webpack --config ./webpack/webpack.dist.config.js --progress --profile --colors",
-    "bundle": "webpack --config ./webpack/webpack.bundle.config.js --progress --profile --colors"
+    "build": "nwb build-react-component",
+    "clean": "nwb clean-module && nwb clean-demo",
+    "start": "nwb serve-react-demo",
+    "test": "nwb test-react",
+    "test:coverage": "nwb test-react --coverage",
+    "test:watch": "nwb test-react --server"
   },
   "typings": "react-konva.d.ts",
   "files": [
     "README.md",
-    "react-konva.js",
+    "lib",
     "react-konva.d.ts"
   ]
 }
