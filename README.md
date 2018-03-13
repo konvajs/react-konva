@@ -91,6 +91,8 @@ Label, SVG Path, RegularPolygon. Also you can create custom shape.
 To get more info about `Konva` you can read
 [Konva Overview](http://konvajs.github.io/docs/overview.html).
 
+**Actially you don't need to learn `react-konva`. Just learn `Konva` framework, you will understand how to use `react-konva`**
+
 ## Comparisons
 
 ### react-konva vs react-canvas
@@ -109,20 +111,17 @@ shapes.
 
 ### react-konva vs vanilla canvas
 
-Performance is one of the main buzz word in react hype.
+Vanilla <canvas> is faster because when you use `react-konva` you have two layers of abstractions. Konva framework is on top of <canvas> and React is on top of Konva.
+Depending on the use case this approach can be slow.
+The purpose of `react-konva` is reduce the complexity of the application and use well-known declarative way for drawing on canvas.
 
-I made this plugin not for performance reasons. Using vanilla <canvas> should be
-more performant because while using react-konva you have Konva framework on top
-of <canvas> and React on top of Konva. But I made this plugin to fight with
-application complexity. Konva helps here a lot (especially when you need events
-for objects on canvas, like “click” on shape, it is really hard to do with
-vanilla canvas). But React helps here much more as it provides very good
-structure for your codebase and data flow.
 
 ## Documentation and Examples
 
 **Note: you can find a lot of demos and examples of using Konva there:
-[http://konvajs.github.io/](http://konvajs.github.io/)**
+[http://konvajs.github.io/](http://konvajs.github.io/). Really, just go there and take a look of Konva can do for you. You will be able to do the same with `react-konva` too.**
+
+There is no large documentation for `react-konva`. We will just describe several common use cases and adoptions with `Konva`.
 
 ### Getting reference to Konva objects
 
@@ -166,7 +165,7 @@ For complex animation I recommend to use React methods. Somethings like:
 
 But for simple cases you can use `Konva` methods:
 
-[http://jsbin.com/puroji/2/edit?js,output](http://jsbin.com/puroji/2/edit?js,output)
+[https://codesandbox.io/s/8nwnnklpp2](https://codesandbox.io/s/8nwnnklpp2)
 
 ```javascript
 class MyRect extends React.Component {
@@ -284,7 +283,7 @@ render(<App />, document.getElementById("root"));
 To apply filters you need to cache `Konva.Node` (`ref` of all `react-konva`
 components).
 
-DEMO: http://jsbin.com/ceyegucibe/1/edit?html,js,output
+DEMO: https://codesandbox.io/s/1v38wx7487
 
 ```javascript
 class MyRect extends React.Component {
