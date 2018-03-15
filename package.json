@@ -18,7 +18,7 @@
   },
   "peerDependencies": {
     "react": "16.x",
-    "konva": "^1.7.6",
+    "konva": "^2.0.0",
     "react-dom": "16.x"
   },
   "devDependencies": {
