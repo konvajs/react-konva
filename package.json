@@ -2,7 +2,7 @@
   "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "keywords": ["react", "canvas", "jsx", "konva"],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "MIT",
