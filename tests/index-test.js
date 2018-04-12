@@ -6,7 +6,11 @@ import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon';
 
-import Adapter from 'enzyme-adapter-react-16';
+// we need to use official version
+// but it was not working with context api.
+// waiting for a fix
+// import Adapter from 'enzyme-adapter-react-16';
+import Adapter from './ReactSixteenAdapter';
 
 configure({ adapter: new Adapter() });
 
@@ -581,4 +585,42 @@ describe('test reconciler', () => {
   });
 });
 
-it('');
+describe('Test context API', function() {
+  let instance;
+
+  const { Consumer, Provider } = React.createContext({
+    width: 100,
+    height: 100
+  });
+  class App extends React.Component {
+    render() {
+      return (
+        <Provider value={{ width: 100, height: 100 }}>
+          <Consumer>
+            {({ width, height }) => (
+              <Stage
+                width={width}
+                height={height}
+                ref={node => (this.stage = node)}
+              >
+                <Layer ref={node => (this.layer = node)} />
+              </Stage>
+            )}
+          </Consumer>
+        </Provider>
+      );
+    }
+  }
+
+  beforeEach(() => {
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+  });
+
+  it('test correct set', function() {
+    const stageRef = instance.stage;
+    const stage = stageRef.getStage();
+    expect(stage.width()).to.equal(100);
+    expect(stage.height()).to.equal(100);
+  });
+});

@@ -3,7 +3,12 @@
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
   "version": "1.7.1",
-  "keywords": ["react", "canvas", "jsx", "konva"],
+  "keywords": [
+    "react",
+    "canvas",
+    "jsx",
+    "konva"
+  ],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "MIT",
   "main": "lib/index.js",
@@ -14,7 +19,7 @@
   "source": "./src/react-konva-fiber.js",
   "dependencies": {
     "fbjs": "^0.8.16",
-    "react-reconciler": "^0.7.0"
+    "react-reconciler": "^0.9.0"
   },
   "peerDependencies": {
     "react": "16.x",
@@ -25,11 +30,11 @@
     "chai": "^4.1.2",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
-    "konva": "^1.7.6",
-    "sinon": "^4.4.3",
+    "konva": "^2.0.2",
+    "sinon": "^4.5.0",
     "nwb": "^0.21.5",
-    "react": "16.x",
-    "react-dom": "16.x"
+    "react": "16.3.0",
+    "react-dom": "16.3.0"
   },
   "scripts": {
     "build": "nwb build-react-component",
@@ -40,5 +45,9 @@
     "test:watch": "nwb test-react --server"
   },
   "typings": "react-konva.d.ts",
-  "files": ["README.md", "lib", "react-konva.d.ts"]
+  "files": [
+    "README.md",
+    "lib",
+    "react-konva.d.ts"
+  ]
 }
