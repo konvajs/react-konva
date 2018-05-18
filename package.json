@@ -19,22 +19,22 @@
   "source": "./src/react-konva-fiber.js",
   "dependencies": {
     "fbjs": "^0.8.16",
-    "react-reconciler": "^0.9.0"
+    "react-reconciler": "^0.10.0"
   },
   "peerDependencies": {
-    "react": "16.x",
+    "react": "16.3.2",
     "konva": "^2.0.0",
-    "react-dom": "16.x"
+    "react-dom": "16.3.2"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
-    "konva": "^2.0.2",
-    "sinon": "^4.5.0",
+    "konva": "^2.0.3",
+    "sinon": "^5.0.7",
     "nwb": "^0.21.5",
-    "react": "16.3.0",
-    "react-dom": "16.3.0"
+    "react": "16.3.2",
+    "react-dom": "16.3.2"
   },
   "scripts": {
     "build": "nwb build-react-component",

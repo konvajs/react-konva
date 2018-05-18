@@ -595,7 +595,7 @@ describe('Test context API', function() {
   class App extends React.Component {
     render() {
       return (
-        <Provider value={{ width: 100, height: 100 }}>
+        <Provider value={{ width: 200, height: 100 }}>
           <Consumer>
             {({ width, height }) => (
               <Stage
@@ -620,7 +620,51 @@ describe('Test context API', function() {
   it('test correct set', function() {
     const stageRef = instance.stage;
     const stage = stageRef.getStage();
-    expect(stage.width()).to.equal(100);
+    expect(stage.width()).to.equal(200);
     expect(stage.height()).to.equal(100);
+  });
+});
+
+describe('Test nested context API', function() {
+  let instance;
+
+  const { Consumer, Provider } = React.createContext({
+    color: 'red'
+  });
+
+  class Tools extends React.Component {
+    render() {
+      return (
+        <Consumer>
+          {({ color }) => (
+            <Layer>
+              <Rect width={50} height={50} fill={color} />
+            </Layer>
+          )}
+        </Consumer>
+      );
+    }
+  }
+  class App extends React.Component {
+    render() {
+      return (
+        <Provider value={{ color: 'black' }}>
+          <Stage width={300} height={200} ref={node => (this.stage = node)}>
+            <Tools />
+          </Stage>
+        </Provider>
+      );
+    }
+  }
+
+  beforeEach(() => {
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+  });
+
+  it('test correct set', function() {
+    const stageRef = instance.stage;
+    const stage = stageRef.getStage();
+    expect(stage.findOne('Rect').fill()).to.equal('black');
   });
 });

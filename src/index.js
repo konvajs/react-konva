@@ -19,15 +19,25 @@ const { Component } = React;
 
 var propsToSkip = { children: true, ref: true, key: true, style: true };
 
-var warningShowed = false;
+var idWarningShowed = false;
+var zIndexWarningShowed = false;
 
 function applyNodeProps(instance, props, oldProps = {}) {
-  if (!warningShowed && 'id' in props) {
+  if (!idWarningShowed && 'id' in props) {
     const message = `ReactKonva: You are using "id" attribute for a Konva node. In some very rare cases it may produce bugs. Currently we recommend not to use it and use "name" attribute instead.
 You are using id = "${props.id}".
 For me info see: https://github.com/lavrton/react-konva/issues/119`;
     console.warn(message);
-    warningShowed = true;
+    idWarningShowed = true;
+  }
+
+  if (!zIndexWarningShowed && 'zIndex' in props) {
+    const message = `ReactKonva: You are using "zIndex" attribute for a Konva node.
+react-konva may get confused with ordering. Just define correct order of elements in your render function of a component.
+For me info see: https://github.com/lavrton/react-konva/issues/194
+`;
+    console.warn(message);
+    zIndexWarningShowed = true;
   }
 
   var updatedProps = {};
@@ -256,6 +266,9 @@ const KonvaRenderer = ReactFiberReconciler({
 
   now: ReactDOMFrameScheduling.now,
 
+  // The Konva renderer is secondary to the React DOM renderer.
+  isPrimaryRenderer: false,
+
   useSyncScheduling: true,
 
   mutation: {
@@ -320,14 +333,7 @@ const KonvaRenderer = ReactFiberReconciler({
       // Noop
     },
 
-    commitUpdate(
-      instance,
-      updatePayload,
-      type,
-      oldProps,
-      newProps,
-      fiberInstance
-    ) {
+    commitUpdate(instance, updatePayload, type, oldProps, newProps) {
       instance._applyProps(instance, newProps, oldProps);
     }
   }
