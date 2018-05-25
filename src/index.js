@@ -12,15 +12,18 @@ const emptyObject = require('fbjs/lib/emptyObject');
 const React = require('react');
 const Konva = require('konva');
 const ReactFiberReconciler = require('react-reconciler');
+// const ReactScheduler = require('react-scheduler');
 const ReactDOMFrameScheduling = require('./ReactDOMFrameScheduling');
 const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 
 const { Component } = React;
 
-var propsToSkip = { children: true, ref: true, key: true, style: true };
+const EVENTS_NAMESPACE = '.react-konva-event';
 
-var idWarningShowed = false;
-var zIndexWarningShowed = false;
+const propsToSkip = { children: true, ref: true, key: true, style: true };
+
+let idWarningShowed = false;
+let zIndexWarningShowed = false;
 
 function applyNodeProps(instance, props, oldProps = {}) {
   if (!idWarningShowed && 'id' in props) {
@@ -78,7 +81,7 @@ For me info see: https://github.com/lavrton/react-konva/issues/194
           eventName.substr(8);
       }
       if (props[key]) {
-        instance.on(eventName, props[key]);
+        instance.on(eventName + EVENTS_NAMESPACE, props[key]);
       }
     }
     if (
@@ -264,78 +267,81 @@ const KonvaRenderer = ReactFiberReconciler({
     return false;
   },
 
+  // cancelDeferredCallback: ReactScheduler.cancelDeferredCallback,
   now: ReactDOMFrameScheduling.now,
 
   // The Konva renderer is secondary to the React DOM renderer.
   isPrimaryRenderer: false,
 
-  useSyncScheduling: true,
+  supportsMutation: true,
 
-  mutation: {
-    appendChild(parentInstance, child) {
-      if (child.parent === parentInstance) {
-        child.moveToTop();
-      } else {
-        parentInstance.add(child);
-      }
+  // useSyncScheduling: true,
 
-      updatePicture(parentInstance);
-    },
-
-    appendChildToContainer(parentInstance, child) {
-      if (child.parent === parentInstance) {
-        child.moveToTop();
-      } else {
-        parentInstance.add(child);
-      }
-      updatePicture(parentInstance);
-    },
-
-    insertBefore(parentInstance, child, beforeChild) {
-      invariant(
-        child !== beforeChild,
-        'ReactKonva: Can not insert node before itself'
-      );
-      // remove and add back to reset zIndex
-      child.remove();
+  appendChild(parentInstance, child) {
+    if (child.parent === parentInstance) {
+      child.moveToTop();
+    } else {
       parentInstance.add(child);
-      child.setZIndex(beforeChild.getZIndex());
-      updatePicture(parentInstance);
-    },
-
-    insertInContainerBefore(parentInstance, child, beforeChild) {
-      invariant(
-        child !== beforeChild,
-        'ReactKonva: Can not insert node before itself'
-      );
-      // remove and add back to reset zIndex
-      child.remove();
-      parentInstance.add(child);
-      child.setZIndex(beforeChild.getZIndex());
-      updatePicture(parentInstance);
-    },
-
-    removeChild(parentInstance, child) {
-      child.destroy();
-      updatePicture(parentInstance);
-    },
-
-    removeChildFromContainer(parentInstance, child) {
-      child.destroy();
-      updatePicture(parentInstance);
-    },
-
-    commitTextUpdate(textInstance, oldText, newText) {
-      invariant(false, 'Text components are not yet supported in ReactKonva.');
-    },
-
-    commitMount(instance, type, newProps) {
-      // Noop
-    },
-
-    commitUpdate(instance, updatePayload, type, oldProps, newProps) {
-      instance._applyProps(instance, newProps, oldProps);
     }
+
+    updatePicture(parentInstance);
+  },
+
+  appendChildToContainer(parentInstance, child) {
+    if (child.parent === parentInstance) {
+      child.moveToTop();
+    } else {
+      parentInstance.add(child);
+    }
+    updatePicture(parentInstance);
+  },
+
+  insertBefore(parentInstance, child, beforeChild) {
+    invariant(
+      child !== beforeChild,
+      'ReactKonva: Can not insert node before itself'
+    );
+    // remove and add back to reset zIndex
+    child.remove();
+    parentInstance.add(child);
+    child.setZIndex(beforeChild.getZIndex());
+    updatePicture(parentInstance);
+  },
+
+  insertInContainerBefore(parentInstance, child, beforeChild) {
+    invariant(
+      child !== beforeChild,
+      'ReactKonva: Can not insert node before itself'
+    );
+    // remove and add back to reset zIndex
+    child.remove();
+    parentInstance.add(child);
+    child.setZIndex(beforeChild.getZIndex());
+    updatePicture(parentInstance);
+  },
+
+  removeChild(parentInstance, child) {
+    child.destroy();
+    child.off(EVENTS_NAMESPACE);
+    updatePicture(parentInstance);
+  },
+
+  removeChildFromContainer(parentInstance, child) {
+    child.destroy();
+    child.off(EVENTS_NAMESPACE);
+    updatePicture(parentInstance);
+  },
+
+  commitTextUpdate(textInstance, oldText, newText) {
+    invariant(false, 'Text components are not yet supported in ReactKonva.');
+  },
+
+  commitMount(instance, type, newProps) {
+    // Noop
+  },
+
+  commitUpdate(instance, updatePayload, type, oldProps, newProps) {
+    instance._applyProps(instance, newProps, oldProps);
   }
 });
 

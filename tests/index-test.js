@@ -186,7 +186,9 @@ describe('Test props setting', function() {
       width: 100,
       height: 100
     };
+
     wrapper.setProps({ rectProps: props1 });
+
     expect(rect.width()).to.equal(100);
 
     const props2 = {
@@ -339,6 +341,52 @@ describe('test lifecycle methods', () => {
     expect(stage.findOne('Rect')).to.equal(undefined);
     // This line don't work... why????
     expect(props.componentWillUnmount.called).to.equal(true);
+  });
+});
+
+describe('Test Events', function() {
+  let instance;
+  class App extends React.Component {
+    render() {
+      return (
+        <Stage width={300} height={300} ref={node => (this.stage = node)}>
+          {this.props.shouldDrawLayer && (
+            <Layer
+              ref={node => (this.layer = node)}
+              onClick={this.props.onClick}
+            />
+          )}
+        </Stage>
+      );
+    }
+  }
+  it('should remove events on unmount', function() {
+    const onClickRect = sinon.spy();
+    const onClickExternal = sinon.spy();
+
+    const wrapper = mount(<App onClick={onClickRect} shouldDrawLayer />);
+    instance = wrapper.instance();
+
+    const stageRef = instance.stage;
+    const layer = stageRef.getStage().findOne('Layer');
+    layer.on('click', onClickExternal);
+
+    expect(onClickRect.callCount).to.equal(0);
+    expect(onClickExternal.callCount).to.equal(0);
+
+    layer._fire('click', {});
+    expect(onClickRect.callCount).to.equal(1);
+    expect(onClickExternal.callCount).to.equal(1);
+
+    // remove layer
+    wrapper.setProps({ shouldDrawLayer: false });
+
+    expect(layer.getParent()).to.equal(undefined);
+
+    layer._fire('click', {});
+
+    expect(onClickRect.callCount).to.equal(1);
+    expect(onClickExternal.callCount).to.equal(2);
   });
 });
 
