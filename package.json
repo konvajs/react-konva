@@ -2,8 +2,13 @@
   "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "1.7.3",
-  "keywords": ["react", "canvas", "jsx", "konva"],
+  "version": "1.7.4",
+  "keywords": [
+    "react",
+    "canvas",
+    "jsx",
+    "konva"
+  ],
   "bugs": "https://github.com/lavrton/react-konva/issues",
   "licenses": "MIT",
   "main": "lib/index.js",
@@ -40,5 +45,9 @@
     "test:watch": "nwb test-react --server"
   },
   "typings": "react-konva.d.ts",
-  "files": ["README.md", "lib", "react-konva.d.ts"]
+  "files": [
+    "README.md",
+    "lib",
+    "react-konva.d.ts"
+  ]
 }
