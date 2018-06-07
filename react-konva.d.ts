@@ -95,6 +95,7 @@ export class Ellipse extends KonvaNodeComponent<
   Konva.EllipseConfig
 > {}
 export class Wedge extends KonvaNodeComponent<Konva.Wedge, Konva.WedgeConfig> {}
+export class Transformer extends KonvaNodeComponent<Konva.Transformer, Konva.TransformerConfig> {}
 export class Line extends KonvaNodeComponent<Konva.Line, Konva.LineConfig> {}
 export class Sprite extends KonvaNodeComponent<
   Konva.Sprite,
