@@ -20,6 +20,9 @@ export interface KonvaNodeProps {
   onDragStart?(evt: any): void;
   onDragMove?(evt: any): void;
   onDragEnd?(evt: any): void;
+  onTransform?(evt: any): void;
+  onTransformStart?(evt: any): void;
+  onTransformEnd?(evt: any): void;
 }
 
 export class KonvaNodeComponent<
