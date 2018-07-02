@@ -122,14 +122,18 @@ class Stage extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const props = this.props;
-
+    if (!Konva.isBrowser) {
+      return;
+    }
     applyNodeProps(this._stage, this.props, prevProps);
 
     KonvaRenderer.updateContainer(this.props.children, this._mountNode, this);
   }
 
   componentWillUnmount() {
+    if (!Konva.isBrowser) {
+      return;
+    }
     KonvaRenderer.updateContainer(null, this._mountNode, this);
     this._stage.destroy();
   }
