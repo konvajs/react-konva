@@ -106,10 +106,11 @@ function updatePicture(node) {
 
 class Stage extends Component {
   componentDidMount() {
-    const { height, width } = this.props;
-
+    if (!Konva.isBrowser) {
+      return;
+    }
     this._stage = new Konva.Stage({
-      width: width,
+      width: this.props.width,
       height: this.props.height,
       container: this._tagRef
     });
