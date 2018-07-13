@@ -91,7 +91,7 @@ Label, SVG Path, RegularPolygon. Also you can create custom shape.
 To get more info about `Konva` you can read
 [Konva Overview](http://konvajs.github.io/docs/overview.html).
 
-**Actially you don't need to learn `react-konva`. Just learn `Konva` framework, you will understand how to use `react-konva`**
+**Actually you don't need to learn `react-konva`. Just learn `Konva` framework, you will understand how to use `react-konva`**
 
 ## Comparisons
 
