@@ -226,7 +226,9 @@ const KonvaRenderer = ReactFiberReconciler({
   createTextInstance(text, rootContainerInstance, internalInstanceHandle) {
     invariant(
       false,
-      'Text components are not supported for now in ReactKonva.'
+      'Text components are not supported for now in ReactKonva. You text is: "' +
+        text +
+        '"'
     );
   },
 
@@ -338,7 +340,12 @@ const KonvaRenderer = ReactFiberReconciler({
   },
 
   commitTextUpdate(textInstance, oldText, newText) {
-    invariant(false, 'Text components are not yet supported in ReactKonva.');
+    invariant(
+      false,
+      'Text components are not yet supported in ReactKonva. You text is: "' +
+        newText +
+        '"'
+    );
   },
 
   commitMount(instance, type, newProps) {
