@@ -91,13 +91,13 @@ export class Stage extends React.Component<StageProps & KonvaNodeProps> {
 export var Layer: KonvaContainerComponent<
   Konva.Layer,
   Konva.LayerConfig
-> {}
+>;
 export var FastLayer: KonvaContainerComponent<
   Konva.FastLayer,
   Konva.LayerConfig
-> {}
-export var Group: KonvaContainerComponent<Konva.Group> {}
-export var Label: KonvaContainerComponent<Konva.Label> {}
+>;
+export var Group: KonvaContainerComponent<Konva.Group>;
+export var Label: KonvaContainerComponent<Konva.Label>;
 
 /** Shapes */
 export var Rect: KonvaNodeComponent<Konva.Rect, Konva.RectConfig>;
