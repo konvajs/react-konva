@@ -673,7 +673,8 @@ describe('Test context API', function() {
   });
 });
 
-describe('Test nested context API', function() {
+// wait for react team response
+describe.skip('Test nested context API', function() {
   let instance;
 
   const { Consumer, Provider } = React.createContext({
