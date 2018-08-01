@@ -414,7 +414,7 @@ describe.skip('Bad structure', () => {
 // TODO: how to fix it?
 // react is creating new nodes before removing old one
 // that creates mess in id references
-// see: https://github.com/lavrton/react-konva/issues/119
+// see: https://github.com/konvajs/react-konva/issues/119
 
 describe.skip('Check id saving', () => {
   it('Konva can loose ids?', function() {

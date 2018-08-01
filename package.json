@@ -9,12 +9,12 @@
     "jsx",
     "konva"
   ],
-  "bugs": "https://github.com/lavrton/react-konva/issues",
+  "bugs": "https://github.com/konvajs/react-konva/issues",
   "licenses": "MIT",
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:lavrton/react-konva.git"
+    "url": "git@github.com:konvajs/react-konva.git"
   },
   "source": "./src/react-konva-fiber.js",
   "dependencies": {

@@ -29,7 +29,7 @@ function applyNodeProps(instance, props, oldProps = {}) {
   if (!idWarningShowed && 'id' in props) {
     const message = `ReactKonva: You are using "id" attribute for a Konva node. In some very rare cases it may produce bugs. Currently we recommend not to use it and use "name" attribute instead.
 You are using id = "${props.id}".
-For me info see: https://github.com/lavrton/react-konva/issues/119`;
+For me info see: https://github.com/konvajs/react-konva/issues/119`;
     console.warn(message);
     idWarningShowed = true;
   }
@@ -37,7 +37,7 @@ For me info see: https://github.com/lavrton/react-konva/issues/119`;
   if (!zIndexWarningShowed && 'zIndex' in props) {
     const message = `ReactKonva: You are using "zIndex" attribute for a Konva node.
 react-konva may get confused with ordering. Just define correct order of elements in your render function of a component.
-For me info see: https://github.com/lavrton/react-konva/issues/194
+For me info see: https://github.com/konvajs/react-konva/issues/194
 `;
     console.warn(message);
     zIndexWarningShowed = true;

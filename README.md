@@ -1,6 +1,6 @@
 # React Konva
 
-[![Build Status](https://travis-ci.org/lavrton/react-konva.svg?branch=master)](https://travis-ci.org/lavrton/react-konva)
+[![Build Status](https://travis-ci.org/konvajs/react-js.svg?branch=master)](https://travis-ci.org/konvajs/react-konva)
 
 ![ReactKonva Logo](https://cloud.githubusercontent.com/assets/1443320/12193428/3bda2fcc-b623-11e5-8319-b1ccfc95eaec.png)
 
