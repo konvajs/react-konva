@@ -23,6 +23,7 @@ export interface KonvaNodeProps {
   onTransform?(evt: any): void;
   onTransformStart?(evt: any): void;
   onTransformEnd?(evt: any): void;
+  onContextMenu?(evt: any): void;
 }
 
 export interface KonvaNodeComponent<
@@ -72,6 +73,7 @@ export interface StageProps
   onContentTap?(evt: any): void;
   onContentDblTap?(evt: any): void;
   onContentWheel?(evt: any): void;
+  onContentContextMenu?(evt: any): void;
 }
 
 // Stage is the only real class because the others are stubs that only know how
