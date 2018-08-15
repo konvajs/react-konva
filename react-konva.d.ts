@@ -40,7 +40,7 @@ export interface KonvaNodeComponent<
 }
 
 export interface KonvaContainerComponent<
-  Container extends Konva.Container,
+  Node extends Konva.Container,
   Props = Konva.ContainerConfig
   // See comment inside KonvaNodeComponent if modifiying next line.
 > extends React.SFC<Props & KonvaNodeProps & React.ClassAttributes<Node>> {
