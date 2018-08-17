@@ -4,7 +4,7 @@ import { shallow, mount, render, configure } from 'enzyme';
 import { Stage, Layer, Rect, Group } from '../src/index';
 import './mocking';
 import Konva from 'konva';
-import sinon from 'sinon';
+import sinon from 'sinon/pkg/sinon';
 
 // we need to use official version
 // but it was not working with context api.
