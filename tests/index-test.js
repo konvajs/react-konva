@@ -9,8 +9,8 @@ import sinon from 'sinon/pkg/sinon';
 // we need to use official version
 // but it was not working with context api.
 // waiting for a fix
-// import Adapter from 'enzyme-adapter-react-16';
-import Adapter from './ReactSixteenAdapter';
+import Adapter from 'enzyme-adapter-react-16';
+// import Adapter from './ReactSixteenAdapter';
 
 configure({ adapter: new Adapter() });
 
@@ -59,8 +59,8 @@ describe('Test stage component', function() {
         return (
           <Stage
             ref={node => (this.stage = node)}
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             onMouseDown={handleEvent}
           >
             <Layer ref={node => (this.layer = node)}>
@@ -89,8 +89,8 @@ describe('Test stage component', function() {
         return (
           <Stage
             ref={node => (this.stage = node)}
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             onContentMouseDown={handleEvent}
           >
             <Layer ref={node => (this.layer = node)}>
@@ -115,7 +115,7 @@ describe('Test stage component', function() {
           return <div />;
         }
         return (
-          <Stage ref={node => (this.stage = node)} width="300" height="300">
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
             <Layer ref={node => (this.layer = node)} />
           </Stage>
         );
@@ -135,8 +135,8 @@ describe('Test stage component', function() {
         return (
           <Stage
             ref={node => (this.stage = node)}
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             onMouseDown={null}
           >
             <Layer ref={node => (this.layer = node)}>
@@ -396,7 +396,7 @@ describe.skip('Bad structure', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width="300" height="300">
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
             <Layer>
               <div />
             </Layer>
