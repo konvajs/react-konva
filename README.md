@@ -127,10 +127,10 @@ To get reference of `Konva` instance of a node you can use `ref` property.
 class MyShape extends React.Component {
   componentDidMount() {
     // log Konva.Circle instance
-    console.log(this.refs.circle);
+    console.log(this.circle);
   }
   render() {
-    return <Circle ref="circle" radius={50} fill="black" />;
+    return <Circle ref={ref => (this.circle = ref)} radius={50} fill="black" />;
   }
 }
 ```
@@ -147,7 +147,7 @@ class App extends React.Component {
     console.log(this.stageRef.getStage());
   }
   render() {
-    return <Stage ref={ref => { this.stageRef = ref; }} width={300} height={300} />;
+    return <Stage ref={ref => (this.stageRef = ref)} width={300} height={300} />;
   }
 }
 ```
