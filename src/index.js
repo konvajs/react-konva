@@ -1,5 +1,5 @@
 /**
- * Based on ReactKonva.js
+ * Based on ReactArt.js
  * Copyright (c) 2017-present Lavrenov Anton.
  * All rights reserved.
  *
@@ -12,7 +12,6 @@ const emptyObject = require('fbjs/lib/emptyObject');
 const React = require('react');
 const Konva = require('konva');
 const ReactFiberReconciler = require('react-reconciler');
-// const ReactScheduler = require('react-scheduler');
 const ReactDOMFrameScheduling = require('./ReactDOMFrameScheduling');
 const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 
@@ -212,7 +211,11 @@ const KonvaRenderer = ReactFiberReconciler({
   createInstance(type, props, internalInstanceHandle) {
     const NodeClass = Konva[type];
     if (!NodeClass) {
-      invariant(instance, 'ReactKonva does not support the type "%s"', type);
+      invariant(
+        instance,
+        'ReactKonva does not support the type "%s". If you want to render DOM elements as part of canvas tree take a look into this demo: https://konvajs.github.io/docs/react/DOM_Portal.html',
+        type
+      );
       return;
     }
 
@@ -357,7 +360,7 @@ const KonvaRenderer = ReactFiberReconciler({
   }
 });
 
-const foundDevTools = KonvaRenderer.injectIntoDevTools({
+KonvaRenderer.injectIntoDevTools({
   findFiberByHostInstance: ReactDOMComponentTree.getClosestInstanceFromNode,
   bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
   version: React.version || 16,
@@ -369,4 +372,7 @@ const foundDevTools = KonvaRenderer.injectIntoDevTools({
 
 /** API */
 
-module.exports = Object.assign({}, TYPES, { Stage });
+module.exports = {
+  ...TYPES,
+  Stage
+};
