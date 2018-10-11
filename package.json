@@ -32,8 +32,8 @@
     "konva": "^2.4.1",
     "sinon": "^6.3.5",
     "nwb": "^0.23.0",
-    "react": "16.5.2",
-    "react-dom": "16.5.2"
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
   },
   "scripts": {
     "build": "nwb build-react-component",
