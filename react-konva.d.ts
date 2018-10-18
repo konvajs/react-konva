@@ -1,36 +1,29 @@
 import * as React from 'react';
 import * as Konva from 'konva';
 
-export interface KonvaEventObject<E> {
-  target: Konva.Shape;
-  evt: E;
-  currentTarget: Konva.Node;
-  cancelBubble: boolean;
-}
-
 export interface KonvaNodeProps {
-  onMouseOver?(evt: KonvaEventObject<MouseEvent>): void;
-  onMouseMove?(evt: KonvaEventObject<MouseEvent>): void;
-  onMouseOut?(evt: KonvaEventObject<MouseEvent>): void;
-  onMouseEnter?(evt: KonvaEventObject<MouseEvent>): void;
-  onMouseLeave?(evt: KonvaEventObject<MouseEvent>): void;
-  onMouseDown?(evt: KonvaEventObject<MouseEvent>): void;
-  onMouseUp?(evt: KonvaEventObject<MouseEvent>): void;
-  onWheel?(evt: KonvaEventObject<WheelEvent>): void;
-  onClick?(evt: KonvaEventObject<MouseEvent>): void;
-  onDblClick?(evt: KonvaEventObject<MouseEvent>): void;
-  onTouchStart?(evt: KonvaEventObject<TouchEvent>): void;
-  onTouchMove?(evt: KonvaEventObject<TouchEvent>): void;
-  onTouchEnd?(evt: KonvaEventObject<TouchEvent>): void;
-  onTap?(evt: KonvaEventObject<Event>): void;
-  onDblTap?(evt: KonvaEventObject<Event>): void;
-  onDragStart?(evt: KonvaEventObject<DragEvent>): void;
-  onDragMove?(evt: KonvaEventObject<DragEvent>): void;
-  onDragEnd?(evt: KonvaEventObject<DragEvent>): void;
-  onTransform?(evt: KonvaEventObject<Event>): void;
-  onTransformStart?(evt: KonvaEventObject<Event>): void;
-  onTransformEnd?(evt: KonvaEventObject<Event>): void;
-  onContextMenu?(evt: KonvaEventObject<PointerEvent>): void;
+  onMouseOver?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onMouseMove?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onMouseOut?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onMouseEnter?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onMouseLeave?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onMouseDown?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onMouseUp?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onWheel?(evt: Konva.KonvaEventObject<WheelEvent>): void;
+  onClick?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onDblClick?(evt: Konva.KonvaEventObject<MouseEvent>): void;
+  onTouchStart?(evt: Konva.KonvaEventObject<TouchEvent>): void;
+  onTouchMove?(evt: Konva.KonvaEventObject<TouchEvent>): void;
+  onTouchEnd?(evt: Konva.KonvaEventObject<TouchEvent>): void;
+  onTap?(evt: Konva.KonvaEventObject<Event>): void;
+  onDblTap?(evt: Konva.KonvaEventObject<Event>): void;
+  onDragStart?(evt: Konva.KonvaEventObject<DragEvent>): void;
+  onDragMove?(evt: Konva.KonvaEventObject<DragEvent>): void;
+  onDragEnd?(evt: Konva.KonvaEventObject<DragEvent>): void;
+  onTransform?(evt: Konva.KonvaEventObject<Event>): void;
+  onTransformStart?(evt: Konva.KonvaEventObject<Event>): void;
+  onTransformEnd?(evt: Konva.KonvaEventObject<Event>): void;
+  onContextMenu?(evt: Konva.KonvaEventObject<PointerEvent>): void;
 }
 
 export interface KonvaNodeComponent<
