@@ -27,7 +27,7 @@ You can even inspect the components in React dev tools.
 npm install react-konva konva --save
 ```
 
-[Tutorials and Documentation](https://konvajs.github.io/docs/react/)
+## [Tutorials and Documentation](https://konvajs.github.io/docs/react/)
 
 ## Example
 
@@ -113,8 +113,6 @@ The purpose of `react-konva` is to reduce the complexity of the application and 
 
 ## [CHANGELOG](https://github.com/konvajs/react-konva/releases)
 
-
-## (Documentation and Examples)[https://konvajs.github.io/docs/react/]
 
 **Note: you can find a lot of demos and examples of using Konva there:
 [http://konvajs.github.io/](http://konvajs.github.io/). Really, just go there and take a look what Konva can do for you. You will be able to do the same with `react-konva` too.**
