@@ -111,13 +111,13 @@ Vanilla canvas is faster because when you use `react-konva` you have two layers 
 Depending on the use case this approach can be slow.
 The purpose of `react-konva` is to reduce the complexity of the application and use well-known declarative way for drawing on canvas.
 
+## [CHANGELOG](https://github.com/konvajs/react-konva/releases)
 
-## Documentation and Examples
+
+## (Documentation and Examples)[https://konvajs.github.io/docs/react/]
 
 **Note: you can find a lot of demos and examples of using Konva there:
 [http://konvajs.github.io/](http://konvajs.github.io/). Really, just go there and take a look what Konva can do for you. You will be able to do the same with `react-konva` too.**
-
-There is no large documentation for `react-konva`. We will just describe several common use cases and adoptions with `Konva`.
 
 ### Getting reference to Konva objects
 
