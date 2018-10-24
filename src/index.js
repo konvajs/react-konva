@@ -363,6 +363,25 @@ const KonvaRenderer = ReactFiberReconciler({
 
   commitUpdate(instance, updatePayload, type, oldProps, newProps) {
     instance._applyProps(instance, newProps, oldProps);
+  },
+
+  hideInstance(instance) {
+    instance.hide();
+    updatePicture(instance);
+  },
+
+  hideTextInstance(textInstance) {
+    // Noop
+  },
+
+  unhideInstance(instance, props) {
+    if (props.visible == null || props.visible) {
+      instance.show();
+    }
+  },
+
+  unhideTextInstance(textInstance, text) {
+    // Noop
   }
 });
 

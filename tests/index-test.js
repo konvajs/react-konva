@@ -1,7 +1,7 @@
 import React from 'react';
 import { expect } from 'chai';
 import { shallow, mount, render, configure } from 'enzyme';
-import { Stage, Layer, Rect, Group, useStrictMode } from '../src/index';
+import { Stage, Layer, Rect, Group, useStrictMode, Text } from '../src/index';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon/pkg/sinon';
@@ -714,34 +714,41 @@ describe('Test context API', function() {
 });
 
 // wait for react team response
-describe.skip('Test nested context API', function() {
+describe('Test nested context API', function() {
   let instance;
 
-  const { Consumer, Provider } = React.createContext({
+  const Context = React.createContext({
     color: 'red'
   });
 
   class Tools extends React.Component {
+    static contextType = Context;
     render() {
       return (
-        <Consumer>
-          {({ color }) => (
-            <Layer>
-              <Rect width={50} height={50} fill={color} />
-            </Layer>
-          )}
-        </Consumer>
+        <Layer>
+          <Rect width={50} height={50} fill={this.context.color} />
+        </Layer>
       );
     }
   }
+
+  class Canvas extends React.Component {
+    static contextType = Context;
+    render() {
+      return (
+        <Stage width={300} height={200} ref={node => (this.stage = node)}>
+          <Tools />
+        </Stage>
+      );
+    }
+  }
+
   class App extends React.Component {
     render() {
       return (
-        <Provider value={{ color: 'black' }}>
-          <Stage width={300} height={200} ref={node => (this.stage = node)}>
-            <Tools />
-          </Stage>
-        </Provider>
+        <Context.Provider value={{ color: 'black' }}>
+          <Canvas />
+        </Context.Provider>
       );
     }
   }
@@ -751,9 +758,56 @@ describe.skip('Test nested context API', function() {
     instance = wrapper.instance();
   });
 
-  it('test correct set', function() {
+  it.skip('test correct set', function() {
+    const stageRef = instance.stage;
+    const stage = Konva.stages[Konva.stages.length - 1];
+    expect(stage.findOne('Rect').fill()).to.equal('black');
+  });
+});
+
+// wait for react team response
+describe('try lazy and suspense', function() {
+  const LazyRect = React.lazy(() => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          default: () => <Rect />
+        });
+      }, 10);
+    });
+  });
+
+  class App extends React.Component {
+    render() {
+      return (
+        <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Layer ref={node => (this.layer = node)}>
+            <React.Suspense fallback={<Text text="fallback" />}>
+              <LazyRect />
+            </React.Suspense>
+          </Layer>
+        </Stage>
+      );
+    }
+  }
+
+  let instance;
+  beforeEach(() => {
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+  });
+
+  it('can use lazy and suspense', function(done) {
     const stageRef = instance.stage;
     const stage = stageRef.getStage();
-    expect(stage.findOne('Rect').fill()).to.equal('black');
+    expect(stage.find('Text').length).to.equal(1);
+    expect(stage.find('Shape').length).to.equal(1);
+
+    setTimeout(() => {
+      expect(stage.find('Text').length).to.equal(0);
+      expect(stage.find('Rect').length).to.equal(1);
+      expect(stage.find('Shape').length).to.equal(1);
+      done();
+    }, 20);
   });
 });
