@@ -2,7 +2,7 @@
   "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "16.5.2",
+  "version": "16.6.0-0",
   "keywords": [
     "react",
     "canvas",
@@ -43,7 +43,7 @@
     "test:coverage": "nwb test-react --coverage",
     "test:watch": "nwb test-react --server",
     "preversion": "npm test",
-    "version": "npm run build && git add -A dist",
+    "version": "npm run build",
     "postversion": ""
   },
   "typings": "react-konva.d.ts",
