@@ -23,6 +23,11 @@ const propsToSkip = { children: true, ref: true, key: true, style: true };
 
 let idWarningShowed = false;
 let zIndexWarningShowed = false;
+let useStrictMode = false;
+
+function toggleStrictMode(value) {
+  useStrictMode = value;
+}
 
 function applyNodeProps(instance, props, oldProps = {}) {
   if (!idWarningShowed && 'id' in props) {
@@ -85,7 +90,8 @@ For me info see: https://github.com/konvajs/react-konva/issues/194
     }
     if (
       !isEvent &&
-      (props[key] !== oldProps[key] || props[key] !== instance.getAttr(key))
+      (props[key] !== oldProps[key] ||
+        (useStrictMode && props[key] !== instance.getAttr(key)))
     ) {
       hasUpdates = true;
       updatedProps[key] = props[key];
@@ -374,5 +380,6 @@ KonvaRenderer.injectIntoDevTools({
 
 module.exports = {
   ...TYPES,
-  Stage
+  Stage,
+  useStrictMode: toggleStrictMode
 };

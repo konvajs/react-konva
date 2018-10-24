@@ -1,7 +1,7 @@
 import React from 'react';
 import { expect } from 'chai';
 import { shallow, mount, render, configure } from 'enzyme';
-import { Stage, Layer, Rect, Group } from '../src/index';
+import { Stage, Layer, Rect, Group, useStrictMode } from '../src/index';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon/pkg/sinon';
@@ -155,13 +155,7 @@ describe('Test stage component', function() {
 });
 
 describe('Test props setting', function() {
-  let instance,
-    wrapper,
-    rectProps = {
-      width: 100,
-      height: 100,
-      onClick: () => {}
-    };
+  let instance, wrapper;
   class App extends React.Component {
     render() {
       return (
@@ -245,6 +239,52 @@ describe('Test props setting', function() {
     wrapper.setProps({ rectProps: {} });
     expect(!!rect.fill()).to.equal(false);
     expect(rect.x()).to.equal(0);
+  });
+
+  it('do not overwrite properties if that changed manually', () => {
+    const rect = instance.rect;
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10
+      }
+    });
+    expect(rect.x()).to.equal(10);
+
+    // change position manually
+    rect.x(20);
+
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10
+      }
+    });
+    expect(rect.x()).to.equal(20);
+  });
+
+  it('overwrite properties if that changed manually in strict-mode', () => {
+    useStrictMode(true);
+    const rect = instance.rect;
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10
+      }
+    });
+    expect(rect.x()).to.equal(10);
+
+    // change position manually
+    rect.x(20);
+
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10
+      }
+    });
+    expect(rect.x()).to.equal(10);
+    useStrictMode(false);
   });
 });
 
