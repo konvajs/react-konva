@@ -2,7 +2,7 @@
   "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "16.6.0",
+  "version": "16.6.1",
   "keywords": [
     "react",
     "canvas",
@@ -11,30 +11,29 @@
   ],
   "bugs": "https://github.com/konvajs/react-konva/issues",
   "licenses": "MIT",
-  "main": "lib/index.js",
+  "main": "lib/ReactKonva.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:konvajs/react-konva.git"
   },
-  "source": "./src/react-konva-fiber.js",
   "dependencies": {
-    "fbjs": "^1.0.0",
-    "react-reconciler": "^0.17.0"
+    "react-reconciler": "^0.17.0",
+    "scheduler": "^0.11.0"
   },
   "peerDependencies": {
-    "react": "16.6.0",
-    "react-dom": "16.6.0",
-    "konva": "^2.0.0"
+    "react": "16.6.1",
+    "react-dom": "16.6.1",
+    "konva": "^2.5.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "enzyme": "^3.7.0",
     "enzyme-adapter-react-16": "^1.6.0",
-    "konva": "^2.0.0",
-    "sinon": "^6.3.5",
+    "konva": "^2.5.0",
+    "sinon": "^7.1.1",
     "nwb": "^0.23.0",
-    "react": "16.6.0",
-    "react-dom": "16.6.0"
+    "react": "16.6.1",
+    "react-dom": "16.6.1"
   },
   "scripts": {
     "build": "nwb build-react-component",

@@ -1,16 +1,19 @@
 import React from 'react';
 import { expect } from 'chai';
-import { shallow, mount, render, configure } from 'enzyme';
-import { Stage, Layer, Rect, Group, useStrictMode, Text } from '../src/index';
+import { mount, configure } from 'enzyme';
+import {
+  Stage,
+  Layer,
+  Rect,
+  Group,
+  useStrictMode,
+  Text
+} from '../src/ReactKonva';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon/pkg/sinon';
 
-// we need to use official version
-// but it was not working with context api.
-// waiting for a fix
 import Adapter from 'enzyme-adapter-react-16';
-// import Adapter from './ReactSixteenAdapter';
 
 configure({ adapter: new Adapter() });
 
@@ -44,6 +47,12 @@ describe('Test references', function() {
 
   it('can get layer instance', function() {
     expect(instance.layer instanceof Konva.Layer).to.equal(true);
+  });
+
+  // how can we make this work?
+  it('stage ref should go to the stage', function() {
+    const stageRef = instance.stage;
+    expect(stageRef instanceof Konva.Stage).to.equal(true);
   });
 });
 
