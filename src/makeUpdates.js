@@ -57,6 +57,9 @@ For me info see: https://github.com/konvajs/react-konva/issues/194
       instance.setAttr(key, undefined);
     }
   }
+
+  var strictUpdate = useStrictMode || props._useStrictMode;
+
   for (var key in props) {
     if (propsToSkip[key]) {
       continue;
@@ -78,7 +81,7 @@ For me info see: https://github.com/konvajs/react-konva/issues/194
     if (
       !isEvent &&
       (props[key] !== oldProps[key] ||
-        (useStrictMode && props[key] !== instance.getAttr(key)))
+        (strictUpdate && props[key] !== instance.getAttr(key)))
     ) {
       hasUpdates = true;
       updatedProps[key] = props[key];

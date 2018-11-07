@@ -295,6 +295,29 @@ describe('Test props setting', function() {
     expect(rect.x()).to.equal(10);
     useStrictMode(false);
   });
+
+  it('overwrite properties if that passed _useStrictMode', () => {
+    const rect = instance.rect;
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10
+      }
+    });
+    expect(rect.x()).to.equal(10);
+
+    // change position manually
+    rect.x(20);
+
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10,
+        _useStrictMode: true
+      }
+    });
+    expect(rect.x()).to.equal(10);
+  });
 });
 
 describe('test lifecycle methods', () => {
