@@ -19,7 +19,7 @@
   "source": "./src/react-konva-fiber.js",
   "dependencies": {
     "fbjs": "^1.0.0",
-    "react-reconciler": "^0.16.0"
+    "react-reconciler": "^0.17.0"
   },
   "peerDependencies": {
     "react": "16.6.0",
