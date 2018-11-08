@@ -35,7 +35,7 @@ class Stage extends React.Component {
       container: this._tagRef
     });
 
-    this.props.forwardedRef(this._stage);
+    this.props.forwardedRef && this.props.forwardedRef(this._stage);
 
     applyNodeProps(this._stage, this.props);
 
@@ -47,7 +47,7 @@ class Stage extends React.Component {
     if (!Konva.isBrowser) {
       return;
     }
-    this.props.forwardedRef(this._stage);
+    this.props.forwardedRef && this.props.forwardedRef(this._stage);
     applyNodeProps(this._stage, this.props, prevProps);
 
     KonvaRenderer.updateContainer(this.props.children, this._mountNode, this);
@@ -57,7 +57,7 @@ class Stage extends React.Component {
     if (!Konva.isBrowser) {
       return;
     }
-    this.props.forwardedRef(null);
+    this.props.forwardedRef && this.props.forwardedRef(null);
     KonvaRenderer.updateContainer(null, this._mountNode, this);
     this._stage.destroy();
   }

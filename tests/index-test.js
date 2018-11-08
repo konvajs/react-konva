@@ -54,6 +54,21 @@ describe('Test references', function() {
     const stageRef = instance.stage;
     expect(stageRef instanceof Konva.Stage).to.equal(true);
   });
+
+  // how can we make this work?
+  it('works ok with no ref', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage width={300} height={300}>
+            <Layer ref={node => (this.layer = node)} />
+          </Stage>
+        );
+      }
+    }
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+  });
 });
 
 describe('Test stage component', function() {
