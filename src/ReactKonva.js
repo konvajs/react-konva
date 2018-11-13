@@ -14,7 +14,7 @@ const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 const HostConfig = require('./ReactKonvaHostConfig');
 const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 
-const REACT_VERSION = '16.6.1';
+const REACT_VERSION = '16.6.3';
 
 if (React.version !== REACT_VERSION) {
   console.error(
@@ -35,7 +35,7 @@ class Stage extends React.Component {
       container: this._tagRef
     });
 
-    this.props.forwardedRef && this.props.forwardedRef(this._stage);
+    this._setRef(this._stage);
 
     applyNodeProps(this._stage, this.props);
 
@@ -43,11 +43,23 @@ class Stage extends React.Component {
     KonvaRenderer.updateContainer(this.props.children, this._mountNode, this);
   }
 
+  _setRef(value) {
+    const { forwardedRef } = this.props;
+    if (!forwardedRef) {
+      return;
+    }
+    if (typeof forwardedRef === 'function') {
+      forwardedRef(value);
+    } else {
+      forwardedRef.current = value;
+    }
+  }
+
   componentDidUpdate(prevProps) {
     if (!Konva.isBrowser) {
       return;
     }
-    this.props.forwardedRef && this.props.forwardedRef(this._stage);
+    this._setRef(this._stage);
     applyNodeProps(this._stage, this.props, prevProps);
 
     KonvaRenderer.updateContainer(this.props.children, this._mountNode, this);
@@ -57,7 +69,7 @@ class Stage extends React.Component {
     if (!Konva.isBrowser) {
       return;
     }
-    this.props.forwardedRef && this.props.forwardedRef(null);
+    this._setRef(null);
     KonvaRenderer.updateContainer(null, this._mountNode, this);
     this._stage.destroy();
   }

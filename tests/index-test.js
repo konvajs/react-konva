@@ -55,7 +55,6 @@ describe('Test references', function() {
     expect(stageRef instanceof Konva.Stage).to.equal(true);
   });
 
-  // how can we make this work?
   it('works ok with no ref', function() {
     class App extends React.Component {
       render() {
@@ -68,6 +67,23 @@ describe('Test references', function() {
     }
     const wrapper = mount(<App />);
     instance = wrapper.instance();
+  });
+
+  it('works ok with react ref', function() {
+    class App extends React.Component {
+      stage = React.createRef();
+      render() {
+        return (
+          <Stage width={300} height={300} ref={this.stage}>
+            <Layer ref={node => (this.layer = node)} />
+          </Stage>
+        );
+      }
+    }
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+    const stage = instance.stage.current;
+    expect(stage instanceof Konva.Stage).to.equal(true);
   });
 });
 
