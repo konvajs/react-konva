@@ -33,7 +33,7 @@
     "sinon": "^7.1.1",
     "nwb": "^0.23.0",
     "react": "16.6.2",
-    "react-dom": "16.6.1"
+    "react-dom": "16.6.2"
   },
   "scripts": {
     "build": "nwb build-react-component",
