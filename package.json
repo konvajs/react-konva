@@ -17,7 +17,7 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "react-reconciler": "^0.17.2",
+    "react-reconciler": "^0.18.0",
     "scheduler": "^0.12.0"
   },
   "peerDependencies": {
