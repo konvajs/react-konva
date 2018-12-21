@@ -85,6 +85,27 @@ describe('Test references', function() {
     const stage = instance.stage.current;
     expect(stage instanceof Konva.Stage).to.equal(true);
   });
+
+  it('forward ref', function() {
+    const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
+
+    class App extends React.Component {
+      stage = React.createRef();
+      render() {
+        return (
+          <Stage width={300} height={300} ref={this.stage}>
+            <Layer ref={node => (this.layer = node)}>
+              <MyRect ref={node => (this.rect = node)} />
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+    const rect = instance.rect;
+    expect(rect instanceof Konva.Rect).to.equal(true);
+  });
 });
 
 describe('Test stage component', function() {
@@ -778,8 +799,6 @@ describe('Test context API', function() {
 
 // wait for react team response
 describe('Test nested context API', function() {
-  let instance;
-
   const Context = React.createContext({
     color: 'red'
   });
@@ -817,12 +836,10 @@ describe('Test nested context API', function() {
   }
 
   beforeEach(() => {
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
+    mount(<App />);
   });
 
   it.skip('test correct set', function() {
-    const stageRef = instance.stage;
     const stage = Konva.stages[Konva.stages.length - 1];
     expect(stage.findOne('Rect').fill()).to.equal('black');
   });
@@ -872,5 +889,61 @@ describe('try lazy and suspense', function() {
       expect(stage.find('Shape').length).to.equal(1);
       done();
     }, 20);
+  });
+});
+
+describe('Fragments', function() {
+  const Fragmented = () => (
+    <React.Fragment>
+      <Rect />
+      <Rect />
+    </React.Fragment>
+  );
+
+  class App extends React.Component {
+    render() {
+      return (
+        <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Layer ref={node => (this.layer = node)}>
+            <Fragmented />
+          </Layer>
+        </Stage>
+      );
+    }
+  }
+
+  let instance;
+  beforeEach(() => {
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+  });
+
+  it('can use lazy and suspense', function() {
+    const stage = instance.stage;
+    expect(stage.find('Rect').length).to.equal(2);
+  });
+});
+
+describe('warnings', function() {
+  class App extends React.Component {
+    render() {
+      return (
+        <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Layer ref={node => (this.layer = node)}>
+            <Rect draggable x={0} y={0} />
+          </Layer>
+        </Stage>
+      );
+    }
+  }
+
+  let instance;
+  beforeEach(() => {
+    const wrapper = mount(<App />);
+    instance = wrapper.instance();
+  });
+
+  it('check draggable warning', function() {
+    // check console for warning
   });
 });

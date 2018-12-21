@@ -3,15 +3,17 @@ const propsToSkip = {
   ref: true,
   key: true,
   style: true,
-  forwardedRef: true
+  forwardedRef: true,
+  unstable_applyCache: true,
+  unstable_applyDrawHitFromCache: true
 };
-
 let idWarningShowed = false;
 let zIndexWarningShowed = false;
-let useStrictMode = false;
+let dragWarningShowed = false;
 
 export const EVENTS_NAMESPACE = '.react-konva-event';
 
+let useStrictMode = false;
 export function toggleStrictMode(value) {
   useStrictMode = value;
 }
@@ -20,7 +22,7 @@ export function applyNodeProps(instance, props, oldProps = {}) {
   if (!idWarningShowed && 'id' in props) {
     const message = `ReactKonva: You are using "id" attribute for a Konva node. In some very rare cases it may produce bugs. Currently we recommend not to use it and use "name" attribute instead.
 You are using id = "${props.id}".
-For me info see: https://github.com/konvajs/react-konva/issues/119`;
+For more info see: https://github.com/konvajs/react-konva/issues/119`;
     console.warn(message);
     idWarningShowed = true;
   }
@@ -28,14 +30,27 @@ For me info see: https://github.com/konvajs/react-konva/issues/119`;
   if (!zIndexWarningShowed && 'zIndex' in props) {
     const message = `ReactKonva: You are using "zIndex" attribute for a Konva node.
 react-konva may get confused with ordering. Just define correct order of elements in your render function of a component.
-For me info see: https://github.com/konvajs/react-konva/issues/194
+For more info see: https://github.com/konvajs/react-konva/issues/194
 `;
     console.warn(message);
     zIndexWarningShowed = true;
   }
 
-  var updatedProps = {};
-  var hasUpdates = false;
+  // show draggable warning
+  if (!dragWarningShowed && props.draggable) {
+    var hasPosition = props.x !== undefined || props.y !== undefined;
+    var hasEvents = props.onDragEnd || props.onDragMove;
+    if (hasPosition && !hasEvents) {
+      const message = `ReactKonva: You have a Konva node with draggable = true and position defined but no onDragMove or onDragEnd events are handled.
+Position of a node will be changed during drag&drop, so you should update state of the react app as well.
+Consider to add onDragMove or onDragEnd events.
+For more info see: https://github.com/konvajs/react-konva/issues/256
+`;
+      console.warn(message);
+      dragWarningShowed = true;
+    }
+  }
+
   for (var key in oldProps) {
     if (propsToSkip[key]) {
       continue;
@@ -59,6 +74,8 @@ For me info see: https://github.com/konvajs/react-konva/issues/194
   }
 
   var strictUpdate = useStrictMode || props._useStrictMode;
+  var updatedProps = {};
+  var hasUpdates = false;
 
   for (var key in props) {
     if (propsToSkip[key]) {
