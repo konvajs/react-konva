@@ -10,7 +10,6 @@
     "konva"
   ],
   "bugs": "https://github.com/konvajs/react-konva/issues",
-  "licenses": "MIT",
   "main": "lib/ReactKonva.js",
   "repository": {
     "type": "git",
@@ -21,8 +20,8 @@
     "scheduler": "^0.12.0"
   },
   "peerDependencies": {
-    "react": "16.6.3",
-    "react-dom": "16.6.3",
+    "react": "16.7.0",
+    "react-dom": "16.7.0",
     "konva": "^2.6.0"
   },
   "devDependencies": {
