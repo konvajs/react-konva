@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Konva from 'konva';
 
-export interface KonvaNodeProps {
+export interface KonvaNodeEvents {
   onMouseOver?(evt: Konva.KonvaEventObject<MouseEvent>): void;
   onMouseMove?(evt: Konva.KonvaEventObject<MouseEvent>): void;
   onMouseOut?(evt: Konva.KonvaEventObject<MouseEvent>): void;
@@ -32,7 +32,7 @@ export interface KonvaNodeComponent<
   // We use React.ClassAttributes to fake the 'ref' attribute. This will ensure
   // consumers get the proper 'Node' type in 'ref' instead of the wrapper
   // component type.
-> extends React.SFC<Props & KonvaNodeProps & React.ClassAttributes<Node>> {
+> extends React.SFC<Props & KonvaNodeEvents & React.ClassAttributes<Node>> {
   getPublicInstance(): Node;
   getNativeNode(): Node;
   // putEventListener(type: string, listener: Function): void;
@@ -43,7 +43,10 @@ export interface KonvaContainerComponent<
   Container extends Konva.Container,
   Props = Konva.ContainerConfig
   // See comment inside KonvaNodeComponent if modifiying next line.
-> extends React.SFC<Props & KonvaNodeProps & React.ClassAttributes<Container>> {
+>
+  extends React.SFC<
+    Props & KonvaNodeEvents & React.ClassAttributes<Container>
+  > {
   // moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex): void;
   // createChild(child, afterNode, mountImage): void;
   // removeChild(child, node): void;
@@ -56,6 +59,7 @@ export interface KonvaContainerComponent<
 
 export interface StageProps
   extends Konva.NodeConfig,
+    KonvaNodeEvents,
     Pick<
       React.HTMLProps<any>,
       'className' | 'role' | 'style' | 'tabIndex' | 'title'
@@ -85,15 +89,12 @@ export interface StageProps
 // function, but if the user tries to call it a runtime exception will occur.
 
 /** Stage */
-export class Stage extends React.Component<StageProps & KonvaNodeProps> {
+export class Stage extends React.Component<StageProps & KonvaNodeEvents> {
   getStage(): Konva.Stage;
 }
 
 /** Containers */
-export var Layer: KonvaContainerComponent<
-  Konva.Layer,
-  Konva.LayerConfig
->;
+export var Layer: KonvaContainerComponent<Konva.Layer, Konva.LayerConfig>;
 export var FastLayer: KonvaContainerComponent<
   Konva.FastLayer,
   Konva.LayerConfig
@@ -103,27 +104,18 @@ export var Label: KonvaContainerComponent<Konva.Label>;
 
 /** Shapes */
 export var Rect: KonvaNodeComponent<Konva.Rect, Konva.RectConfig>;
-export var Circle: KonvaNodeComponent<
-  Konva.Circle,
-  Konva.CircleConfig
->;
-export var Ellipse: KonvaNodeComponent<
-  Konva.Ellipse,
-  Konva.EllipseConfig
->;
+export var Circle: KonvaNodeComponent<Konva.Circle, Konva.CircleConfig>;
+export var Ellipse: KonvaNodeComponent<Konva.Ellipse, Konva.EllipseConfig>;
 export var Wedge: KonvaNodeComponent<Konva.Wedge, Konva.WedgeConfig>;
-export var Transformer: KonvaNodeComponent<Konva.Transformer, Konva.TransformerConfig>;
-export var Line: KonvaNodeComponent<Konva.Line, Konva.LineConfig>;
-export var Sprite: KonvaNodeComponent<
-  Konva.Sprite,
-  Konva.SpriteConfig
+export var Transformer: KonvaNodeComponent<
+  Konva.Transformer,
+  Konva.TransformerConfig
 >;
+export var Line: KonvaNodeComponent<Konva.Line, Konva.LineConfig>;
+export var Sprite: KonvaNodeComponent<Konva.Sprite, Konva.SpriteConfig>;
 export var Image: KonvaNodeComponent<Konva.Image, Konva.ImageConfig>;
 export var Text: KonvaNodeComponent<Konva.Text, Konva.TextConfig>;
-export var TextPath: KonvaNodeComponent<
-  Konva.TextPath,
-  Konva.TextPathConfig
->;
+export var TextPath: KonvaNodeComponent<Konva.TextPath, Konva.TextPathConfig>;
 export var Star: KonvaNodeComponent<Konva.Star, Konva.StarConfig>;
 export var Ring: KonvaNodeComponent<Konva.Ring, Konva.RingConfig>;
 export var Arc: KonvaNodeComponent<Konva.Arc, Konva.ArcConfig>;
