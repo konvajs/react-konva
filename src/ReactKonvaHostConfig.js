@@ -9,6 +9,11 @@ export * from './HostConfigWithNoHydration';
 const NO_CONTEXT = {};
 const UPDATE_SIGNAL = {};
 
+import {
+  unstable_scheduleCallback as scheduleDeferredCallback,
+  unstable_cancelCallback as cancelDeferredCallback
+} from 'scheduler';
+
 export {
   unstable_now as now,
   unstable_scheduleCallback as scheduleDeferredCallback,
@@ -102,6 +107,8 @@ export function getChildHostContext() {
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
 export const noTimeout = -1;
+export const schedulePassiveEffects = scheduleDeferredCallback;
+export const cancelPassiveEffects = cancelDeferredCallback;
 
 export function shouldSetTextContent(type, props) {
   return false;
