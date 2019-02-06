@@ -14,9 +14,12 @@ const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 const HostConfig = require('./ReactKonvaHostConfig');
 const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 
-const REACT_VERSION = '16.7.0';
+const REACT_VERSION = '16.8.0';
 
-if (React.version !== REACT_VERSION) {
+// export for testing
+const __matchRectVersion = React.version === REACT_VERSION;
+
+if (!__matchRectVersion) {
   console.error(
     `Version mismatch detected for react-konva and react. react-konva expects to have react version ${REACT_VERSION}, but it has version ${
       React.version
@@ -146,6 +149,7 @@ const StageWrap = React.forwardRef((props, ref) => {
 
 module.exports = {
   ...TYPES,
+  __matchRectVersion,
   Stage: StageWrap,
   useStrictMode: toggleStrictMode
 };

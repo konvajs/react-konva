@@ -6,9 +6,12 @@ import {
   Layer,
   Rect,
   Group,
+  Image,
   useStrictMode,
-  Text
+  Text,
+  __matchRectVersion
 } from '../src/ReactKonva';
+import useImage from 'use-image';
 import './mocking';
 import Konva from 'konva';
 import sinon from 'sinon/pkg/sinon';
@@ -16,6 +19,12 @@ import sinon from 'sinon/pkg/sinon';
 import Adapter from 'enzyme-adapter-react-16';
 
 configure({ adapter: new Adapter() });
+
+describe('Test version matching', function() {
+  it('should match react version', function() {
+    expect(__matchRectVersion).to.equal(true);
+  });
+});
 
 describe('Test references', function() {
   let instance;
@@ -945,5 +954,100 @@ describe('warnings', function() {
 
   it('check draggable warning', function() {
     // check console for warning
+  });
+});
+
+describe('Hooks', function() {
+  it('check setState hook', function() {
+    const App = () => {
+      const [fill, setColor] = React.useState('black');
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer>
+            <Rect
+              fill={fill}
+              width={100}
+              height={100}
+              onMouseDown={() => {
+                setColor('red');
+              }}
+            />
+          </Layer>
+        </Stage>
+      );
+    };
+    const wrapper = mount(<App />);
+    const instance = wrapper.instance();
+
+    const stage = Konva.stages[Konva.stages.length - 1];
+
+    expect(stage.findOne('Rect').fill()).to.equal('black');
+    stage.simulateMouseDown({ x: 50, y: 50 });
+    expect(stage.findOne('Rect').fill()).to.equal('red');
+  });
+
+  it('check useEffect hook', function(done) {
+    let callCount = 0;
+    const App = () => {
+      React.useEffect(() => {
+        callCount += 1;
+      });
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer />
+        </Stage>
+      );
+    };
+    const wrapper = mount(<App />);
+
+    // not sure why timeouts are required
+    // are hooks async?
+    setTimeout(() => {
+      expect(callCount).to.equal(1);
+
+      wrapper.setProps({ randomProp: 1 });
+
+      setTimeout(() => {
+        expect(callCount).to.equal(2);
+        done();
+      }, 50);
+    }, 50);
+  });
+
+  it('check useImage hook', function(done) {
+    const url = 'https://konvajs.github.io/assets/yoda.jpg';
+
+    const App = () => {
+      const [image, status] = useImage(url);
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer>
+            <Image image={image} />
+            <Text text={status} />
+          </Layer>
+        </Stage>
+      );
+    };
+    const wrapper = mount(<App />);
+
+    const stage = Konva.stages[Konva.stages.length - 1];
+
+    // not image while loading
+    expect(stage.findOne('Image').image()).to.equal(undefined);
+    expect(stage.findOne('Text').text()).to.equal('loading');
+
+    const img = new window.Image();
+    img.onload = () => {
+      // here should hook trigger
+      setTimeout(() => {
+        expect(stage.findOne('Image').image()).not.to.equal(undefined);
+        expect(stage.findOne('Text').text()).to.equal('loaded');
+        done();
+      }, 50);
+    };
+    img.src = url;
   });
 });
