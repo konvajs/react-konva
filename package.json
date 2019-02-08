@@ -33,7 +33,7 @@
     "react": "16.8.0",
     "react-dom": "16.8.0",
     "sinon": "^7.2.3",
-    "use-image": "^1.0.1"
+    "use-image": "^1.0.2"
   },
   "scripts": {
     "build": "nwb build-react-component",

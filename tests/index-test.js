@@ -1050,4 +1050,60 @@ describe('Hooks', function() {
     };
     img.src = url;
   });
+
+  it('unsubscribe on unmount', function(done) {
+    const url = 'https://konvajs.github.io/assets/yoda.jpg';
+
+    const App = () => {
+      const [image, status] = useImage(url);
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer>
+            <Image image={image} />
+            <Text text={status} />
+          </Layer>
+        </Stage>
+      );
+    };
+    const wrapper = mount(<App />);
+    const stage = Konva.stages[Konva.stages.length - 1];
+
+    // not image while loading
+    expect(stage.findOne('Image').image()).to.equal(undefined);
+    expect(stage.findOne('Text').text()).to.equal('loading');
+
+    wrapper.unmount();
+    const img = new window.Image();
+    img.onload = () => {
+      setTimeout(() => {
+        // image is loaded here
+        // if hook is unsubcribed we should have no errors
+        // so just
+        done();
+      }, 50);
+    };
+    img.src = url;
+  });
+});
+
+describe('external', () => {
+  it('make sure node has _applyProps for react-spring integration', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer>
+              <Rect fill="red" />
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const wrapper = mount(<App />);
+    const instance = wrapper.instance();
+    const stage = instance.stage;
+    expect(typeof stage.findOne('Rect')._applyProps).to.equal('function');
+  });
 });

@@ -6,9 +6,6 @@ import invariant from './invariant';
 export * from './HostConfigWithNoPersistence';
 export * from './HostConfigWithNoHydration';
 
-const NO_CONTEXT = {};
-const UPDATE_SIGNAL = {};
-
 import {
   unstable_scheduleCallback as scheduleDeferredCallback,
   unstable_cancelCallback as cancelDeferredCallback
@@ -20,6 +17,12 @@ export {
   unstable_shouldYield as shouldYield,
   unstable_cancelCallback as cancelDeferredCallback
 } from 'scheduler';
+
+const NO_CONTEXT = {};
+const UPDATE_SIGNAL = {};
+
+// for react-spring capability
+Konva.Node.prototype._applyProps = applyNodeProps;
 
 export function appendInitialChild(parentInstance, child) {
   if (typeof child === 'string') {
@@ -49,8 +52,7 @@ export function createInstance(type, props, internalInstanceHandle) {
   }
 
   const instance = new NodeClass();
-  instance._applyProps = applyNodeProps;
-  instance._applyProps(instance, props);
+  applyNodeProps(instance, props);
 
   return instance;
 }
@@ -194,7 +196,7 @@ export function commitUpdate(
   oldProps,
   newProps
 ) {
-  instance._applyProps(instance, newProps, oldProps);
+  applyNodeProps(instance, newProps, oldProps);
 }
 
 export function hideInstance(instance) {
