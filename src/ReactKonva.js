@@ -14,13 +14,13 @@ const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 const HostConfig = require('./ReactKonvaHostConfig');
 const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 
-const REACT_VERSION = '16.8.0';
+const REACT_VERSION = '16.8.1';
 
 // export for testing
 const __matchRectVersion = React.version === REACT_VERSION;
 
 if (!__matchRectVersion) {
-  console.error(
+  console.warn(
     `Version mismatch detected for react-konva and react. react-konva expects to have react version ${REACT_VERSION}, but it has version ${
       React.version
     }. Make sure versions are matched, otherwise, react-konva work is not guaranteed. For releases information take a look here: https://github.com/konvajs/react-konva/releases`

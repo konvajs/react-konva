@@ -2,7 +2,7 @@
   "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "16.8.0",
+  "version": "16.8.1",
   "keywords": [
     "react",
     "canvas",
@@ -20,8 +20,8 @@
     "scheduler": "^0.13.0"
   },
   "peerDependencies": {
-    "react": "16.8.0",
-    "react-dom": "16.8.0",
+    "react": "16.8.1",
+    "react-dom": "16.8.1",
     "konva": "^2.6.0"
   },
   "devDependencies": {
@@ -30,8 +30,8 @@
     "enzyme-adapter-react-16": "^1.9.1",
     "konva": "^2.6.0",
     "nwb": "^0.23.0",
-    "react": "16.8.0",
-    "react-dom": "16.8.0",
+    "react": "16.8.1",
+    "react-dom": "16.8.1",
     "sinon": "^7.2.3",
     "use-image": "^1.0.2"
   },
