@@ -14,7 +14,7 @@ const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 const HostConfig = require('./ReactKonvaHostConfig');
 const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 
-const REACT_VERSION = '16.8.1';
+const REACT_VERSION = '16.8.2';
 
 // export for testing
 const __matchRectVersion = React.version === REACT_VERSION;
