@@ -30,7 +30,7 @@
     "enzyme-adapter-react-16": "^1.9.1",
     "konva": "^2.6.0",
     "nwb": "^0.23.0",
-    "react": "16.8.2",
+    "react": "16.8.3",
     "react-dom": "16.8.2",
     "sinon": "^7.2.3",
     "use-image": "^1.0.2"
