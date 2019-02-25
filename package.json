@@ -28,7 +28,7 @@
     "chai": "^4.2.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.9.1",
-    "konva": "^2.6.0",
+    "konva": "^3.0.0",
     "nwb": "^0.23.0",
     "react": "16.8.3",
     "react-dom": "16.8.3",
