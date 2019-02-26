@@ -514,7 +514,7 @@ describe('Test Events', function() {
     // remove layer
     wrapper.setProps({ shouldDrawLayer: false });
 
-    expect(layer.getParent()).to.equal(undefined);
+    expect(layer.getParent()).to.equal(null);
 
     layer._fire('click', {});
 
@@ -1001,6 +1001,8 @@ describe('Hooks', function() {
       );
     };
     const wrapper = mount(<App />);
+
+    console.log(wrapper);
 
     // not sure why timeouts are required
     // are hooks async?
