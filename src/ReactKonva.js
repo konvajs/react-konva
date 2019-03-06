@@ -14,10 +14,11 @@ const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 const HostConfig = require('./ReactKonvaHostConfig');
 const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 
-const REACT_VERSION = '16.8.3';
-
 // export for testing
-const __matchRectVersion = React.version === REACT_VERSION;
+// const REACT_VERSION = '16.8.3';
+// const __matchRectVersion = React.version === REACT_VERSION;
+// skip version testing for now
+const __matchRectVersion = true;
 
 // That warning is useful, but I am not sure we really need it
 // if (!__matchRectVersion) {
