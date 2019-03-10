@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Konva from 'konva';
+import Konva from 'konva';
 
 export interface KonvaNodeEvents {
   onMouseOver?(evt: Konva.KonvaEventObject<MouseEvent>): void;
