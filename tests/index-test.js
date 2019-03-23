@@ -549,7 +549,7 @@ describe.skip('Bad structure', () => {
 // that creates mess in id references
 // see: https://github.com/konvajs/react-konva/issues/119
 
-describe.skip('Check id saving', () => {
+describe('Check id saving', () => {
   it('Konva can loose ids?', function() {
     class App extends React.Component {
       render() {
