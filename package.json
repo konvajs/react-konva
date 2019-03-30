@@ -16,8 +16,8 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "react-reconciler": "^0.20.3",
-    "scheduler": "^0.13.5"
+    "react-reconciler": "^0.20.4",
+    "scheduler": "^0.13.6"
   },
   "peerDependencies": {
     "react": "16.8.x",
@@ -32,7 +32,7 @@
     "nwb": "^0.23.0",
     "react": "16.8.4",
     "react-dom": "16.8.4",
-    "sinon": "^7.3.0",
+    "sinon": "^7.3.1",
     "use-image": "^1.0.3"
   },
   "scripts": {
