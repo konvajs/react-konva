@@ -61,6 +61,9 @@ class ColoredRect extends React.Component {
 
 class App extends Component {
   render() {
+    // Stage is a div container
+    // Layer is actual canvas element (so you may have several canvases in the stage)
+    // And then we have canvas shapes inside the Layer
     return (
       <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer>
@@ -79,6 +82,74 @@ To get more info about `Konva` you can read
 [Konva Overview](http://konvajs.github.io/docs/overview.html).
 
 **Actually you don't need to learn `react-konva`. Just learn `Konva` framework, you will understand how to use `react-konva`**
+
+## Core API
+
+`react-konva` supports all shapes, that `Konva` supports with the same names, and also it supports all the same events like `click`, `touchmove`, `dragend`, etc.
+
+### Getting reference to Konva objects
+
+To get reference of `Konva` instance of a node you can use `ref` property.
+
+```javascript
+class MyShape extends React.Component {
+  componentDidMount() {
+    // log Konva.Circle instance
+    console.log(this.circle);
+  }
+  render() {
+    return <Circle ref={ref => (this.circle = ref)} radius={50} fill="black" />;
+  }
+}
+```
+
+### Strict mode
+
+By default `react-konva` works in "non-strict" mode. It means in some cases your properties from `render()` may not be equal to properties of a node, if you changed a property **manually** (or by user action like `drag&drop`). But `react-konva` will updated ONLY changed properties.
+
+In strict mode `react-konva` will update all properties of the nodes to the values that you provided in render function, not matter changed they or not.
+
+You should decide what mode is better in your actual use case.
+
+To enable strict mode globally you can do this:
+
+```javascript
+import { useStrictMode } from 'react-konva';
+
+useStrictMode(true);
+```
+
+Or you can enable it only for some components:
+
+```javascript
+<Rect width={50} height={50} fill="black" _useStrictMode />
+```
+
+Take a look into this example:
+
+```javascript
+import { Circle } from 'react-konva';
+import Konva from 'konva';
+
+const Shape = () => {
+  const [color, setColor] = React.useState();
+
+  return (
+    <Circle
+      x={0}
+      y={0}
+      draggable
+      radius={50}
+      fill={color}
+      onDragEnd={() => {
+        setColor(Konva.Util.getRandomColor());
+      }}
+    />
+  );
+};
+```
+
+The circle is `draggable` and it changes its color on `dragend` event. In `strict` mode position of the node will be reset back to `{x: 0, y: 0}` (as we defined in render). But in `non-strict` mode the circle will keep its position, because `x` and `y` are not changed in render.
 
 ## Comparisons
 
@@ -108,18 +179,4 @@ The purpose of `react-konva` is to reduce the complexity of the application and 
 **Note: you can find a lot of demos and examples of using Konva there:
 [http://konvajs.github.io/](http://konvajs.github.io/). Really, just go there and take a look what Konva can do for you. You will be able to do the same with `react-konva` too.**
 
-### Getting reference to Konva objects
 
-To get reference of `Konva` instance of a node you can use `ref` property.
-
-```javascript
-class MyShape extends React.Component {
-  componentDidMount() {
-    // log Konva.Circle instance
-    console.log(this.circle);
-  }
-  render() {
-    return <Circle ref={ref => (this.circle = ref)} radius={50} fill="black" />;
-  }
-}
-```
