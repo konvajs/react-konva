@@ -105,9 +105,9 @@ class MyShape extends React.Component {
 
 ### Strict mode
 
-By default `react-konva` works in "non-strict" mode. It means in some cases your properties from `render()` may not be equal to properties of a node, if you changed a property **manually** (or by user action like `drag&drop`). But `react-konva` will updated ONLY changed properties.
+By default `react-konva` works in "non-strict" mode. If you changed a property **manually** (or by user action like `drag&drop`) properties of the node will be not matched with properties from `render()`. `react-konva` updates ONLY properties changed in `render()`.
 
-In strict mode `react-konva` will update all properties of the nodes to the values that you provided in render function, not matter changed they or not.
+In strict mode `react-konva` will update all properties of the nodes to the values that you provided in `render()` function, no matter changed they or not.
 
 You should decide what mode is better in your actual use case.
 
