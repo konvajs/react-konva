@@ -20,9 +20,9 @@
     "scheduler": "^0.13.6"
   },
   "peerDependencies": {
+    "konva": "^3.2.3",
     "react": "16.8.x",
-    "react-dom": "16.8.x",
-    "konva": "^3.2.3"
+    "react-dom": "16.8.x"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -33,6 +33,7 @@
     "react": "16.8.4",
     "react-dom": "16.8.4",
     "sinon": "^7.3.1",
+    "typescript": "^3.4.2",
     "use-image": "^1.0.3"
   },
   "scripts": {
@@ -40,6 +41,7 @@
     "clean": "nwb clean-module && nwb clean-demo",
     "start": "nwb serve-react-demo",
     "test": "nwb test-react",
+    "test:typings": "tsc --noEmit",
     "test:coverage": "nwb test-react --coverage",
     "test:watch": "nwb test-react --server",
     "preversion": "npm test",
