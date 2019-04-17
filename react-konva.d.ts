@@ -39,24 +39,6 @@ export interface KonvaNodeComponent<
   // handleEvent(event: Event): void;
 }
 
-export interface KonvaContainerComponent<
-  Container extends Konva.Container,
-  Props = Konva.ContainerConfig
-  // See comment inside KonvaNodeComponent if modifiying next line.
->
-  extends React.SFC<
-    Props & KonvaNodeEvents & React.ClassAttributes<Container>
-  > {
-  // moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex): void;
-  // createChild(child, afterNode, mountImage): void;
-  // removeChild(child, node): void;
-  // updateChildrenAtRoot(nextChildren, transaction): void;
-  // mountAndInjectChildrenAtRoot(children, transaction): void;
-  // updateChildren(nextChildren, transaction, context): void;
-  // mountAndInjectChildren(children, transaction, context): void;
-  // mountAndAddChildren(): void;
-}
-
 export interface StageProps
   extends Konva.NodeConfig,
     KonvaNodeEvents,
@@ -94,13 +76,10 @@ export class Stage extends React.Component<StageProps & KonvaNodeEvents> {
 }
 
 /** Containers */
-export var Layer: KonvaContainerComponent<Konva.Layer, Konva.LayerConfig>;
-export var FastLayer: KonvaContainerComponent<
-  Konva.FastLayer,
-  Konva.LayerConfig
->;
-export var Group: KonvaContainerComponent<Konva.Group>;
-export var Label: KonvaContainerComponent<Konva.Label>;
+export var Layer: KonvaNodeComponent<Konva.Layer, Konva.LayerConfig>;
+export var FastLayer: KonvaNodeComponent<Konva.FastLayer, Konva.LayerConfig>;
+export var Group: KonvaNodeComponent<Konva.Group>;
+export var Label: KonvaNodeComponent<Konva.Label>;
 
 /** Shapes */
 export var Rect: KonvaNodeComponent<Konva.Rect, Konva.RectConfig>;
