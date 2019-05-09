@@ -46,20 +46,19 @@ export interface StageProps
       React.HTMLProps<any>,
       'className' | 'role' | 'style' | 'tabIndex' | 'title'
     > {
-  onContentMouseOver?(evt: any): void;
-  onContentMouseMove?(evt: any): void;
-  onContentMouseOut?(evt: any): void;
-  onContentMouseDown?(evt: any): void;
-  onContentMouseUp?(evt: any): void;
+  onContentMouseover?(evt: any): void;
+  onContentMousemove?(evt: any): void;
+  onContentMouseout?(evt: any): void;
+  onContentMousedown?(evt: any): void;
+  onContentMouseup?(evt: any): void;
   onContentClick?(evt: any): void;
-  onContentDblClick?(evt: any): void;
-  onContentTouchStart?(evt: any): void;
-  onContentTouchMove?(evt: any): void;
-  onContentTouchEnd?(evt: any): void;
+  onContentDblclick?(evt: any): void;
+  onContentTouchstart?(evt: any): void;
+  onContentTouchmove?(evt: any): void;
+  onContentTouchend?(evt: any): void;
   onContentTap?(evt: any): void;
-  onContentDblTap?(evt: any): void;
+  onContentDbltap?(evt: any): void;
   onContentWheel?(evt: any): void;
-  onContentContextMenu?(evt: any): void;
 }
 
 // Stage is the only real class because the others are stubs that only know how
