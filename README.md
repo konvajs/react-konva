@@ -85,7 +85,7 @@ To get more info about `Konva` you can read
 
 ## Core API
 
-`react-konva` supports all shapes, that `Konva` supports with the same names, and also it supports all the same events like `click`, `touchmove`, `dragend`, etc.
+`react-konva` supports all shapes, that `Konva` supports with the same names, and also it supports all the same events like `click`, `touchmove`, `dragend`, etc with "on" prefix like `onClick`, `onTouchMove`, `onDragEnd`.
 
 ### Getting reference to Konva objects
 
@@ -150,6 +150,21 @@ const Shape = () => {
 ```
 
 The circle is `draggable` and it changes its color on `dragend` event. In `strict` mode position of the node will be reset back to `{x: 0, y: 0}` (as we defined in render). But in `non-strict` mode the circle will keep its position, because `x` and `y` are not changed in render.
+
+### Minimal bundle
+
+By default `react-konva` imports full `Konva` version. With all the shapes and all filters. To minimaze bundle size you can use minimal core version of `react-konva`:
+
+```javascript
+// load minimal version of 'react-konva`
+import { Stage, Layer, Rect } from "react-konva/lib/ReactKonvaCore";
+
+// minimal version has to support for core shapes and filters
+// if you want import a shape into Konva namespace you can just do this:
+import "konva/lib/shapes/Rect";
+```
+
+Demo: [https://codesandbox.io/s/6l97wny44z](https://codesandbox.io/s/6l97wny44z)
 
 ## Comparisons
 
