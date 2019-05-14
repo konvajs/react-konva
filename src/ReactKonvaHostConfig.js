@@ -1,4 +1,4 @@
-import Konva from 'konva';
+import Konva from 'konva/lib/Core';
 import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates';
 
 import invariant from './invariant';
@@ -45,7 +45,7 @@ export function createInstance(type, props, internalInstanceHandle) {
   if (!NodeClass) {
     invariant(
       instance,
-      'ReactKonva does not support the type "%s". If you want to render DOM elements as part of canvas tree take a look into this demo: https://konvajs.github.io/docs/react/DOM_Portal.html',
+      'Konva has no node with the type "%s". If you use minimal version of react-konva, just import required nodes into Konva: `import "konva/lib/shapes/Rect"`  If you want to render DOM elements as part of canvas tree take a look into this demo: https://konvajs.github.io/docs/react/DOM_Portal.html',
       type
     );
     return;
