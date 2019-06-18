@@ -1002,8 +1002,6 @@ describe('Hooks', function() {
     };
     const wrapper = mount(<App />);
 
-    console.log(wrapper);
-
     // not sure why timeouts are required
     // are hooks async?
     setTimeout(() => {
@@ -1015,6 +1013,44 @@ describe('Hooks', function() {
         expect(callCount).to.equal(2);
         done();
       }, 50);
+    }, 50);
+  });
+
+  it('check useEffect hook 2', function(done) {
+    let callCount = 0;
+    const MyRect = ({ name }) => {
+      React.useEffect(() => {
+        callCount += 1;
+      });
+      return <Rect name={name} />;
+    };
+    const App = () => {
+      const [name, setName] = React.useState('');
+
+      React.useEffect(() => {
+        setName('rect name');
+      }, []);
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer>
+            <MyRect name={name} />
+          </Layer>
+        </Stage>
+      );
+    };
+    const wrapper = mount(<App />);
+
+    // not sure why timeouts are required
+    // are hooks async?
+    setTimeout(() => {
+      const stage = Konva.stages[Konva.stages.length - 1];
+
+      const rect = stage.findOne('Rect');
+
+      expect(rect.name()).to.equal('rect name');
+      expect(callCount).to.equal(2);
+      done();
     }, 50);
   });
 
