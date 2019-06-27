@@ -105,3 +105,5 @@ export var RegularPolygon: KonvaNodeComponent<
 >;
 export var Arrow: KonvaNodeComponent<Konva.Arrow, Konva.ArrowConfig>;
 export var Shape: KonvaNodeComponent<Konva.Shape, Konva.ShapeConfig>;
+
+export var useStrictMode: (useStrictMode: boolean) => void;
