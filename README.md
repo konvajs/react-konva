@@ -159,7 +159,7 @@ By default `react-konva` imports full `Konva` version. With all the shapes and a
 // load minimal version of 'react-konva`
 import { Stage, Layer, Rect } from "react-konva/lib/ReactKonvaCore";
 
-// minimal version has to support for core shapes and filters
+// minimal version has NO support for core shapes and filters
 // if you want import a shape into Konva namespace you can just do this:
 import "konva/lib/shapes/Rect";
 ```
