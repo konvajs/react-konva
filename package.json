@@ -20,7 +20,7 @@
     "scheduler": "^0.13.6"
   },
   "peerDependencies": {
-    "konva": "^3.2.5",
+    "konva": "^3.2.5 || ^4.0.0",
     "react": "16.8.x",
     "react-dom": "16.8.x"
   },
@@ -29,12 +29,12 @@
     "chai": "^4.2.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
-    "konva": "^3.2.0",
+    "konva": "^3.2.5 || ^4.0.0",
     "nwb": "^0.23.0",
     "react": "16.8.4",
     "react-dom": "16.8.4",
     "sinon": "^7.3.1",
-    "typescript": "^3.4.3",
+    "typescript": "^3.5.3",
     "use-image": "^1.0.3"
   },
   "scripts": {
