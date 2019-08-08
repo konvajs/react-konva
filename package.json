@@ -20,7 +20,7 @@
     "scheduler": "^0.13.6"
   },
   "peerDependencies": {
-    "konva": "^3.2.5 || ^4.0.0",
+    "konva": "^3.2.5 || ^4.0.2",
     "react": "16.8.x",
     "react-dom": "16.8.x"
   },
@@ -29,7 +29,7 @@
     "chai": "^4.2.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
-    "konva": "^3.2.5 || ^4.0.0",
+    "konva": "^3.2.5 || ^4.0.2",
     "nwb": "^0.23.0",
     "react": "16.8.4",
     "react-dom": "16.8.4",

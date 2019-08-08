@@ -146,23 +146,17 @@ export function insertBefore(parentInstance, child, beforeChild) {
     child !== beforeChild,
     'ReactKonva: Can not insert node before itself'
   );
-  // remove and add back to reset zIndex
-  child.remove();
+  // child._remove() will not stop dragging
+  // but child.remove() will stop it, but we don't need it
+  // removing will reset zIndexes
+  child._remove();
   parentInstance.add(child);
   child.setZIndex(beforeChild.getZIndex());
   updatePicture(parentInstance);
 }
 
 export function insertInContainerBefore(parentInstance, child, beforeChild) {
-  invariant(
-    child !== beforeChild,
-    'ReactKonva: Can not insert node before itself'
-  );
-  // remove and add back to reset zIndex
-  child.remove();
-  parentInstance.add(child);
-  child.setZIndex(beforeChild.getZIndex());
-  updatePicture(parentInstance);
+  insertBefore(parentInstance, child, beforeChild);
 }
 
 export function removeChild(parentInstance, child) {

@@ -743,6 +743,7 @@ describe('test reconciler', () => {
     expect(layer.children[1].name()).to.equal('rect2');
     expect(layer.children[2].name()).to.equal('rect3');
 
+    // last to first
     kids = [
       <Rect key="3" name="rect3" />,
       <Rect key="1" name="rect1" />,
@@ -753,16 +754,81 @@ describe('test reconciler', () => {
     expect(layer.children[1].name()).to.equal('rect1');
     expect(layer.children[2].name()).to.equal('rect2');
 
+    // second to first
     kids = [
       <Rect key="1" name="rect1" />,
       <Rect key="3" name="rect3" />,
       <Rect key="2" name="rect2" />
     ];
+
     wrapper.setProps({ kids });
 
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect3');
     expect(layer.children[2].name()).to.equal('rect2');
+
+    kids = [
+      <Rect key="2" name="rect2" />,
+      <Rect key="1" name="rect1" />,
+      <Rect key="3" name="rect3" />
+    ];
+    wrapper.setProps({ kids });
+
+    expect(layer.children[0].name()).to.equal('rect2');
+    expect(layer.children[1].name()).to.equal('rect1');
+    expect(layer.children[2].name()).to.equal('rect3');
+
+    kids = [
+      <Rect key="4" name="rect4" />,
+      <Rect key="2" name="rect2" />,
+      <Rect key="1" name="rect1" />,
+      <Rect key="3" name="rect3" />
+    ];
+    wrapper.setProps({ kids });
+
+    expect(layer.children[0].name()).to.equal('rect4');
+    expect(layer.children[1].name()).to.equal('rect2');
+    expect(layer.children[2].name()).to.equal('rect1');
+    expect(layer.children[3].name()).to.equal('rect3');
+  });
+
+  it('changing order should not stop dragging', function() {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+            <Layer ref={node => (this.layer = node)}>{this.props.kids}</Layer>
+          </Stage>
+        );
+      }
+    }
+
+    let kids = [
+      <Rect key="1" name="rect1" />,
+      <Rect key="2" name="rect2" />,
+      <Rect key="3" name="rect3" />
+    ];
+    const wrapper = mount(<App kids={kids} />);
+    const layer = wrapper.instance().layer;
+
+    const rect1 = layer.findOne('.rect1');
+
+    layer.getStage().simulateMouseDown({ x: 5, y: 5 });
+    rect1.startDrag();
+    // move mouse
+    layer.getStage().simulateMouseMove({ x: 10, y: 10 });
+
+    expect(rect1.isDragging()).to.equal(true);
+
+    kids = [
+      <Rect key="3" name="rect3" />,
+      <Rect key="1" name="rect1" />,
+      <Rect key="2" name="rect2" />
+    ];
+    wrapper.setProps({ kids });
+
+    expect(rect1.isDragging()).to.equal(true);
+    rect1.stopDrag();
   });
 });
 
