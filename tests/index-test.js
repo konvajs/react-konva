@@ -385,22 +385,23 @@ describe('test lifecycle methods', () => {
   let instance, wrapper;
 
   class SubComponent extends React.Component {
-    componentWillMount() {
-      this.props.componentWillMount();
-    }
+    // comment, as it will be removed
+    // componentWillMount() {
+    //   this.props.componentWillMount();
+    // }
     componentDidMount() {
       this.props.componentDidMount();
     }
-    componentWillReceiveProps(newProps) {
-      this.props.componentWillReceiveProps(newProps);
-    }
+    // componentWillReceiveProps(newProps) {
+    //   this.props.componentWillReceiveProps(newProps);
+    // }
     shouldComponentUpdate() {
       this.props.shouldComponentUpdate(...arguments);
       return true;
     }
-    componentWillUpdate() {
-      this.props.componentWillUpdate();
-    }
+    // componentWillUpdate() {
+    //   this.props.componentWillUpdate();
+    // }
     componentDidUpdate() {
       this.props.componentDidUpdate();
     }
@@ -427,41 +428,41 @@ describe('test lifecycle methods', () => {
 
   it('test mount', () => {
     const props = {
-      componentWillMount: sinon.spy(),
+      // componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy()
     };
     wrapper = mount(<App {...props} />);
 
-    expect(props.componentWillMount.called).to.equal(true);
+    // expect(props.componentWillMount.called).to.equal(true);
     expect(props.componentDidMount.called).to.equal(true);
   });
 
   it('test update', () => {
     const props = {
-      componentWillMount: sinon.spy(),
+      // componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy(),
-      componentWillReceiveProps: sinon.spy(),
+      // componentWillReceiveProps: sinon.spy(),
       shouldComponentUpdate: sinon.spy(),
-      componentWillUpdate: sinon.spy(),
+      // componentWillUpdate: sinon.spy(),
       componentDidUpdate: sinon.spy(),
       componentWillUnmount: sinon.spy()
     };
     wrapper = mount(<App {...props} />);
     wrapper.setProps(props);
 
-    expect(props.componentWillMount.called).to.equal(true);
+    // expect(props.componentWillMount.called).to.equal(true);
     expect(props.shouldComponentUpdate.called).to.equal(true);
-    expect(props.componentWillUpdate.called).to.equal(true);
+    // expect(props.componentWillUpdate.called).to.equal(true);
     expect(props.componentDidUpdate.called).to.equal(true);
   });
 
   it('test remove', () => {
     const props = {
-      componentWillMount: sinon.spy(),
+      // componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy(),
-      componentWillReceiveProps: sinon.spy(),
+      // componentWillReceiveProps: sinon.spy(),
       shouldComponentUpdate: sinon.spy(),
-      componentWillUpdate: sinon.spy(),
+      // componentWillUpdate: sinon.spy(),
       componentDidUpdate: sinon.spy(),
       componentWillUnmount: sinon.spy()
     };
@@ -1012,14 +1013,10 @@ describe('warnings', function() {
     }
   }
 
-  let instance;
-  beforeEach(() => {
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-  });
-
   it('check draggable warning', function() {
-    // check console for warning
+    const wrapper = mount(<App />);
+    // sinon.spy(console, 'warning');
+    // expect(console.warning.callCount).to.equal(1);
   });
 });
 

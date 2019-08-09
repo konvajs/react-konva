@@ -18,27 +18,28 @@ export function toggleStrictMode(value) {
   useStrictMode = value;
 }
 
-export function applyNodeProps(instance, props, oldProps = {}) {
-  if (!zIndexWarningShowed && 'zIndex' in props) {
-    const message = `ReactKonva: You are using "zIndex" attribute for a Konva node.
-react-konva may get confused with ordering. Just define correct order of elements in your render function of a component.
-For more info see: https://github.com/konvajs/react-konva/issues/194
-`;
-    console.warn(message);
-    zIndexWarningShowed = true;
-  }
-
-  // show draggable warning
-  if (!dragWarningShowed && props.draggable) {
-    var hasPosition = props.x !== undefined || props.y !== undefined;
-    var hasEvents = props.onDragEnd || props.onDragMove;
-    if (hasPosition && !hasEvents) {
-      const message = `ReactKonva: You have a Konva node with draggable = true and position defined but no onDragMove or onDragEnd events are handled.
+const DRAGGABLE_WARNING = `ReactKonva: You have a Konva node with draggable = true and position defined but no onDragMove or onDragEnd events are handled.
 Position of a node will be changed during drag&drop, so you should update state of the react app as well.
 Consider to add onDragMove or onDragEnd events.
 For more info see: https://github.com/konvajs/react-konva/issues/256
 `;
-      console.warn(message);
+
+const Z_INDEX_WARNING = `ReactKonva: You are using "zIndex" attribute for a Konva node.
+react-konva may get confused with ordering. Just define correct order of elements in your render function of a component.
+For more info see: https://github.com/konvajs/react-konva/issues/194
+`;
+
+export function applyNodeProps(instance, props, oldProps = {}) {
+  if (!zIndexWarningShowed && 'zIndex' in props) {
+    console.warn(Z_INDEX_WARNING);
+    zIndexWarningShowed = true;
+  }
+
+  if (!dragWarningShowed && props.draggable) {
+    var hasPosition = props.x !== undefined || props.y !== undefined;
+    var hasEvents = props.onDragEnd || props.onDragMove;
+    if (hasPosition && !hasEvents) {
+      console.warn(DRAGGABLE_WARNING);
       dragWarningShowed = true;
     }
   }
