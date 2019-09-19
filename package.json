@@ -38,7 +38,7 @@
     "use-image": "^1.0.4"
   },
   "scripts": {
-    "build": "nwb build-react-component",
+    "build": "nwb build-react-component && cp ./ReactKonvaCore.d.ts ./lib",
     "clean": "nwb clean-module && nwb clean-demo",
     "start": "nwb serve-react-demo",
     "test": "nwb test-react && npm run test:typings",
