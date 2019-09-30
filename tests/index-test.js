@@ -1118,7 +1118,7 @@ describe('Hooks', function() {
   });
 
   it('check useImage hook', function(done) {
-    const url = 'https://konvajs.github.io/assets/yoda.jpg';
+    const url = 'https://konvajs.org/favicon-32x32.png';
 
     const App = () => {
       const [image, status] = useImage(url);
@@ -1153,7 +1153,7 @@ describe('Hooks', function() {
   });
 
   it('unsubscribe on unmount', function(done) {
-    const url = 'https://konvajs.github.io/assets/yoda.jpg';
+    const url = 'https://konvajs.org/favicon-32x32.png';
 
     const App = () => {
       const [image, status] = useImage(url);
