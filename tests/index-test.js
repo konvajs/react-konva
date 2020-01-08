@@ -929,7 +929,7 @@ describe('try lazy and suspense', function() {
         resolve({
           default: () => <Rect />
         });
-      }, 10);
+      }, 5);
     });
   });
 
@@ -964,7 +964,7 @@ describe('try lazy and suspense', function() {
       expect(stage.find('Rect').length).to.equal(1);
       expect(stage.find('Shape').length).to.equal(1);
       done();
-    }, 20);
+    }, 50);
   });
 });
 
