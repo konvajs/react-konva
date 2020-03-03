@@ -379,6 +379,45 @@ describe('Test props setting', function() {
     });
     expect(rect.x()).to.equal(10);
   });
+
+  it('call draw immediately after props change to get 60 fps', async () => {
+    const layer = instance.layer;
+    sinon.spy(layer, 'batchDraw');
+    sinon.spy(layer, 'draw');
+    wrapper.setProps({
+      rectProps: {
+        fill: 'green'
+      }
+    });
+    expect(layer.batchDraw.calledOnce).to.equal(true);
+    expect(layer.draw.notCalled).to.equal(true);
+    const startTime = Date.now();
+    await 1;
+    expect(layer.draw.calledOnce).to.equal(true);
+    // Normally it's 1 or 2 ms.
+    // We just need to make sure it's less than min frame length 16ms.
+    expect(Date.now() - startTime < 15).to.equal(true);
+  });
+
+  it('call draw once if batchDraw is called multiple times inside one event loop', async () => {
+    const layer = instance.layer;
+    sinon.spy(layer, 'batchDraw');
+    sinon.spy(layer, 'draw');
+    wrapper.setProps({
+      rectProps: {
+        fill: 'green'
+      }
+    });
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red'
+      }
+    });
+    expect(layer.batchDraw.callCount).to.equal(2);
+    expect(layer.draw.callCount).to.equal(0);
+    await 1;
+    expect(layer.draw.callCount).to.equal(1);
+  });
 });
 
 describe('test lifecycle methods', () => {
