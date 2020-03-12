@@ -166,6 +166,50 @@ import "konva/lib/shapes/Rect";
 
 Demo: [https://codesandbox.io/s/6l97wny44z](https://codesandbox.io/s/6l97wny44z)
 
+### Usage with React Context
+Due to a [known issue](https://github.com/facebook/react/issues/13336) with React, Contexts are not accessible by children of the react-konva `Stage` component. If you need to subscribe to a context from within the `Stage`, you need to "bridge" the context by creating a `Provider` as a child of the `Stage`. For more info, see [this discussion](https://github.com/konvajs/react-konva/issues/188#issuecomment-478302062). Here is an example of bridging the context ([live demo](codesandbox.io/s/ykqw8r4r21)):
+```js
+import React, { Component } from "react";
+import Konva from "konva";
+import { render } from "react-dom";
+import { Stage, Layer, Rect } from "react-konva";
+
+const ThemeContext = React.createContext("red");
+
+const ThemedRect = () => {
+  const value = React.useContext(ThemeContext);
+  return (
+    <Rect x={20} y={50} width={100} height={100} fill={value} shadowBlur={10} />
+  );
+};
+
+const Canvas = () => {
+  return (
+    <ThemeContext.Consumer>
+      {value => (
+        <Stage width={window.innerWidth} height={window.innerHeight}>
+          <ThemeContext.Provider value={value}>
+            <Layer>
+              <ThemedRect />
+            </Layer>
+          </ThemeContext.Provider>
+        </Stage>
+      )}
+    </ThemeContext.Consumer>
+  );
+};
+
+class App extends Component {
+  render() {
+    return (
+      <ThemeContext.Provider value="blue">
+        <Canvas />
+      </ThemeContext.Provider>
+    );
+  }
+}
+```
+
 ## Comparisons
 
 ### react-konva vs react-canvas
