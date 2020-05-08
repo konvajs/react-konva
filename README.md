@@ -153,7 +153,7 @@ The circle is `draggable` and it changes its color on `dragend` event. In `stric
 
 ### Minimal bundle
 
-By default `react-konva` imports full `Konva` version. With all the shapes and all filters. To minimaze bundle size you can use minimal core version of `react-konva`:
+By default `react-konva` imports full `Konva` version. With all the shapes and all filters. To minimize bundle size you can use minimal core version of `react-konva`:
 
 ```javascript
 // load minimal version of 'react-konva`
