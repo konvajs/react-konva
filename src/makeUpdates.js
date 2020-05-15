@@ -5,7 +5,7 @@ const propsToSkip = {
   style: true,
   forwardedRef: true,
   unstable_applyCache: true,
-  unstable_applyDrawHitFromCache: true
+  unstable_applyDrawHitFromCache: true,
 };
 
 let zIndexWarningShowed = false;
@@ -30,11 +30,13 @@ For more info see: https://github.com/konvajs/react-konva/issues/194
 `;
 
 export function applyNodeProps(instance, props, oldProps = {}) {
+  // don't use zIndex in react-konva
   if (!zIndexWarningShowed && 'zIndex' in props) {
     console.warn(Z_INDEX_WARNING);
     zIndexWarningShowed = true;
   }
 
+  // check correct draggable usage
   if (!dragWarningShowed && props.draggable) {
     var hasPosition = props.x !== undefined || props.y !== undefined;
     var hasEvents = props.onDragEnd || props.onDragMove;
@@ -44,12 +46,17 @@ export function applyNodeProps(instance, props, oldProps = {}) {
     }
   }
 
+  // check old props
+  // we need to unset properties that are not in new props
+  // and remove all events
   for (var key in oldProps) {
     if (propsToSkip[key]) {
       continue;
     }
     var isEvent = key.slice(0, 2) === 'on';
     var propChanged = oldProps[key] !== props[key];
+
+    // if that is a changed event, we need to remvoe it
     if (isEvent && propChanged) {
       var eventName = key.substr(2).toLowerCase();
       if (eventName.substr(0, 7) === 'content') {
@@ -70,6 +77,8 @@ export function applyNodeProps(instance, props, oldProps = {}) {
   var updatedProps = {};
   var hasUpdates = false;
 
+  const newEvents = {};
+
   for (var key in props) {
     if (propsToSkip[key]) {
       continue;
@@ -84,8 +93,9 @@ export function applyNodeProps(instance, props, oldProps = {}) {
           eventName.substr(7, 1).toUpperCase() +
           eventName.substr(8);
       }
+      // check that event is not undefined
       if (props[key]) {
-        instance.on(eventName + EVENTS_NAMESPACE, props[key]);
+        newEvents[eventName] = props[key];
       }
     }
     if (
@@ -101,6 +111,13 @@ export function applyNodeProps(instance, props, oldProps = {}) {
   if (hasUpdates) {
     instance.setAttrs(updatedProps);
     updatePicture(instance);
+  }
+
+  // subscribe to events AFTER we set attrs
+  // we need it to fix https://github.com/konvajs/react-konva/issues/471
+  // settings attrs may add events. Like "draggable: true" will add "mousedown" listener
+  for (var eventName in newEvents) {
+    instance.on(eventName + EVENTS_NAMESPACE, newEvents[eventName]);
   }
 }
 

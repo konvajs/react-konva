@@ -9,7 +9,7 @@ import {
   Image,
   useStrictMode,
   Text,
-  __matchRectVersion
+  __matchRectVersion,
 } from '../src/ReactKonva';
 import useImage from 'use-image';
 import './mocking';
@@ -20,19 +20,19 @@ import Adapter from 'enzyme-adapter-react-16';
 
 configure({ adapter: new Adapter() });
 
-describe('Test version matching', function() {
-  it('should match react version', function() {
+describe('Test version matching', function () {
+  it('should match react version', function () {
     expect(__matchRectVersion).to.equal(true);
   });
 });
 
-describe('Test references', function() {
+describe('Test references', function () {
   let instance;
   class App extends React.Component {
     render() {
       return (
-        <Stage width={300} height={300} ref={node => (this.stage = node)}>
-          <Layer ref={node => (this.layer = node)} />
+        <Stage width={300} height={300} ref={(node) => (this.stage = node)}>
+          <Layer ref={(node) => (this.layer = node)} />
         </Stage>
       );
     }
@@ -43,33 +43,33 @@ describe('Test references', function() {
     instance = wrapper.instance();
   });
 
-  it('can get stage instance', function() {
+  it('can get stage instance', function () {
     const stageRef = instance.stage;
     expect(stageRef.getStage() instanceof Konva.Stage).to.equal(true);
   });
 
-  it('check initial props set', function() {
+  it('check initial props set', function () {
     const stage = instance.stage.getStage();
     expect(stage.width()).to.equal(300);
     expect(stage.height()).to.equal(300);
   });
 
-  it('can get layer instance', function() {
+  it('can get layer instance', function () {
     expect(instance.layer instanceof Konva.Layer).to.equal(true);
   });
 
   // how can we make this work?
-  it('stage ref should go to the stage', function() {
+  it('stage ref should go to the stage', function () {
     const stageRef = instance.stage;
     expect(stageRef instanceof Konva.Stage).to.equal(true);
   });
 
-  it('works ok with no ref', function() {
+  it('works ok with no ref', function () {
     class App extends React.Component {
       render() {
         return (
           <Stage width={300} height={300}>
-            <Layer ref={node => (this.layer = node)} />
+            <Layer ref={(node) => (this.layer = node)} />
           </Stage>
         );
       }
@@ -78,13 +78,13 @@ describe('Test references', function() {
     instance = wrapper.instance();
   });
 
-  it('works ok with react ref', function() {
+  it('works ok with react ref', function () {
     class App extends React.Component {
       stage = React.createRef();
       render() {
         return (
           <Stage width={300} height={300} ref={this.stage}>
-            <Layer ref={node => (this.layer = node)} />
+            <Layer ref={(node) => (this.layer = node)} />
           </Stage>
         );
       }
@@ -95,7 +95,7 @@ describe('Test references', function() {
     expect(stage instanceof Konva.Stage).to.equal(true);
   });
 
-  it('forward ref', function() {
+  it('forward ref', function () {
     const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
 
     class App extends React.Component {
@@ -103,8 +103,8 @@ describe('Test references', function() {
       render() {
         return (
           <Stage width={300} height={300} ref={this.stage}>
-            <Layer ref={node => (this.layer = node)}>
-              <MyRect ref={node => (this.rect = node)} />
+            <Layer ref={(node) => (this.layer = node)}>
+              <MyRect ref={(node) => (this.rect = node)} />
             </Layer>
           </Stage>
         );
@@ -117,8 +117,8 @@ describe('Test references', function() {
   });
 });
 
-describe('Test stage component', function() {
-  it('can attach stage events', function() {
+describe('Test stage component', function () {
+  it('can attach stage events', function () {
     let eventCount = 0;
     const handleEvent = () => {
       eventCount += 1;
@@ -128,13 +128,17 @@ describe('Test stage component', function() {
       render() {
         return (
           <Stage
-            ref={node => (this.stage = node)}
+            ref={(node) => (this.stage = node)}
             width={300}
             height={300}
             onMouseDown={handleEvent}
           >
-            <Layer ref={node => (this.layer = node)}>
-              <Rect ref={node => (this.rect = node)} width={100} height={100} />
+            <Layer ref={(node) => (this.layer = node)}>
+              <Rect
+                ref={(node) => (this.rect = node)}
+                width={100}
+                height={100}
+              />
             </Layer>
           </Stage>
         );
@@ -148,7 +152,7 @@ describe('Test stage component', function() {
     expect(eventCount).to.equal(1);
   });
 
-  it('can attach stage content events', function() {
+  it('can attach stage content events', function () {
     let eventCount = 0;
     const handleEvent = () => {
       eventCount += 1;
@@ -158,13 +162,17 @@ describe('Test stage component', function() {
       render() {
         return (
           <Stage
-            ref={node => (this.stage = node)}
+            ref={(node) => (this.stage = node)}
             width={300}
             height={300}
             onContentMouseDown={handleEvent}
           >
-            <Layer ref={node => (this.layer = node)}>
-              <Rect ref={node => (this.rect = node)} width={100} height={100} />
+            <Layer ref={(node) => (this.layer = node)}>
+              <Rect
+                ref={(node) => (this.rect = node)}
+                width={100}
+                height={100}
+              />
             </Layer>
           </Stage>
         );
@@ -185,8 +193,8 @@ describe('Test stage component', function() {
           return <div />;
         }
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
-            <Layer ref={node => (this.layer = node)} />
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+            <Layer ref={(node) => (this.layer = node)} />
           </Stage>
         );
       }
@@ -199,18 +207,22 @@ describe('Test stage component', function() {
     expect(Konva.stages.length).to.equal(stagesNumber - 1);
   });
 
-  it('test null event', function() {
+  it('test null event', function () {
     class App extends React.Component {
       render() {
         return (
           <Stage
-            ref={node => (this.stage = node)}
+            ref={(node) => (this.stage = node)}
             width={300}
             height={300}
             onMouseDown={null}
           >
-            <Layer ref={node => (this.layer = node)}>
-              <Rect ref={node => (this.rect = node)} width={100} height={100} />
+            <Layer ref={(node) => (this.layer = node)}>
+              <Rect
+                ref={(node) => (this.rect = node)}
+                width={100}
+                height={100}
+              />
             </Layer>
           </Stage>
         );
@@ -224,14 +236,17 @@ describe('Test stage component', function() {
   });
 });
 
-describe('Test props setting', function() {
+describe('Test props setting', function () {
   let instance, wrapper;
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={node => (this.stage = node)} width={300} height={300}>
-          <Layer ref={node => (this.layer = node)}>
-            <Rect ref={node => (this.rect = node)} {...this.props.rectProps} />
+        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Layer ref={(node) => (this.layer = node)}>
+            <Rect
+              ref={(node) => (this.rect = node)}
+              {...this.props.rectProps}
+            />
           </Layer>
         </Stage>
       );
@@ -248,7 +263,7 @@ describe('Test props setting', function() {
     // set new props
     const props1 = {
       width: 100,
-      height: 100
+      height: 100,
     };
 
     wrapper.setProps({ rectProps: props1 });
@@ -257,7 +272,7 @@ describe('Test props setting', function() {
 
     const props2 = {
       width: 200,
-      height: 100
+      height: 100,
     };
     wrapper.setProps({ rectProps: props2 });
     expect(rect.width()).to.equal(200);
@@ -266,14 +281,14 @@ describe('Test props setting', function() {
     const rect = instance.rect;
     // set new props
     const props1 = {
-      onClick: () => {}
+      onClick: () => {},
     };
     wrapper.setProps({ rectProps: props1 });
     expect(rect.eventListeners.click.length).to.equal(1);
     expect(rect.eventListeners.click[0].handler).to.equal(props1.onClick);
 
     const props2 = {
-      onClick: () => {}
+      onClick: () => {},
     };
     wrapper.setProps({ rectProps: props2 });
     expect(rect.eventListeners.click.length).to.equal(1);
@@ -285,13 +300,13 @@ describe('Test props setting', function() {
     sinon.spy(layer, 'batchDraw');
     wrapper.setProps({
       rectProps: {
-        fill: 'green'
-      }
+        fill: 'green',
+      },
     });
     wrapper.setProps({
       rectProps: {
-        fill: 'red'
-      }
+        fill: 'red',
+      },
     });
     expect(layer.batchDraw.callCount).to.equal(2);
   });
@@ -301,8 +316,8 @@ describe('Test props setting', function() {
     wrapper.setProps({
       rectProps: {
         fill: 'red',
-        x: 10
-      }
+        x: 10,
+      },
     });
     expect(rect.fill()).to.equal('red');
 
@@ -316,54 +331,8 @@ describe('Test props setting', function() {
     wrapper.setProps({
       rectProps: {
         fill: 'red',
-        x: 10
-      }
-    });
-    expect(rect.x()).to.equal(10);
-
-    // change position manually
-    rect.x(20);
-
-    wrapper.setProps({
-      rectProps: {
-        fill: 'red',
-        x: 10
-      }
-    });
-    expect(rect.x()).to.equal(20);
-  });
-
-  it('overwrite properties if that changed manually in strict-mode', () => {
-    useStrictMode(true);
-    const rect = instance.rect;
-    wrapper.setProps({
-      rectProps: {
-        fill: 'red',
-        x: 10
-      }
-    });
-    expect(rect.x()).to.equal(10);
-
-    // change position manually
-    rect.x(20);
-
-    wrapper.setProps({
-      rectProps: {
-        fill: 'red',
-        x: 10
-      }
-    });
-    expect(rect.x()).to.equal(10);
-    useStrictMode(false);
-  });
-
-  it('overwrite properties if that passed _useStrictMode', () => {
-    const rect = instance.rect;
-    wrapper.setProps({
-      rectProps: {
-        fill: 'red',
-        x: 10
-      }
+        x: 10,
+      },
     });
     expect(rect.x()).to.equal(10);
 
@@ -374,8 +343,54 @@ describe('Test props setting', function() {
       rectProps: {
         fill: 'red',
         x: 10,
-        _useStrictMode: true
-      }
+      },
+    });
+    expect(rect.x()).to.equal(20);
+  });
+
+  it('overwrite properties if that changed manually in strict-mode', () => {
+    useStrictMode(true);
+    const rect = instance.rect;
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10,
+      },
+    });
+    expect(rect.x()).to.equal(10);
+
+    // change position manually
+    rect.x(20);
+
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10,
+      },
+    });
+    expect(rect.x()).to.equal(10);
+    useStrictMode(false);
+  });
+
+  it('overwrite properties if that passed _useStrictMode', () => {
+    const rect = instance.rect;
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10,
+      },
+    });
+    expect(rect.x()).to.equal(10);
+
+    // change position manually
+    rect.x(20);
+
+    wrapper.setProps({
+      rectProps: {
+        fill: 'red',
+        x: 10,
+        _useStrictMode: true,
+      },
     });
     expect(rect.x()).to.equal(10);
   });
@@ -415,8 +430,8 @@ describe('test lifecycle methods', () => {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={node => (this.stage = node)} width={300} height={300}>
-          <Layer ref={node => (this.layer = node)}>
+        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Layer ref={(node) => (this.layer = node)}>
             {this.props.dontDrawChildren ? null : (
               <SubComponent {...this.props} />
             )}
@@ -429,7 +444,7 @@ describe('test lifecycle methods', () => {
   it('test mount', () => {
     const props = {
       // componentWillMount: sinon.spy(),
-      componentDidMount: sinon.spy()
+      componentDidMount: sinon.spy(),
     };
     wrapper = mount(<App {...props} />);
 
@@ -445,7 +460,7 @@ describe('test lifecycle methods', () => {
       shouldComponentUpdate: sinon.spy(),
       // componentWillUpdate: sinon.spy(),
       componentDidUpdate: sinon.spy(),
-      componentWillUnmount: sinon.spy()
+      componentWillUnmount: sinon.spy(),
     };
     wrapper = mount(<App {...props} />);
     wrapper.setProps(props);
@@ -464,7 +479,7 @@ describe('test lifecycle methods', () => {
       shouldComponentUpdate: sinon.spy(),
       // componentWillUpdate: sinon.spy(),
       componentDidUpdate: sinon.spy(),
-      componentWillUnmount: sinon.spy()
+      componentWillUnmount: sinon.spy(),
     };
     wrapper = mount(<App {...props} />);
     const stage = wrapper.instance().stage.getStage();
@@ -478,15 +493,15 @@ describe('test lifecycle methods', () => {
   });
 });
 
-describe('Test Events', function() {
+describe('Test Events', function () {
   let instance;
   class App extends React.Component {
     render() {
       return (
-        <Stage width={300} height={300} ref={node => (this.stage = node)}>
+        <Stage width={300} height={300} ref={(node) => (this.stage = node)}>
           {this.props.shouldDrawLayer && (
             <Layer
-              ref={node => (this.layer = node)}
+              ref={(node) => (this.layer = node)}
               onClick={this.props.onClick}
             />
           )}
@@ -494,7 +509,7 @@ describe('Test Events', function() {
       );
     }
   }
-  it('should remove events on unmount', function() {
+  it('should remove events on unmount', function () {
     const onClickRect = sinon.spy();
     const onClickExternal = sinon.spy();
 
@@ -526,11 +541,11 @@ describe('Test Events', function() {
 
 // will fail
 describe.skip('Bad structure', () => {
-  it('No dom inside Konva', function() {
+  it('No dom inside Konva', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
             <Layer>
               <div />
             </Layer>
@@ -551,15 +566,15 @@ describe.skip('Bad structure', () => {
 // see: https://github.com/konvajs/react-konva/issues/119
 
 describe('Check id saving', () => {
-  it('Konva can loose ids?', function() {
+  it('Konva can loose ids?', function () {
     class App extends React.Component {
       render() {
         const kids = [
           <Rect key="1" id="rect1" fill="red" />,
-          <Rect key="2" id="rect2" fill="green" />
+          <Rect key="2" id="rect2" fill="green" />,
         ];
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
             <Layer>
               {this.props.drawAsGroup ? <Group>{kids}</Group> : kids}
             </Layer>
@@ -582,11 +597,11 @@ describe('Check id saving', () => {
 });
 
 describe('Test drawing calls', () => {
-  it('Draw layer on mount', function() {
+  it('Draw layer on mount', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
             <Layer>
               <Rect fill="red" />
             </Layer>
@@ -603,11 +618,11 @@ describe('Test drawing calls', () => {
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('Draw layer on node add', function() {
+  it('Draw layer on node add', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
             <Layer>{this.props.showRect && <Rect fill="red" />}</Layer>
           </Stage>
         );
@@ -622,11 +637,11 @@ describe('Test drawing calls', () => {
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('Draw layer on node remove', function() {
+  it('Draw layer on node remove', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
             <Layer>{!this.props.hideRect && <Rect fill="red" />}</Layer>
           </Stage>
         );
@@ -644,15 +659,15 @@ describe('Test drawing calls', () => {
 });
 
 describe('test reconciler', () => {
-  it('add before', function() {
+  it('add before', function () {
     class App extends React.Component {
       render() {
         const kids = this.props.drawMany
           ? [<Rect key="1" name="rect1" />, <Rect key="2" name="rect2" />]
           : [<Rect key="2" name="rect2" />];
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
-            <Layer ref={node => (this.layer = node)}>{kids}</Layer>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+            <Layer ref={(node) => (this.layer = node)}>{kids}</Layer>
           </Stage>
         );
       }
@@ -669,19 +684,19 @@ describe('test reconciler', () => {
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('add before (mane)', function() {
+  it('add before (mane)', function () {
     class App extends React.Component {
       render() {
         const kids = this.props.drawMany
           ? [
               <Rect key="1" name="rect1" />,
               <Rect key="2" name="rect2" />,
-              <Rect key="3" name="rect3" />
+              <Rect key="3" name="rect3" />,
             ]
           : [<Rect key="1" name="rect1" />, <Rect key="3" name="rect3" />];
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
-            <Layer ref={node => (this.layer = node)}>{kids}</Layer>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+            <Layer ref={(node) => (this.layer = node)}>{kids}</Layer>
           </Stage>
         );
       }
@@ -696,15 +711,15 @@ describe('test reconciler', () => {
     expect(layer.children[2].name()).to.equal('rect3');
   });
 
-  it('add after', function() {
+  it('add after', function () {
     class App extends React.Component {
       render() {
         const kids = this.props.drawMany
           ? [<Rect key="1" name="rect1" />, <Rect key="2" name="rect2" />]
           : [<Rect key="1" name="rect1" />];
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
-            <Layer ref={node => (this.layer = node)}>{kids}</Layer>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+            <Layer ref={(node) => (this.layer = node)}>{kids}</Layer>
           </Stage>
         );
       }
@@ -721,12 +736,12 @@ describe('test reconciler', () => {
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('change order', function() {
+  it('change order', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
-            <Layer ref={node => (this.layer = node)}>{this.props.kids}</Layer>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+            <Layer ref={(node) => (this.layer = node)}>{this.props.kids}</Layer>
           </Stage>
         );
       }
@@ -735,7 +750,7 @@ describe('test reconciler', () => {
     let kids = [
       <Rect key="1" name="rect1" />,
       <Rect key="2" name="rect2" />,
-      <Rect key="3" name="rect3" />
+      <Rect key="3" name="rect3" />,
     ];
     const wrapper = mount(<App kids={kids} />);
     const layer = wrapper.instance().layer;
@@ -748,7 +763,7 @@ describe('test reconciler', () => {
     kids = [
       <Rect key="3" name="rect3" />,
       <Rect key="1" name="rect1" />,
-      <Rect key="2" name="rect2" />
+      <Rect key="2" name="rect2" />,
     ];
     wrapper.setProps({ kids });
     expect(layer.children[0].name()).to.equal('rect3');
@@ -759,7 +774,7 @@ describe('test reconciler', () => {
     kids = [
       <Rect key="1" name="rect1" />,
       <Rect key="3" name="rect3" />,
-      <Rect key="2" name="rect2" />
+      <Rect key="2" name="rect2" />,
     ];
 
     wrapper.setProps({ kids });
@@ -771,7 +786,7 @@ describe('test reconciler', () => {
     kids = [
       <Rect key="2" name="rect2" />,
       <Rect key="1" name="rect1" />,
-      <Rect key="3" name="rect3" />
+      <Rect key="3" name="rect3" />,
     ];
     wrapper.setProps({ kids });
 
@@ -783,7 +798,7 @@ describe('test reconciler', () => {
       <Rect key="4" name="rect4" />,
       <Rect key="2" name="rect2" />,
       <Rect key="1" name="rect1" />,
-      <Rect key="3" name="rect3" />
+      <Rect key="3" name="rect3" />,
     ];
     wrapper.setProps({ kids });
 
@@ -793,12 +808,12 @@ describe('test reconciler', () => {
     expect(layer.children[3].name()).to.equal('rect3');
   });
 
-  it('changing order should not stop dragging', function() {
+  it('changing order should not stop dragging', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
-            <Layer ref={node => (this.layer = node)}>{this.props.kids}</Layer>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+            <Layer ref={(node) => (this.layer = node)}>{this.props.kids}</Layer>
           </Stage>
         );
       }
@@ -807,7 +822,7 @@ describe('test reconciler', () => {
     let kids = [
       <Rect key="1" name="rect1" />,
       <Rect key="2" name="rect2" />,
-      <Rect key="3" name="rect3" />
+      <Rect key="3" name="rect3" />,
     ];
     const wrapper = mount(<App kids={kids} />);
     const layer = wrapper.instance().layer;
@@ -824,21 +839,53 @@ describe('test reconciler', () => {
     kids = [
       <Rect key="3" name="rect3" />,
       <Rect key="1" name="rect1" />,
-      <Rect key="2" name="rect2" />
+      <Rect key="2" name="rect2" />,
     ];
     wrapper.setProps({ kids });
 
     expect(rect1.isDragging()).to.equal(true);
     rect1.stopDrag();
   });
+
+  it('check events subscribe', function () {
+    const App = () => {
+      const [fill, setColor] = React.useState('black');
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer>
+            <Rect
+              fill={fill}
+              width={100}
+              height={100}
+              draggable
+              onMouseDown={() => {
+                setColor('red');
+              }}
+            />
+          </Layer>
+        </Stage>
+      );
+    };
+    const wrapper = mount(<App />);
+    const instance = wrapper.instance();
+
+    const stage = Konva.stages[Konva.stages.length - 1];
+
+    expect(stage.findOne('Rect').fill()).to.equal('black');
+    stage.simulateMouseDown({ x: 50, y: 50 });
+    stage.simulateMouseMove({ x: 55, y: 55 });
+    expect(stage.findOne('Rect').isDragging()).to.equal(true);
+    expect(stage.findOne('Rect').fill()).to.equal('red');
+  });
 });
 
-describe('Test context API', function() {
+describe('Test context API', function () {
   let instance;
 
   const { Consumer, Provider } = React.createContext({
     width: 100,
-    height: 100
+    height: 100,
   });
   class App extends React.Component {
     render() {
@@ -849,9 +896,9 @@ describe('Test context API', function() {
               <Stage
                 width={width}
                 height={height}
-                ref={node => (this.stage = node)}
+                ref={(node) => (this.stage = node)}
               >
-                <Layer ref={node => (this.layer = node)} />
+                <Layer ref={(node) => (this.layer = node)} />
               </Stage>
             )}
           </Consumer>
@@ -865,7 +912,7 @@ describe('Test context API', function() {
     instance = wrapper.instance();
   });
 
-  it('test correct set', function() {
+  it('test correct set', function () {
     const stageRef = instance.stage;
     const stage = stageRef.getStage();
     expect(stage.width()).to.equal(200);
@@ -874,9 +921,9 @@ describe('Test context API', function() {
 });
 
 // wait for react team response
-describe('Test nested context API', function() {
+describe('Test nested context API', function () {
   const Context = React.createContext({
-    color: 'red'
+    color: 'red',
   });
 
   class Tools extends React.Component {
@@ -894,7 +941,7 @@ describe('Test nested context API', function() {
     static contextType = Context;
     render() {
       return (
-        <Stage width={300} height={200} ref={node => (this.stage = node)}>
+        <Stage width={300} height={200} ref={(node) => (this.stage = node)}>
           <Tools />
         </Stage>
       );
@@ -915,19 +962,19 @@ describe('Test nested context API', function() {
     mount(<App />);
   });
 
-  it.skip('test correct set', function() {
+  it.skip('test correct set', function () {
     const stage = Konva.stages[Konva.stages.length - 1];
     expect(stage.findOne('Rect').fill()).to.equal('black');
   });
 });
 
 // wait for react team response
-describe('try lazy and suspense', function() {
+describe('try lazy and suspense', function () {
   const LazyRect = React.lazy(() => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
-          default: () => <Rect />
+          default: () => <Rect />,
         });
       }, 5);
     });
@@ -936,8 +983,8 @@ describe('try lazy and suspense', function() {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={node => (this.stage = node)} width={300} height={300}>
-          <Layer ref={node => (this.layer = node)}>
+        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Layer ref={(node) => (this.layer = node)}>
             <React.Suspense fallback={<Text text="fallback" />}>
               <LazyRect />
             </React.Suspense>
@@ -953,7 +1000,7 @@ describe('try lazy and suspense', function() {
     instance = wrapper.instance();
   });
 
-  it('can use lazy and suspense', function(done) {
+  it('can use lazy and suspense', function (done) {
     const stageRef = instance.stage;
     const stage = stageRef.getStage();
     expect(stage.find('Text').length).to.equal(1);
@@ -968,7 +1015,7 @@ describe('try lazy and suspense', function() {
   });
 });
 
-describe('Fragments', function() {
+describe('Fragments', function () {
   const Fragmented = () => (
     <React.Fragment>
       <Rect />
@@ -979,8 +1026,8 @@ describe('Fragments', function() {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={node => (this.stage = node)} width={300} height={300}>
-          <Layer ref={node => (this.layer = node)}>
+        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Layer ref={(node) => (this.layer = node)}>
             <Fragmented />
           </Layer>
         </Stage>
@@ -994,18 +1041,18 @@ describe('Fragments', function() {
     instance = wrapper.instance();
   });
 
-  it('can use lazy and suspense', function() {
+  it('can use lazy and suspense', function () {
     const stage = instance.stage;
     expect(stage.find('Rect').length).to.equal(2);
   });
 });
 
-describe('warnings', function() {
+describe('warnings', function () {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={node => (this.stage = node)} width={300} height={300}>
-          <Layer ref={node => (this.layer = node)}>
+        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Layer ref={(node) => (this.layer = node)}>
             <Rect draggable x={0} y={0} />
           </Layer>
         </Stage>
@@ -1013,15 +1060,15 @@ describe('warnings', function() {
     }
   }
 
-  it('check draggable warning', function() {
+  it('check draggable warning', function () {
     const wrapper = mount(<App />);
     // sinon.spy(console, 'warning');
     // expect(console.warning.callCount).to.equal(1);
   });
 });
 
-describe('Hooks', function() {
-  it('check setState hook', function() {
+describe('Hooks', function () {
+  it('check setState hook', function () {
     const App = () => {
       const [fill, setColor] = React.useState('black');
 
@@ -1050,7 +1097,7 @@ describe('Hooks', function() {
     expect(stage.findOne('Rect').fill()).to.equal('red');
   });
 
-  it('check useEffect hook', function(done) {
+  it('check useEffect hook', function (done) {
     let callCount = 0;
     const App = () => {
       React.useEffect(() => {
@@ -1079,7 +1126,7 @@ describe('Hooks', function() {
     }, 50);
   });
 
-  it('check useEffect hook 2', function(done) {
+  it('check useEffect hook 2', function (done) {
     let callCount = 0;
     const MyRect = ({ name }) => {
       React.useEffect(() => {
@@ -1117,7 +1164,7 @@ describe('Hooks', function() {
     }, 50);
   });
 
-  it('check useImage hook', function(done) {
+  it('check useImage hook', function (done) {
     const url = 'https://konvajs.org/favicon-32x32.png';
 
     const App = () => {
@@ -1152,7 +1199,7 @@ describe('Hooks', function() {
     img.src = url;
   });
 
-  it('unsubscribe on unmount', function(done) {
+  it('unsubscribe on unmount', function (done) {
     const url = 'https://konvajs.org/favicon-32x32.png';
 
     const App = () => {
@@ -1189,11 +1236,11 @@ describe('Hooks', function() {
 });
 
 describe('external', () => {
-  it('make sure node has _applyProps for react-spring integration', function() {
+  it('make sure node has _applyProps for react-spring integration', function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={node => (this.stage = node)} width={300} height={300}>
+          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
             <Layer>
               <Rect fill="red" />
             </Layer>
