@@ -16,6 +16,8 @@ An attempt to make [React](http://facebook.github.io/react/) work with the HTML5
 canvas library. The goal is to have similar declarative markup as normal React
 and to have similar data-flow model.
 
+**At the current moment, `react-konva` is not supported in React Native environment.**
+
 Currently you can use all `Konva` components as React components and all `Konva`
 events are supported on them in same way as normal browser events are supported.
 
