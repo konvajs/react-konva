@@ -52,10 +52,27 @@ export function createInstance(type, props, internalInstanceHandle) {
     return;
   }
 
-  const instance = new NodeClass();
-  instance._shouldFireChangeEvents = false;
-  applyNodeProps(instance, props);
-  instance._shouldFireChangeEvents = true;
+  // we need to split props into events and non events
+  // we we can pass non events into constructor directly
+  // that way the performance should be better
+  // we we apply change "applyNodeProps"
+  // then it will trigger change events on first run
+  // but we don't need them!
+  const propsWithoutEvents = {};
+  const propsWithOnlyEvents = {};
+
+  for (var key in props) {
+    var isEvent = key.slice(0, 2) === 'on';
+    if (isEvent) {
+      propsWithOnlyEvents[key] = props[key];
+    } else {
+      propsWithoutEvents[key] = props[key];
+    }
+  }
+
+  const instance = new NodeClass(propsWithoutEvents);
+
+  applyNodeProps(instance, propsWithOnlyEvents);
 
   return instance;
 }
