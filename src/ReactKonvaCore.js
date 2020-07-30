@@ -37,7 +37,7 @@ class Stage extends React.Component {
     this._stage = new Konva.Stage({
       width: this.props.width,
       height: this.props.height,
-      container: this._tagRef
+      container: this._tagRef,
     });
 
     this._setRef(this._stage);
@@ -88,7 +88,7 @@ class Stage extends React.Component {
 
     return (
       <div
-        ref={ref => (this._tagRef = ref)}
+        ref={(ref) => (this._tagRef = ref)}
         accessKey={props.accessKey}
         className={props.className}
         role={props.role}
@@ -122,12 +122,12 @@ const KONVA_NODES = [
   'RegularPolygon',
   'Arrow',
   'Shape',
-  'Transformer'
+  'Transformer',
 ];
 
 const TYPES = {};
 
-KONVA_NODES.forEach(function(nodeName) {
+KONVA_NODES.forEach(function (nodeName) {
   TYPES[nodeName] = nodeName;
 });
 
@@ -140,7 +140,7 @@ KonvaRenderer.injectIntoDevTools({
   rendererPackageName: 'react-konva',
   getInspectorDataForViewTag: (...args) => {
     console.log(args);
-  }
+  },
 });
 
 /** API */
@@ -153,5 +153,5 @@ module.exports = {
   ...TYPES,
   __matchRectVersion,
   Stage: StageWrap,
-  useStrictMode: toggleStrictMode
+  useStrictMode: toggleStrictMode,
 };

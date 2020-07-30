@@ -8,14 +8,14 @@ export * from './HostConfigWithNoHydration';
 
 import {
   unstable_scheduleCallback as scheduleDeferredCallback,
-  unstable_cancelCallback as cancelDeferredCallback
+  unstable_cancelCallback as cancelDeferredCallback,
 } from 'scheduler';
 
 export {
   unstable_now as now,
   unstable_scheduleCallback as scheduleDeferredCallback,
   unstable_shouldYield as shouldYield,
-  unstable_cancelCallback as cancelDeferredCallback
+  unstable_cancelCallback as cancelDeferredCallback,
 } from 'scheduler';
 
 const NO_CONTEXT = {};
@@ -53,7 +53,9 @@ export function createInstance(type, props, internalInstanceHandle) {
   }
 
   const instance = new NodeClass();
+  instance._shouldFireChangeEvents = false;
   applyNodeProps(instance, props);
+  instance._shouldFireChangeEvents = true;
 
   return instance;
 }

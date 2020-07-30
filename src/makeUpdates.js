@@ -29,7 +29,12 @@ react-konva may get confused with ordering. Just define correct order of element
 For more info see: https://github.com/konvajs/react-konva/issues/194
 `;
 
-export function applyNodeProps(instance, props, oldProps = {}) {
+const EMPTY_PROPS = {};
+
+export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
+  if (props === oldProps) {
+    console.error('same props');
+  }
   // don't use zIndex in react-konva
   if (!zIndexWarningShowed && 'zIndex' in props) {
     console.warn(Z_INDEX_WARNING);
