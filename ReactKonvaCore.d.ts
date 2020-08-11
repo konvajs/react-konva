@@ -69,12 +69,7 @@ export interface StageProps
 // The down side to this approach, is that typescript thinks the type is a
 // function, but if the user tries to call it a runtime exception will occur.
 
-/** Stage */
-export class Stage extends React.Component<StageProps & KonvaNodeEvents> {
-  getStage(): Konva.Stage;
-}
-
-/** Containers */
+export var Stage: KonvaNodeComponent<Konva.Stage, StageProps>;
 export var Layer: KonvaNodeComponent<Konva.Layer, Konva.LayerConfig>;
 export var FastLayer: KonvaNodeComponent<Konva.FastLayer, Konva.LayerConfig>;
 export var Group: KonvaNodeComponent<Konva.Group>;
