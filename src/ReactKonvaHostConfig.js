@@ -231,3 +231,7 @@ export function unhideInstance(instance, props) {
 export function unhideTextInstance(textInstance, text) {
   // Noop
 }
+
+export function clearContainer(container) {
+  // Noop
+}
