@@ -99,7 +99,7 @@ export function getPublicInstance(instance) {
 }
 
 export function prepareForCommit() {
-  // Noop
+  return null;
 }
 
 export function prepareUpdate(domElement, type, oldProps, newProps) {
