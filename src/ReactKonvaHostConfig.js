@@ -99,7 +99,7 @@ export function getPublicInstance(instance) {
 }
 
 export function prepareForCommit() {
-  // Noop
+  return null;
 }
 
 export function prepareUpdate(domElement, type, oldProps, newProps) {
@@ -229,5 +229,9 @@ export function unhideInstance(instance, props) {
 }
 
 export function unhideTextInstance(textInstance, text) {
+  // Noop
+}
+
+export function clearContainer(container) {
   // Noop
 }

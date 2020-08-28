@@ -16,23 +16,24 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "scheduler": "^0.19.1",
-    "react-reconciler": "^0.25.1"
+    "react-reconciler": "~0.26.0-rc.0",
+    "scheduler": "^0.19.1"
   },
   "peerDependencies": {
     "konva": ">3.2.5",
-    "react": "16.13.x",
-    "react-dom": "16.13.x"
+    "react": ">=17.0.0-rc.0",
+    "react-dom": ">=17.0.0-rc.0"
   },
   "devDependencies": {
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.1.1",
     "@types/react": "^16.9.34",
     "chai": "^4.2.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
     "konva": "^7.0.4",
     "nwb": "^0.23.0",
-    "react": "~16.10.0",
-    "react-dom": "~16.10.0",
+    "react": "17.0.0-rc.0",
+    "react-dom": "17.0.0-rc.0",
     "sinon": "^7.5.0",
     "typescript": "^3.8.3",
     "use-image": "^1.0.5"
