@@ -29,7 +29,7 @@ export function appendInitialChild(parentInstance, child) {
     // Noop for string children of Text (eg <Text>foo</Text>)
     invariant(
       false,
-      'Don not use plain text as child of Konva.Node. You are using text: "%s"',
+      'Do not use plain text as child of Konva.Node. You are using text: "%s"',
       child
     );
     return;
@@ -84,7 +84,7 @@ export function createTextInstance(
 ) {
   invariant(
     false,
-    'Text components are not supported for now in ReactKonva. You text is: "' +
+    'Text components are not supported for now in ReactKonva. Your text is: "' +
       text +
       '"'
   );
