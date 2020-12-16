@@ -3,19 +3,18 @@ import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates';
 
 import invariant from './invariant';
 
-export * from './HostConfigWithNoPersistence';
-export * from './HostConfigWithNoHydration';
+// export * from './HostConfigWithNoPersistence';
+// export * from './HostConfigWithNoHydration';
 
-import {
-  unstable_scheduleCallback as scheduleDeferredCallback,
-  unstable_cancelCallback as cancelDeferredCallback,
-} from 'scheduler';
+// import {
+//   unstable_scheduleCallback as scheduleDeferredCallback,
+//   unstable_cancelCallback as cancelDeferredCallback,
+// } from 'scheduler';
 
 export {
   unstable_now as now,
-  unstable_scheduleCallback as scheduleDeferredCallback,
-  unstable_shouldYield as shouldYield,
-  unstable_cancelCallback as cancelDeferredCallback,
+  unstable_IdlePriority as idlePriority,
+  unstable_runWithPriority as run,
 } from 'scheduler';
 
 const NO_CONTEXT = {};
@@ -102,6 +101,10 @@ export function prepareForCommit() {
   return null;
 }
 
+export function preparePortalMount() {
+  return null;
+}
+
 export function prepareUpdate(domElement, type, oldProps, newProps) {
   return UPDATE_SIGNAL;
 }
@@ -129,8 +132,8 @@ export function getChildHostContext() {
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
 export const noTimeout = -1;
-export const schedulePassiveEffects = scheduleDeferredCallback;
-export const cancelPassiveEffects = cancelDeferredCallback;
+// export const schedulePassiveEffects = scheduleDeferredCallback;
+// export const cancelPassiveEffects = cancelDeferredCallback;
 
 export function shouldSetTextContent(type, props) {
   return false;
@@ -138,7 +141,7 @@ export function shouldSetTextContent(type, props) {
 
 // The Konva renderer is secondary to the React DOM renderer.
 export const isPrimaryRenderer = false;
-
+export const warnsIfNotActing = true;
 export const supportsMutation = true;
 
 export function appendChild(parentInstance, child) {

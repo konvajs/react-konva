@@ -134,13 +134,13 @@ KONVA_NODES.forEach(function (nodeName) {
 const KonvaRenderer = ReactFiberReconciler(HostConfig);
 
 KonvaRenderer.injectIntoDevTools({
-  findFiberByHostInstance: ReactDOMComponentTree.getClosestInstanceFromNode,
+  findHostInstanceByFiber: () => null,
   bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
   version: React.version,
   rendererPackageName: 'react-konva',
-  getInspectorDataForViewTag: (...args) => {
-    console.log(args);
-  },
+  // getInspectorDataForViewTag: (...args) => {
+  //   console.log(args);
+  // },
 });
 
 /** API */

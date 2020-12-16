@@ -19,6 +19,20 @@
     "react-reconciler": "~0.26.0",
     "scheduler": "^0.20.0"
   },
+  "funding": [
+    {
+      "type": "patreon",
+      "url": "https://www.patreon.com/lavrton"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/konva"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/lavrton"
+    }
+  ],
   "peerDependencies": {
     "konva": ">3.2.5",
     "react": ">=17.0.0",
