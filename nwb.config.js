@@ -1,7 +1,7 @@
 module.exports = {
   type: 'react-component',
   npm: {
-    esModules: false,
+    esModules: true,
     umd: false,
   },
   // may be useful for debugging tests

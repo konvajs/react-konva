@@ -11,6 +11,7 @@
   ],
   "bugs": "https://github.com/konvajs/react-konva/issues",
   "main": "lib/ReactKonva.js",
+  "module": "es/ReactKonva.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:konvajs/react-konva.git"
@@ -68,6 +69,7 @@
   "files": [
     "README.md",
     "lib",
+    "es",
     "react-konva.d.ts"
   ]
 }

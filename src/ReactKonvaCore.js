@@ -7,17 +7,17 @@
  */
 'use strict';
 
-const React = require('react');
-const Konva = require('konva/lib/Core');
-const ReactFiberReconciler = require('react-reconciler');
-const HostConfig = require('./ReactKonvaHostConfig');
-const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
+import React from 'react';
+import Konva from 'konva/lib/Core';
+import ReactFiberReconciler from 'react-reconciler';
+import * as HostConfig from './ReactKonvaHostConfig';
+import { applyNodeProps, toggleStrictMode } from './makeUpdates';
 
 // export for testing
 // const REACT_VERSION = '16.8.3';
 // const __matchRectVersion = React.version === REACT_VERSION;
 // skip version testing for now
-module.exports.__matchRectVersion = true;
+export const __matchRectVersion = true;
 
 // That warning is useful, but I am not sure we really need it
 // if (!__matchRectVersion) {
@@ -28,7 +28,7 @@ module.exports.__matchRectVersion = true;
 //   );
 // }
 
-class Stage extends React.Component {
+class StageWrap extends React.Component {
   componentDidMount() {
     if (!Konva.isBrowser) {
       return;
@@ -99,28 +99,28 @@ class Stage extends React.Component {
   }
 }
 
-module.exports.Layer = 'Layer';
-module.exports.FastLayer = 'FastLayer';
-module.exports.Group = 'Group';
-module.exports.Label = 'Label';
-module.exports.Rect = 'Rect';
-module.exports.Circle = 'Circle';
-module.exports.Ellipse = 'Ellipse';
-module.exports.Wedge = 'Wedge';
-module.exports.Line = 'Line';
-module.exports.Sprite = 'Sprite';
-module.exports.Image = 'Image';
-module.exports.Text = 'Text';
-module.exports.TextPath = 'TextPath';
-module.exports.Star = 'Star';
-module.exports.Ring = 'Ring';
-module.exports.Arc = 'Arc';
-module.exports.Tag = 'Tag';
-module.exports.Path = 'Path';
-module.exports.RegularPolygon = 'RegularPolygon';
-module.exports.Arrow = 'Arrow';
-module.exports.Shape = 'Shape';
-module.exports.Transformer = 'Transformer';
+export const Layer = 'Layer';
+export const FastLayer = 'FastLayer';
+export const Group = 'Group';
+export const Label = 'Label';
+export const Rect = 'Rect';
+export const Circle = 'Circle';
+export const Ellipse = 'Ellipse';
+export const Wedge = 'Wedge';
+export const Line = 'Line';
+export const Sprite = 'Sprite';
+export const Image = 'Image';
+export const Text = 'Text';
+export const TextPath = 'TextPath';
+export const Star = 'Star';
+export const Ring = 'Ring';
+export const Arc = 'Arc';
+export const Tag = 'Tag';
+export const Path = 'Path';
+export const RegularPolygon = 'RegularPolygon';
+export const Arrow = 'Arrow';
+export const Shape = 'Shape';
+export const Transformer = 'Transformer';
 
 const KonvaRenderer = ReactFiberReconciler(HostConfig);
 
@@ -131,9 +131,8 @@ KonvaRenderer.injectIntoDevTools({
   rendererPackageName: 'react-konva',
 });
 
-const StageWrap = React.forwardRef((props, ref) => {
-  return <Stage {...props} forwardedRef={ref} />;
+export const Stage = React.forwardRef((props, ref) => {
+  return <StageWrap {...props} forwardedRef={ref} />;
 });
 
-module.exports.Stage = StageWrap;
-module.exports.useStrictMode = toggleStrictMode;
+export const useStrictMode = toggleStrictMode;

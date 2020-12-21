@@ -6,5 +6,6 @@ test/tests.bundle.js
 .idea
 .lock
 lib
+es
 
 package-lock.json
