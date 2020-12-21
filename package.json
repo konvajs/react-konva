@@ -16,8 +16,8 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "react-reconciler": "~0.26.0",
-    "scheduler": "^0.20.0"
+    "react-reconciler": "~0.26.1",
+    "scheduler": "^0.20.1"
   },
   "funding": [
     {
@@ -34,23 +34,23 @@
     }
   ],
   "peerDependencies": {
-    "konva": ">3.2.5",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
+    "konva": ">7.2.2",
+    "react": ">=17.0.1",
+    "react-dom": ">=17.0.1"
   },
   "devDependencies": {
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.1.1",
-    "@types/react": "^16.9.53",
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.4.1",
+    "@types/react": "^17.0.0",
     "chai": "^4.2.0",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.2",
+    "enzyme-adapter-react-16": "^1.15.5",
     "konva": "^7.0.4",
     "nwb": "^0.23.0",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0",
-    "sinon": "^7.5.0",
-    "typescript": "^4.0.3",
-    "use-image": "^1.0.6"
+    "react": ">=17.0.1",
+    "react-dom": ">=17.0.1",
+    "sinon": "^9.2.2",
+    "typescript": "^4.1.3",
+    "use-image": "^1.0.7"
   },
   "scripts": {
     "build": "nwb build-react-component && cp ./ReactKonvaCore.d.ts ./lib",

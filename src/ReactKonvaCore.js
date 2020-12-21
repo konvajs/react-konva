@@ -10,7 +10,6 @@
 const React = require('react');
 const Konva = require('konva/lib/Core');
 const ReactFiberReconciler = require('react-reconciler');
-const ReactDOMComponentTree = require('./ReactDOMComponentTree');
 const HostConfig = require('./ReactKonvaHostConfig');
 const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 
@@ -18,7 +17,7 @@ const { applyNodeProps, toggleStrictMode } = require('./makeUpdates');
 // const REACT_VERSION = '16.8.3';
 // const __matchRectVersion = React.version === REACT_VERSION;
 // skip version testing for now
-const __matchRectVersion = true;
+module.exports.__matchRectVersion = true;
 
 // That warning is useful, but I am not sure we really need it
 // if (!__matchRectVersion) {
@@ -100,36 +99,28 @@ class Stage extends React.Component {
   }
 }
 
-const KONVA_NODES = [
-  'Layer',
-  'FastLayer',
-  'Group',
-  'Label',
-  'Rect',
-  'Circle',
-  'Ellipse',
-  'Wedge',
-  'Line',
-  'Sprite',
-  'Image',
-  'Text',
-  'TextPath',
-  'Star',
-  'Ring',
-  'Arc',
-  'Tag',
-  'Path',
-  'RegularPolygon',
-  'Arrow',
-  'Shape',
-  'Transformer',
-];
-
-const TYPES = {};
-
-KONVA_NODES.forEach(function (nodeName) {
-  TYPES[nodeName] = nodeName;
-});
+module.exports.Layer = 'Layer';
+module.exports.FastLayer = 'FastLayer';
+module.exports.Group = 'Group';
+module.exports.Label = 'Label';
+module.exports.Rect = 'Rect';
+module.exports.Circle = 'Circle';
+module.exports.Ellipse = 'Ellipse';
+module.exports.Wedge = 'Wedge';
+module.exports.Line = 'Line';
+module.exports.Sprite = 'Sprite';
+module.exports.Image = 'Image';
+module.exports.Text = 'Text';
+module.exports.TextPath = 'TextPath';
+module.exports.Star = 'Star';
+module.exports.Ring = 'Ring';
+module.exports.Arc = 'Arc';
+module.exports.Tag = 'Tag';
+module.exports.Path = 'Path';
+module.exports.RegularPolygon = 'RegularPolygon';
+module.exports.Arrow = 'Arrow';
+module.exports.Shape = 'Shape';
+module.exports.Transformer = 'Transformer';
 
 const KonvaRenderer = ReactFiberReconciler(HostConfig);
 
@@ -138,20 +129,11 @@ KonvaRenderer.injectIntoDevTools({
   bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
   version: React.version,
   rendererPackageName: 'react-konva',
-  // getInspectorDataForViewTag: (...args) => {
-  //   console.log(args);
-  // },
 });
-
-/** API */
 
 const StageWrap = React.forwardRef((props, ref) => {
   return <Stage {...props} forwardedRef={ref} />;
 });
 
-module.exports = {
-  ...TYPES,
-  __matchRectVersion,
-  Stage: StageWrap,
-  useStrictMode: toggleStrictMode,
-};
+module.exports.Stage = StageWrap;
+module.exports.useStrictMode = toggleStrictMode;

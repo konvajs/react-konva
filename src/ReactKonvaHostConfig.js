@@ -3,14 +3,6 @@ import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates';
 
 import invariant from './invariant';
 
-// export * from './HostConfigWithNoPersistence';
-// export * from './HostConfigWithNoHydration';
-
-// import {
-//   unstable_scheduleCallback as scheduleDeferredCallback,
-//   unstable_cancelCallback as cancelDeferredCallback,
-// } from 'scheduler';
-
 export {
   unstable_now as now,
   unstable_IdlePriority as idlePriority,
