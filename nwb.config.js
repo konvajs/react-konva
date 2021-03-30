@@ -5,7 +5,7 @@ module.exports = {
     umd: false,
   },
   // may be useful for debugging tests
-  // karma: {
-  //   browsers: ['Chrome'],
-  // },
+  karma: {
+    browsers: ['ChromeHeadless'],
+  },
 };
