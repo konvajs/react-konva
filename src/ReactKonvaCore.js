@@ -13,91 +13,85 @@ import ReactFiberReconciler from 'react-reconciler';
 import * as HostConfig from './ReactKonvaHostConfig';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates';
 
-// export for testing
-// const REACT_VERSION = '16.8.3';
-// const __matchRectVersion = React.version === REACT_VERSION;
-// skip version testing for now
-export const __matchRectVersion = true;
+const EXPECTED_REACT_VERSION = '17';
+export const __matchRectVersion =
+  React.version.split('.')[0] === EXPECTED_REACT_VERSION;
 
-// That warning is useful, but I am not sure we really need it
-// if (!__matchRectVersion) {
-//   console.warn(
-//     `Version mismatch detected for react-konva and react. react-konva expects to have react version ${REACT_VERSION}, but it has version ${
-//       React.version
-//     }. Make sure versions are matched, otherwise, react-konva work is not guaranteed. For releases information take a look here: https://github.com/konvajs/react-konva/releases`
-//   );
-// }
+// That warning is useful
+if (!__matchRectVersion) {
+  const command = `npm install react@${EXPECTED_REACT_VERSION} react-dom@${EXPECTED_REACT_VERSION}`;
+  console.warn(
+    `Version mismatch detected for react-konva and react. react-konva expects to have react version ${EXPECTED_REACT_VERSION}, but it has version ${React.version}. Make sure versions are matched, otherwise, react-konva work is not guaranteed. You can use this command: "${command}"`
+  );
+}
 
-class StageWrap extends React.Component {
-  componentDidMount() {
-    if (!Konva.isBrowser) {
-      return;
-    }
-    this._stage = new Konva.Stage({
-      width: this.props.width,
-      height: this.props.height,
-      container: this._tagRef,
-    });
+function usePrevious(value) {
+  const ref = React.useRef();
+  React.useLayoutEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
 
-    this._setRef(this._stage);
+const StageWrap = (props) => {
+  const container = React.useRef();
+  const stage = React.useRef();
+  const fiberRef = React.useRef();
 
-    applyNodeProps(this._stage, this.props);
+  const oldProps = usePrevious(props);
 
-    this._mountNode = KonvaRenderer.createContainer(this._stage);
-    KonvaRenderer.updateContainer(this.props.children, this._mountNode, this);
-  }
-
-  _setRef(value) {
-    const { forwardedRef } = this.props;
+  const _setRef = (stage) => {
+    const { forwardedRef } = props;
     if (!forwardedRef) {
       return;
     }
     if (typeof forwardedRef === 'function') {
-      forwardedRef(value);
+      forwardedRef(stage);
     } else {
-      forwardedRef.current = value;
+      forwardedRef.current = stage;
     }
-  }
+  };
 
-  componentDidUpdate(prevProps) {
-    if (!Konva.isBrowser) {
-      return;
-    }
-    this._setRef(this._stage);
-    applyNodeProps(this._stage, this.props, prevProps);
+  React.useLayoutEffect(() => {
+    stage.current = new Konva.Stage({
+      width: props.width,
+      height: props.height,
+      container: container.current,
+    });
 
-    KonvaRenderer.updateContainer(this.props.children, this._mountNode, this);
-  }
+    _setRef(stage.current);
 
-  componentWillUnmount() {
-    if (!Konva.isBrowser) {
-      return;
-    }
-    this._setRef(null);
-    KonvaRenderer.updateContainer(null, this._mountNode, this);
-    this._stage.destroy();
-  }
+    fiberRef.current = KonvaRenderer.createContainer(stage.current);
+    KonvaRenderer.updateContainer(props.children, fiberRef.current);
 
-  getStage() {
-    return this._stage;
-  }
+    return () => {
+      if (!Konva.isBrowser) {
+        return;
+      }
+      _setRef(null);
+      KonvaRenderer.updateContainer(null, fiberRef.current, null);
+      stage.current.destroy();
+    };
+  }, []);
 
-  render() {
-    const props = this.props;
+  React.useLayoutEffect(() => {
+    _setRef(stage.current);
+    applyNodeProps(stage.current, props, oldProps);
+    KonvaRenderer.updateContainer(props.children, fiberRef.current, null);
+  });
 
-    return (
-      <div
-        ref={(ref) => (this._tagRef = ref)}
-        accessKey={props.accessKey}
-        className={props.className}
-        role={props.role}
-        style={props.style}
-        tabIndex={props.tabIndex}
-        title={props.title}
-      />
-    );
-  }
-}
+  return (
+    <div
+      ref={container}
+      accessKey={props.accessKey}
+      className={props.className}
+      role={props.role}
+      style={props.style}
+      tabIndex={props.tabIndex}
+      title={props.title}
+    />
+  );
+};
 
 export const Layer = 'Layer';
 export const FastLayer = 'FastLayer';

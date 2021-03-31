@@ -1,8 +1,6 @@
 import Konva from 'konva/lib/Core';
 import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates';
 
-import invariant from './invariant';
-
 export {
   unstable_now as now,
   unstable_IdlePriority as idlePriority,
@@ -18,10 +16,8 @@ Konva.Node.prototype._applyProps = applyNodeProps;
 export function appendInitialChild(parentInstance, child) {
   if (typeof child === 'string') {
     // Noop for string children of Text (eg <Text>foo</Text>)
-    invariant(
-      false,
-      'Do not use plain text as child of Konva.Node. You are using text: "%s"',
-      child
+    console.error(
+      `Do not use plain text as child of Konva.Node. You are using text: ${child}`
     );
     return;
   }
@@ -34,11 +30,8 @@ export function appendInitialChild(parentInstance, child) {
 export function createInstance(type, props, internalInstanceHandle) {
   const NodeClass = Konva[type];
   if (!NodeClass) {
-    invariant(
-      instance,
-      'Konva has no node with the type "%s". If you use minimal version of react-konva, just import required nodes into Konva: `import "konva/lib/shapes/%s"`  If you want to render DOM elements as part of canvas tree take a look into this demo: https://konvajs.github.io/docs/react/DOM_Portal.html',
-      type,
-      type
+    console.error(
+      `Konva has no node with the type ${type}. If you use minimal version of react-konva, just import required nodes into Konva: "import "konva/lib/shapes/${type}"  If you want to render DOM elements as part of canvas tree take a look into this demo: https://konvajs.github.io/docs/react/DOM_Portal.html`
     );
     return;
   }
@@ -73,11 +66,8 @@ export function createTextInstance(
   rootContainerInstance,
   internalInstanceHandle
 ) {
-  invariant(
-    false,
-    'Text components are not supported for now in ReactKonva. Your text is: "' +
-      text +
-      '"'
+  console.error(
+    `Text components are not supported for now in ReactKonva. Your text is: "${text}"`
   );
 }
 
@@ -156,10 +146,6 @@ export function appendChildToContainer(parentInstance, child) {
 }
 
 export function insertBefore(parentInstance, child, beforeChild) {
-  invariant(
-    child !== beforeChild,
-    'ReactKonva: Can not insert node before itself'
-  );
   // child._remove() will not stop dragging
   // but child.remove() will stop it, but we don't need it
   // removing will reset zIndexes
@@ -186,11 +172,8 @@ export function removeChildFromContainer(parentInstance, child) {
 }
 
 export function commitTextUpdate(textInstance, oldText, newText) {
-  invariant(
-    false,
-    'Text components are not yet supported in ReactKonva. You text is: "' +
-      newText +
-      '"'
+  console.error(
+    `Text components are not yet supported in ReactKonva. You text is: "${newText}"`
   );
 }
 

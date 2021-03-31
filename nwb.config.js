@@ -7,5 +7,6 @@ module.exports = {
   // may be useful for debugging tests
   karma: {
     browsers: ['ChromeHeadless'],
+    // browsers: ['Chrome'],
   },
 };

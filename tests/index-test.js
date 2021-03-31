@@ -20,12 +20,6 @@ import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 
 configure({ adapter: new Adapter() });
 
-describe('Test version matching', function () {
-  it('should match react version', function () {
-    expect(__matchRectVersion).to.equal(true);
-  });
-});
-
 describe('Test references', function () {
   let instance;
   class App extends React.Component {
@@ -559,11 +553,6 @@ describe.skip('Bad structure', () => {
     const stage = instance.stage.getStage();
   });
 });
-
-// TODO: how to fix it?
-// react is creating new nodes before removing old one
-// that creates mess in id references
-// see: https://github.com/konvajs/react-konva/issues/119
 
 describe('Check id saving', () => {
   it('Konva can loose ids?', function () {
