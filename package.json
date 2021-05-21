@@ -69,6 +69,7 @@
     "README.md",
     "lib",
     "es",
-    "react-konva.d.ts"
+    "react-konva.d.ts",
+    "ReactKonvaCore.d.ts"
   ]
 }
