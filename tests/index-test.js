@@ -146,40 +146,6 @@ describe('Test stage component', function () {
     expect(eventCount).to.equal(1);
   });
 
-  it('can attach stage content events', function () {
-    let eventCount = 0;
-    const handleEvent = () => {
-      eventCount += 1;
-    };
-
-    class App extends React.Component {
-      render() {
-        return (
-          <Stage
-            ref={(node) => (this.stage = node)}
-            width={300}
-            height={300}
-            onContentMouseDown={handleEvent}
-          >
-            <Layer ref={(node) => (this.layer = node)}>
-              <Rect
-                ref={(node) => (this.rect = node)}
-                width={100}
-                height={100}
-              />
-            </Layer>
-          </Stage>
-        );
-      }
-    }
-
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-    const stage = instance.stage.getStage();
-    stage.simulateMouseDown({ x: 50, y: 50 });
-    expect(eventCount).to.equal(1);
-  });
-
   it('unmount stage should destroy it from Konva', () => {
     class App extends React.Component {
       render() {
@@ -669,7 +635,7 @@ describe('test reconciler', () => {
     const layer = wrapper.instance().layer;
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect2');
-    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
+    expect(Konva.Layer.prototype.batchDraw.callCount >= 1).to.equal(true);
     Konva.Layer.prototype.batchDraw.restore();
   });
 

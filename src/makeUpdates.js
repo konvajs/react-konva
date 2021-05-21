@@ -1,3 +1,5 @@
+import { Konva } from 'konva/lib/Global';
+
 const propsToSkip = {
   children: true,
   ref: true,
@@ -127,6 +129,8 @@ export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
 }
 
 export function updatePicture(node) {
-  var drawingNode = node.getLayer() || node.getStage();
-  drawingNode && drawingNode.batchDraw();
+  if (!Konva.autoDrawEnabled) {
+    var drawingNode = node.getLayer() || node.getStage();
+    drawingNode && drawingNode.batchDraw();
+  }
 }
