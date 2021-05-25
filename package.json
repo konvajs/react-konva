@@ -44,7 +44,7 @@
     "@wojtekmaj/enzyme-adapter-react-17": "0.6.1",
     "chai": "4.3.4",
     "enzyme": "3.11.0",
-    "konva": "8",
+    "konva": "^8.0.1",
     "nwb": "0.23.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
