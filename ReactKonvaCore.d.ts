@@ -1,6 +1,6 @@
 // special file for minimal import
 import * as React from 'react';
-import Konva from 'konva/lib/index-types';
+import Konva from 'konva';
 
 export interface KonvaNodeEvents {
   onMouseOver?(evt: Konva.KonvaEventObject<MouseEvent>): void;

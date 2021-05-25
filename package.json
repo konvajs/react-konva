@@ -35,16 +35,16 @@
     }
   ],
   "peerDependencies": {
-    "konva": ">=8",
-    "react": ">=17.0.2",
-    "react-dom": ">=17.0.2"
+    "konva": "^8.0.1 || ^7.2.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "devDependencies": {
     "@types/react": "17.0.6",
     "@wojtekmaj/enzyme-adapter-react-17": "0.6.1",
     "chai": "4.3.4",
     "enzyme": "3.11.0",
-    "konva": ">=8",
+    "konva": "8",
     "nwb": "0.23.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -53,7 +53,7 @@
     "use-image": "^1.0.7"
   },
   "scripts": {
-    "build": "nwb build-react-component && cp ./ReactKonvaCore.d.ts ./lib",
+    "build": "nwb build-react-component && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
     "clean": "nwb clean-module && nwb clean-demo",
     "start": "nwb serve-react-demo",
     "test": "nwb test-react && npm run test:typings",
