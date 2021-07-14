@@ -12,16 +12,18 @@ import Konva from 'konva/lib/Core';
 import ReactFiberReconciler from 'react-reconciler';
 import * as HostConfig from './ReactKonvaHostConfig';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates';
+import {
+  MIN_EXPECTED_REACT_VERSION,
+  validateReactVersion,
+} from './validateReactVersion';
 
-const EXPECTED_REACT_VERSION = '17';
-export const __matchRectVersion =
-  React.version.split('.')[0] === EXPECTED_REACT_VERSION;
+export const __matchRectVersion = validateReactVersion(React.version);
 
 // That warning is useful
 if (!__matchRectVersion) {
-  const command = `npm install react@${EXPECTED_REACT_VERSION} react-dom@${EXPECTED_REACT_VERSION}`;
+  const command = `npm install react@${MIN_EXPECTED_REACT_VERSION} react-dom@${MIN_EXPECTED_REACT_VERSION}`;
   console.warn(
-    `Version mismatch detected for react-konva and react. react-konva expects to have react version ${EXPECTED_REACT_VERSION}, but it has version ${React.version}. Make sure versions are matched, otherwise, react-konva work is not guaranteed. You can use this command: "${command}"`
+    `Version mismatch detected for react-konva and react. react-konva expects to have atleast react version ${MIN_EXPECTED_REACT_VERSION}, but it has version ${React.version}. Make sure versions are matched, otherwise, react-konva work is not guaranteed. You can use this command: "${command}"`
   );
 }
 
