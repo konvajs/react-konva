@@ -499,8 +499,7 @@ describe('Test Events', function () {
   });
 });
 
-// will fail
-describe.skip('Bad structure', () => {
+describe('Bad structure', () => {
   it('No dom inside Konva', function () {
     class App extends React.Component {
       render() {
@@ -517,6 +516,7 @@ describe.skip('Bad structure', () => {
     const wrapper = mount(<App />);
     const instance = wrapper.instance();
     const stage = instance.stage.getStage();
+    // check check that this test is not failed
   });
 });
 
