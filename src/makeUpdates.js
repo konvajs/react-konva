@@ -1,4 +1,6 @@
-import { Konva } from 'konva/lib/Global';
+import { Konva } from "konva/lib/Global";
+import deepEqual from "lodash/isEqual";
+import { useDeepEqualMode } from "./ReactKonvaCore";
 
 const propsToSkip = {
   children: true,
@@ -13,7 +15,7 @@ const propsToSkip = {
 let zIndexWarningShowed = false;
 let dragWarningShowed = false;
 
-export const EVENTS_NAMESPACE = '.react-konva-event';
+export const EVENTS_NAMESPACE = ".react-konva-event";
 
 let useStrictMode = false;
 export function toggleStrictMode(value) {
@@ -35,10 +37,10 @@ const EMPTY_PROPS = {};
 
 export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
   if (props === oldProps) {
-    console.error('same props');
+    console.error("same props");
   }
   // don't use zIndex in react-konva
-  if (!zIndexWarningShowed && 'zIndex' in props) {
+  if (!zIndexWarningShowed && "zIndex" in props) {
     console.warn(Z_INDEX_WARNING);
     zIndexWarningShowed = true;
   }
@@ -60,17 +62,14 @@ export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
     if (propsToSkip[key]) {
       continue;
     }
-    var isEvent = key.slice(0, 2) === 'on';
+    var isEvent = key.slice(0, 2) === "on";
     var propChanged = oldProps[key] !== props[key];
 
     // if that is a changed event, we need to remvoe it
     if (isEvent && propChanged) {
       var eventName = key.substr(2).toLowerCase();
-      if (eventName.substr(0, 7) === 'content') {
-        eventName =
-          'content' +
-          eventName.substr(7, 1).toUpperCase() +
-          eventName.substr(8);
+      if (eventName.substr(0, 7) === "content") {
+        eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
       }
       instance.off(eventName, oldProps[key]);
     }
@@ -90,28 +89,28 @@ export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
     if (propsToSkip[key]) {
       continue;
     }
-    var isEvent = key.slice(0, 2) === 'on';
+    var isEvent = key.slice(0, 2) === "on";
     var toAdd = oldProps[key] !== props[key];
     if (isEvent && toAdd) {
       var eventName = key.substr(2).toLowerCase();
-      if (eventName.substr(0, 7) === 'content') {
-        eventName =
-          'content' +
-          eventName.substr(7, 1).toUpperCase() +
-          eventName.substr(8);
+      if (eventName.substr(0, 7) === "content") {
+        eventName = "content" + eventName.substr(7, 1).toUpperCase() + eventName.substr(8);
       }
       // check that event is not undefined
       if (props[key]) {
         newEvents[eventName] = props[key];
       }
     }
-    if (
-      !isEvent &&
-      (props[key] !== oldProps[key] ||
-        (strictUpdate && props[key] !== instance.getAttr(key)))
-    ) {
+    if (!isEvent && (props[key] !== oldProps[key] || (strictUpdate && props[key] !== instance.getAttr(key)))) {
+
+      const useDeepEqu = props._useDeepEqualMode || useDeepEqualMode;
+      if (!useDeepEqu || typeof props[key] !== "object" || 
+        !deepEqual(props[key], oldProps[key]) ||
+        !deepEqual(props[key], instance.getAttr(key))
+      ) {
       hasUpdates = true;
       updatedProps[key] = props[key];
+      }
     }
   }
 

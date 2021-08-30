@@ -7,6 +7,7 @@ import {
   Rect,
   Group,
   Image,
+  Line,
   useStrictMode,
   Text,
   __matchRectVersion,
@@ -207,6 +208,14 @@ describe('Test props setting', function () {
               ref={(node) => (this.rect = node)}
               {...this.props.rectProps}
             />
+
+          </Layer>
+          <Layer ref={(node) => (this.layer2 = node)}>
+            <Line
+              x={0} y={0} points={[10, 20, 30, 50]} stroke="red"
+              ref={(node) => (this.line = node)}
+              {...this.props.lineProps}
+            />
           </Layer>
         </Stage>
       );
@@ -241,14 +250,14 @@ describe('Test props setting', function () {
     const rect = instance.rect;
     // set new props
     const props1 = {
-      onClick: () => {},
+      onClick: () => { },
     };
     wrapper.setProps({ rectProps: props1 });
     expect(rect.eventListeners.click.length).to.equal(1);
     expect(rect.eventListeners.click[0].handler).to.equal(props1.onClick);
 
     const props2 = {
-      onClick: () => {},
+      onClick: () => { },
     };
     wrapper.setProps({ rectProps: props2 });
     expect(rect.eventListeners.click.length).to.equal(1);
@@ -354,6 +363,29 @@ describe('Test props setting', function () {
     });
     expect(rect.x()).to.equal(10);
   });
+
+  it('Shapes with deep-equal object propertys (e.g. points) shall not be updated', () => {
+    const line = instance.line;
+    wrapper.setProps({ lineProps: { _useDeepEqualMode: true } })
+    const layer = instance.layer; // layer with rect, supposed to be update 2 times 
+    const layer2 = instance.layer2; // layer with static line (but ref of points prop changed) should not be updated
+    sinon.spy(layer, 'batchDraw');
+    sinon.spy(layer2, 'batchDraw');
+    wrapper.setProps({
+      rectProps: {
+        fill: 'blue',
+      },
+    });
+    wrapper.setProps({
+      rectProps: {
+        fill: 'orange',
+      },
+    });
+    const batchdrawsLayer1 = layer.batchDraw.callCount;
+    const batchdrawsLayer2 = layer2.batchDraw.callCount;
+    expect(batchdrawsLayer1).to.equal(2);
+    expect(batchdrawsLayer2).to.equal(0);
+  })
 });
 
 describe('test lifecycle methods', () => {
@@ -644,10 +676,10 @@ describe('test reconciler', () => {
       render() {
         const kids = this.props.drawMany
           ? [
-              <Rect key="1" name="rect1" />,
-              <Rect key="2" name="rect2" />,
-              <Rect key="3" name="rect3" />,
-            ]
+            <Rect key="1" name="rect1" />,
+            <Rect key="2" name="rect2" />,
+            <Rect key="3" name="rect3" />,
+          ]
           : [<Rect key="1" name="rect1" />, <Rect key="3" name="rect3" />];
         return (
           <Stage ref={(node) => (this.stage = node)} width={300} height={300}>

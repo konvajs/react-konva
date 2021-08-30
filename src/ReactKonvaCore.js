@@ -118,3 +118,4 @@ export const Stage = React.forwardRef((props, ref) => {
 });
 
 export const useStrictMode = toggleStrictMode;
+export const useDeepEqualMode = false; 
