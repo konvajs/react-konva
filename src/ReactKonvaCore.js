@@ -104,7 +104,7 @@ export const Arrow = 'Arrow';
 export const Shape = 'Shape';
 export const Transformer = 'Transformer';
 
-const KonvaRenderer = ReactFiberReconciler(HostConfig);
+export const KonvaRenderer = ReactFiberReconciler(HostConfig);
 
 KonvaRenderer.injectIntoDevTools({
   findHostInstanceByFiber: () => null,
