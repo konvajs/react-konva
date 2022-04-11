@@ -59,7 +59,7 @@
     "util": "^0.12.4"
   },
   "scripts": {
-    "build": " tsc -outDir ./es &&  tsc -module commonjs ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
+    "build": " tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
     "test:typings": "tsc --noEmit",
     "preversion": "npm test",
     "version": "npm run build",
