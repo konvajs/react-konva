@@ -1,118 +1,116 @@
-import React from 'react';
+import * as React from 'react';
+import { createRoot } from 'react-dom/client';
+import sinon from 'sinon';
 import { expect } from 'chai';
-import { mount, configure } from 'enzyme';
-import {
-  Stage,
-  Layer,
-  Rect,
-  Group,
-  Image,
-  useStrictMode,
-  Text,
-  __matchRectVersion,
-} from '../src/ReactKonva';
-import useImage from 'use-image';
-import './mocking';
 import Konva from 'konva';
-import sinon from 'sinon/pkg/sinon';
+import useImage from 'use-image';
 
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
+import './mocking';
+import { Stage, Rect, Layer, useStrictMode, Group, Text, Image } from '../';
 
-configure({ adapter: new Adapter() });
+const render = async (component) => {
+  const node = document.createElement('div');
+  document.body.appendChild(node);
+  const root = createRoot(node);
+  const App = ({ onUpdate, children }) => {
+    React.useEffect(() => {
+      onUpdate(null);
+    });
+    return children;
+  };
 
-describe('Test references', function () {
-  let instance;
-  class App extends React.Component {
-    render() {
+  await new Promise((resolve) => {
+    root.render(<App onUpdate={resolve}>{component}</App>);
+  });
+
+  return {
+    stage: Konva.stages[Konva.stages.length - 1],
+    rerender: async (component) => {
+      await new Promise((resolve) => {
+        root.render(<App onUpdate={resolve}>{component}</App>);
+      });
+    },
+  };
+};
+
+describe('initial mounting and refs', () => {
+  it('trigger effect hooks', async () => {
+    const func = sinon.fake();
+    const App = () => {
+      React.useEffect(() => {
+        func();
+      });
+      const ref = React.useRef<Konva.Stage>(null);
+      return <Stage ref={ref} />;
+    };
+    await render(React.createElement(App));
+    expect(func.calledOnce).equals(true);
+  });
+
+  it('can set reference to stage', async () => {
+    const App = () => {
+      React.useEffect(() => {
+        expect(ref.current instanceof Konva.Stage).to.be.true;
+      });
+      const ref = React.useRef<Konva.Stage>(null);
+      return <Stage ref={ref} />;
+    };
+    await render(React.createElement(App));
+  });
+
+  it('no fail on no ref', async () => {
+    await render(<Stage />);
+  });
+
+  it('works with functional reference', async () => {
+    const App = () => {
       return (
-        <Stage width={300} height={300} ref={(node) => (this.stage = node)}>
-          <Layer ref={(node) => (this.layer = node)} />
-        </Stage>
+        <Stage
+          ref={(node) => {
+            if (node) {
+              expect(node instanceof Konva.Stage).to.be.true;
+            }
+          }}
+        />
       );
-    }
-  }
-
-  beforeEach(() => {
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
+    };
+    await render(React.createElement(App));
   });
 
-  it('can get stage instance', function () {
-    const stageRef = instance.stage;
-    expect(stageRef.getStage() instanceof Konva.Stage).to.equal(true);
+  it('check initial props', async () => {
+    const App = ({ width, height }) => {
+      React.useEffect(() => {
+        expect(ref.current.width()).equals(100);
+      });
+      const ref = React.useRef<Konva.Stage>(null);
+      return <Stage ref={ref} width={width} heigh={height} />;
+    };
+    await render(<App width={100} height={100} />);
   });
 
-  it('check initial props set', function () {
-    const stage = instance.stage.getStage();
-    expect(stage.width()).to.equal(300);
-    expect(stage.height()).to.equal(300);
-  });
-
-  it('can get layer instance', function () {
-    expect(instance.layer instanceof Konva.Layer).to.equal(true);
-  });
-
-  // how can we make this work?
-  it('stage ref should go to the stage', function () {
-    const stageRef = instance.stage;
-    expect(stageRef instanceof Konva.Stage).to.equal(true);
-  });
-
-  it('works ok with no ref', function () {
-    class App extends React.Component {
-      render() {
-        return (
-          <Stage width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)} />
-          </Stage>
-        );
-      }
-    }
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-  });
-
-  it('works ok with react ref', function () {
-    class App extends React.Component {
-      stage = React.createRef();
-      render() {
-        return (
-          <Stage width={300} height={300} ref={this.stage}>
-            <Layer ref={(node) => (this.layer = node)} />
-          </Stage>
-        );
-      }
-    }
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-    const stage = instance.stage.current;
-    expect(stage instanceof Konva.Stage).to.equal(true);
-  });
-
-  it('forward ref', function () {
+  it('forward ref on Konva components', async () => {
     const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
 
-    class App extends React.Component {
-      stage = React.createRef();
-      render() {
-        return (
-          <Stage width={300} height={300} ref={this.stage}>
-            <Layer ref={(node) => (this.layer = node)}>
-              <MyRect ref={(node) => (this.rect = node)} />
-            </Layer>
-          </Stage>
-        );
-      }
-    }
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-    const rect = instance.rect;
-    expect(rect instanceof Konva.Rect).to.equal(true);
+    const App = () => {
+      const ref = React.useRef();
+      const stageRef = React.useRef();
+      React.useEffect(() => {
+        expect((ref.current as any) instanceof Konva.Rect).to.be.true;
+      });
+      return (
+        <Stage ref={stageRef}>
+          <Layer>
+            <MyRect ref={ref} />
+          </Layer>
+        </Stage>
+      );
+    };
+    await render(<App />);
   });
 });
 
-describe('Test stage component', function () {
-  it('can attach stage events', function () {
+describe('Test stage component', async function () {
+  it('can attach stage events', async function () {
     let eventCount = 0;
     const handleEvent = () => {
       eventCount += 1;
@@ -139,14 +137,12 @@ describe('Test stage component', function () {
       }
     }
 
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-    const stage = instance.stage.getStage();
+    const { stage } = await render(<App />);
     stage.simulateMouseDown({ x: 50, y: 50 });
     expect(eventCount).to.equal(1);
   });
 
-  it('unmount stage should destroy it from Konva', () => {
+  it('unmount stage should destroy it from Konva', async () => {
     class App extends React.Component {
       render() {
         if (this.props.skipStage) {
@@ -160,14 +156,13 @@ describe('Test stage component', function () {
       }
     }
 
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
+    const { stage, rerender } = await render(<App />);
     const stagesNumber = Konva.stages.length;
-    wrapper.setProps({ skipStage: true });
+    await rerender(<App skipStage />);
     expect(Konva.stages.length).to.equal(stagesNumber - 1);
   });
 
-  it('test null event', function () {
+  it('test null event', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -189,15 +184,13 @@ describe('Test stage component', function () {
       }
     }
 
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-    const stage = instance.stage.getStage();
+    const { stage } = await render(<App />);
     stage.simulateMouseDown({ x: 50, y: 50 });
   });
 });
 
-describe('Test props setting', function () {
-  let instance, wrapper;
+describe('Test props setting', async function () {
+  let stage, rerender;
   class App extends React.Component {
     render() {
       return (
@@ -213,20 +206,28 @@ describe('Test props setting', function () {
     }
   }
 
-  beforeEach(() => {
-    wrapper = mount(<App />);
-    instance = wrapper.instance();
+  const setProps = async (props) => {
+    await rerender(<App {...props} />);
+  };
+
+  beforeEach(async () => {
+    const res = await render(<App />);
+    stage = res.stage;
+    rerender = res.rerender;
   });
 
-  it('can update component props', () => {
-    const rect = instance.rect;
+  it('can update component props', async () => {
+    const rect = stage.findOne('Rect');
     // set new props
     const props1 = {
       width: 100,
       height: 100,
     };
 
-    wrapper.setProps({ rectProps: props1 });
+    await setProps({ rectProps: props1 });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    });
 
     expect(rect.width()).to.equal(100);
 
@@ -234,36 +235,36 @@ describe('Test props setting', function () {
       width: 200,
       height: 100,
     };
-    wrapper.setProps({ rectProps: props2 });
+    await setProps({ rectProps: props2 });
     expect(rect.width()).to.equal(200);
   });
-  it('can update component events', () => {
-    const rect = instance.rect;
+  it('can update component events', async () => {
+    const rect = stage.findOne('Rect');
     // set new props
     const props1 = {
       onClick: () => {},
     };
-    wrapper.setProps({ rectProps: props1 });
+    await setProps({ rectProps: props1 });
     expect(rect.eventListeners.click.length).to.equal(1);
     expect(rect.eventListeners.click[0].handler).to.equal(props1.onClick);
 
     const props2 = {
       onClick: () => {},
     };
-    wrapper.setProps({ rectProps: props2 });
+    await setProps({ rectProps: props2 });
     expect(rect.eventListeners.click.length).to.equal(1);
     expect(rect.eventListeners.click[0].handler).to.equal(props2.onClick);
   });
 
-  it('updating props should call layer redraw', () => {
-    const layer = instance.layer;
+  it('updating props should call layer redraw', async () => {
+    const layer = stage.findOne('Layer');
     sinon.spy(layer, 'batchDraw');
-    wrapper.setProps({
+    await setProps({
       rectProps: {
         fill: 'green',
       },
     });
-    wrapper.setProps({
+    await setProps({
       rectProps: {
         fill: 'red',
       },
@@ -271,9 +272,9 @@ describe('Test props setting', function () {
     expect(layer.batchDraw.callCount).to.equal(2);
   });
 
-  it('unset props', () => {
-    const rect = instance.rect;
-    wrapper.setProps({
+  it('unset props', async () => {
+    const rect = stage.findOne('Rect');
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -281,14 +282,14 @@ describe('Test props setting', function () {
     });
     expect(rect.fill()).to.equal('red');
 
-    wrapper.setProps({ rectProps: {} });
+    await setProps({ rectProps: {} });
     expect(!!rect.fill()).to.equal(false);
     expect(rect.x()).to.equal(0);
   });
 
-  it('do not overwrite properties if that changed manually', () => {
-    const rect = instance.rect;
-    wrapper.setProps({
+  it('do not overwrite properties if that changed manually', async () => {
+    const rect = stage.findOne('Rect');
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -299,7 +300,7 @@ describe('Test props setting', function () {
     // change position manually
     rect.x(20);
 
-    wrapper.setProps({
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -308,10 +309,10 @@ describe('Test props setting', function () {
     expect(rect.x()).to.equal(20);
   });
 
-  it('overwrite properties if that changed manually in strict-mode', () => {
+  it('overwrite properties if that changed manually in strict-mode', async () => {
     useStrictMode(true);
-    const rect = instance.rect;
-    wrapper.setProps({
+    const rect = stage.findOne('Rect');
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -322,7 +323,7 @@ describe('Test props setting', function () {
     // change position manually
     rect.x(20);
 
-    wrapper.setProps({
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -332,9 +333,9 @@ describe('Test props setting', function () {
     useStrictMode(false);
   });
 
-  it('overwrite properties if that passed _useStrictMode', () => {
-    const rect = instance.rect;
-    wrapper.setProps({
+  it('overwrite properties if that passed _useStrictMode', async () => {
+    const rect = stage.findOne('Rect');
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -345,7 +346,7 @@ describe('Test props setting', function () {
     // change position manually
     rect.x(20);
 
-    wrapper.setProps({
+    await setProps({
       rectProps: {
         fill: 'red',
         x: 10,
@@ -357,8 +358,6 @@ describe('Test props setting', function () {
 });
 
 describe('test lifecycle methods', () => {
-  let instance, wrapper;
-
   class SubComponent extends React.Component {
     // comment, as it will be removed
     // componentWillMount() {
@@ -401,18 +400,28 @@ describe('test lifecycle methods', () => {
     }
   }
 
-  it('test mount', () => {
+  const setProps = async (rerender, props) => {
+    await rerender(<App {...props} />);
+  };
+
+  // beforeEach(async () => {
+  //   const res = await render(<App />);
+  //   stage = res.stage;
+  //   rerender = res.rerender;
+  // });
+
+  it('test mount', async () => {
     const props = {
       // componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy(),
     };
-    wrapper = mount(<App {...props} />);
+    await render(<App {...props} />);
 
     // expect(props.componentWillMount.called).to.equal(true);
     expect(props.componentDidMount.called).to.equal(true);
   });
 
-  it('test update', () => {
+  it('test update', async () => {
     const props = {
       // componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy(),
@@ -422,8 +431,8 @@ describe('test lifecycle methods', () => {
       componentDidUpdate: sinon.spy(),
       componentWillUnmount: sinon.spy(),
     };
-    wrapper = mount(<App {...props} />);
-    wrapper.setProps(props);
+    const { rerender } = await render(<App {...props} />);
+    await setProps(rerender, props);
 
     // expect(props.componentWillMount.called).to.equal(true);
     expect(props.shouldComponentUpdate.called).to.equal(true);
@@ -431,7 +440,7 @@ describe('test lifecycle methods', () => {
     expect(props.componentDidUpdate.called).to.equal(true);
   });
 
-  it('test remove', () => {
+  it('test remove', async () => {
     const props = {
       // componentWillMount: sinon.spy(),
       componentDidMount: sinon.spy(),
@@ -441,20 +450,18 @@ describe('test lifecycle methods', () => {
       componentDidUpdate: sinon.spy(),
       componentWillUnmount: sinon.spy(),
     };
-    wrapper = mount(<App {...props} />);
-    const stage = wrapper.instance().stage.getStage();
+    const { rerender, stage } = await render(<App {...props} />);
     expect(stage.findOne('Rect')).to.not.equal(undefined);
 
     props.dontDrawChildren = props;
-    wrapper.setProps(props);
+    await setProps(rerender, props);
     expect(stage.findOne('Rect')).to.equal(undefined);
     // This line don't work... why????
     expect(props.componentWillUnmount.called).to.equal(true);
   });
 });
 
-describe('Test Events', function () {
-  let instance;
+describe('Test Events', async function () {
   class App extends React.Component {
     render() {
       return (
@@ -469,15 +476,20 @@ describe('Test Events', function () {
       );
     }
   }
-  it('should remove events on unmount', function () {
+
+  it('should remove events on unmount', async function () {
     const onClickRect = sinon.spy();
     const onClickExternal = sinon.spy();
 
-    const wrapper = mount(<App onClick={onClickRect} shouldDrawLayer />);
-    instance = wrapper.instance();
+    const { stage, rerender } = await render(
+      <App onClick={onClickRect} shouldDrawLayer />
+    );
 
-    const stageRef = instance.stage;
-    const layer = stageRef.getStage().findOne('Layer');
+    const setProps = async (props) => {
+      await rerender(<App {...props} />);
+    };
+
+    const layer = stage.findOne('Layer');
     layer.on('click', onClickExternal);
 
     expect(onClickRect.callCount).to.equal(0);
@@ -488,7 +500,7 @@ describe('Test Events', function () {
     expect(onClickExternal.callCount).to.equal(1);
 
     // remove layer
-    wrapper.setProps({ shouldDrawLayer: false });
+    await setProps({ shouldDrawLayer: false });
 
     expect(layer.getParent()).to.equal(null);
 
@@ -500,7 +512,7 @@ describe('Test Events', function () {
 });
 
 describe('Bad structure', () => {
-  it('No dom inside Konva', function () {
+  it('No dom inside Konva', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -513,15 +525,13 @@ describe('Bad structure', () => {
       }
     }
 
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-    const stage = instance.stage.getStage();
+    const { stage } = await render(<App />);
     // check check that this test is not failed
   });
 });
 
 describe('Check id saving', () => {
-  it('Konva can loose ids?', function () {
+  it('Konva can loose ids?', async function () {
     class App extends React.Component {
       render() {
         const kids = [
@@ -538,13 +548,11 @@ describe('Check id saving', () => {
       }
     }
 
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-    const stage = instance.stage.getStage();
+    const { stage, rerender } = await render(<App />);
     expect(stage.findOne('#rect1').fill()).to.equal('red');
     expect(stage.findOne('#rect2').fill()).to.equal('green');
 
-    wrapper.setProps({ drawAsGroup: true });
+    await rerender(<App drawAsGroup />);
 
     expect(stage.findOne('#rect1').fill()).to.equal('red');
     expect(stage.findOne('#rect2').fill()).to.equal('green');
@@ -552,7 +560,7 @@ describe('Check id saving', () => {
 });
 
 describe('Test drawing calls', () => {
-  it('Draw layer on mount', function () {
+  it('Draw layer on mount', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -567,13 +575,13 @@ describe('Test drawing calls', () => {
 
     expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(undefined);
     sinon.spy(Konva.Layer.prototype, 'batchDraw');
-    const wrapper = mount(<App />);
+    const { stage } = await render(<App />);
 
     expect(Konva.Layer.prototype.batchDraw.called).to.equal(true);
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('Draw layer on node add', function () {
+  it('Draw layer on node add', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -584,15 +592,16 @@ describe('Test drawing calls', () => {
       }
     }
 
-    const wrapper = mount(<App />);
+    const { stage, rerender } = await render(<App />);
     sinon.spy(Konva.Layer.prototype, 'batchDraw');
-    wrapper.setProps({ showRect: true });
+    expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(0);
+    await rerender(<App showRect />);
 
     expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('Draw layer on node remove', function () {
+  it('Draw layer on node remove', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -603,10 +612,10 @@ describe('Test drawing calls', () => {
       }
     }
 
-    const wrapper = mount(<App />);
+    const { stage, rerender } = await render(<App />);
     sinon.spy(Konva.Layer.prototype, 'batchDraw');
     expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(0);
-    wrapper.setProps({ hideRect: true });
+    await rerender(<App hideRect />);
 
     expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
     Konva.Layer.prototype.batchDraw.restore();
@@ -614,7 +623,7 @@ describe('Test drawing calls', () => {
 });
 
 describe('test reconciler', () => {
-  it('add before', function () {
+  it('add before', async function () {
     class App extends React.Component {
       render() {
         const kids = this.props.drawMany
@@ -628,18 +637,18 @@ describe('test reconciler', () => {
       }
     }
 
-    const wrapper = mount(<App />);
+    const { stage, rerender } = await render(<App />);
     sinon.spy(Konva.Layer.prototype, 'batchDraw');
-    wrapper.setProps({ drawMany: true });
+    await rerender(<App drawMany />);
 
-    const layer = wrapper.instance().layer;
+    const layer = stage.children[0];
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect2');
     expect(Konva.Layer.prototype.batchDraw.callCount >= 1).to.equal(true);
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('add before (mane)', function () {
+  it('add before (mane)', async function () {
     class App extends React.Component {
       render() {
         const kids = this.props.drawMany
@@ -657,16 +666,16 @@ describe('test reconciler', () => {
       }
     }
 
-    const wrapper = mount(<App />);
-    wrapper.setProps({ drawMany: true });
+    const { stage, rerender } = await render(<App />);
+    await rerender(<App drawMany />);
 
-    const layer = wrapper.instance().layer;
+    const layer = stage.children[0];
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect2');
     expect(layer.children[2].name()).to.equal('rect3');
   });
 
-  it('add after', function () {
+  it('add after', async function () {
     class App extends React.Component {
       render() {
         const kids = this.props.drawMany
@@ -680,18 +689,18 @@ describe('test reconciler', () => {
       }
     }
 
-    const wrapper = mount(<App />);
+    const { stage, rerender } = await render(<App />);
     sinon.spy(Konva.Layer.prototype, 'batchDraw');
-    wrapper.setProps({ drawMany: true });
+    await rerender(<App drawMany />);
 
-    const layer = wrapper.instance().layer;
+    const layer = stage.children[0];
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect2');
     expect(Konva.Layer.prototype.batchDraw.callCount).to.equal(1);
     Konva.Layer.prototype.batchDraw.restore();
   });
 
-  it('change order', function () {
+  it('change order', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -707,8 +716,8 @@ describe('test reconciler', () => {
       <Rect key="2" name="rect2" />,
       <Rect key="3" name="rect3" />,
     ];
-    const wrapper = mount(<App kids={kids} />);
-    const layer = wrapper.instance().layer;
+    const { stage, rerender } = await render(<App kids={kids} />);
+    const layer = stage.children[0];
 
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect2');
@@ -720,7 +729,7 @@ describe('test reconciler', () => {
       <Rect key="1" name="rect1" />,
       <Rect key="2" name="rect2" />,
     ];
-    wrapper.setProps({ kids });
+    await rerender(<App kids={kids} />);
     expect(layer.children[0].name()).to.equal('rect3');
     expect(layer.children[1].name()).to.equal('rect1');
     expect(layer.children[2].name()).to.equal('rect2');
@@ -732,7 +741,7 @@ describe('test reconciler', () => {
       <Rect key="2" name="rect2" />,
     ];
 
-    wrapper.setProps({ kids });
+    await rerender(<App kids={kids} />);
 
     expect(layer.children[0].name()).to.equal('rect1');
     expect(layer.children[1].name()).to.equal('rect3');
@@ -743,7 +752,7 @@ describe('test reconciler', () => {
       <Rect key="1" name="rect1" />,
       <Rect key="3" name="rect3" />,
     ];
-    wrapper.setProps({ kids });
+    await rerender(<App kids={kids} />);
 
     expect(layer.children[0].name()).to.equal('rect2');
     expect(layer.children[1].name()).to.equal('rect1');
@@ -755,7 +764,7 @@ describe('test reconciler', () => {
       <Rect key="1" name="rect1" />,
       <Rect key="3" name="rect3" />,
     ];
-    wrapper.setProps({ kids });
+    await rerender(<App kids={kids} />);
 
     expect(layer.children[0].name()).to.equal('rect4');
     expect(layer.children[1].name()).to.equal('rect2');
@@ -763,7 +772,7 @@ describe('test reconciler', () => {
     expect(layer.children[3].name()).to.equal('rect3');
   });
 
-  it('changing order should not stop dragging', function () {
+  it('changing order should not stop dragging', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -779,8 +788,8 @@ describe('test reconciler', () => {
       <Rect key="2" name="rect2" />,
       <Rect key="3" name="rect3" />,
     ];
-    const wrapper = mount(<App kids={kids} />);
-    const layer = wrapper.instance().layer;
+    const { stage, rerender } = await render(<App kids={kids} />);
+    const layer = stage.children[0];
 
     const rect1 = layer.findOne('.rect1');
 
@@ -796,13 +805,13 @@ describe('test reconciler', () => {
       <Rect key="1" name="rect1" />,
       <Rect key="2" name="rect2" />,
     ];
-    wrapper.setProps({ kids });
+    await rerender(<App kids={kids} />);
 
     expect(rect1.isDragging()).to.equal(true);
     rect1.stopDrag();
   });
 
-  it('check events subscribe', function () {
+  it('check events subscribe', async function () {
     const App = () => {
       const [fill, setColor] = React.useState('black');
 
@@ -822,20 +831,18 @@ describe('test reconciler', () => {
         </Stage>
       );
     };
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-
-    const stage = Konva.stages[Konva.stages.length - 1];
+    const { stage } = await render(<App />);
 
     expect(stage.findOne('Rect').fill()).to.equal('black');
     stage.simulateMouseDown({ x: 50, y: 50 });
     stage.simulateMouseMove({ x: 55, y: 55 });
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(stage.findOne('Rect').isDragging()).to.equal(true);
     expect(stage.findOne('Rect').fill()).to.equal('red');
   });
 });
 
-describe('Test context API', function () {
+describe('Test context API', async function () {
   let instance;
 
   const { Consumer, Provider } = React.createContext({
@@ -862,21 +869,15 @@ describe('Test context API', function () {
     }
   }
 
-  beforeEach(() => {
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-  });
-
-  it('test correct set', function () {
-    const stageRef = instance.stage;
-    const stage = stageRef.getStage();
+  it('test correct set', async function () {
+    const { stage } = await render(<App />);
     expect(stage.width()).to.equal(200);
     expect(stage.height()).to.equal(100);
   });
 });
 
 // wait for react team response
-describe('Test nested context API', function () {
+describe('Test nested context API', async function () {
   const Context = React.createContext({
     color: 'red',
   });
@@ -913,18 +914,14 @@ describe('Test nested context API', function () {
     }
   }
 
-  beforeEach(() => {
-    mount(<App />);
-  });
-
-  it.skip('test correct set', function () {
-    const stage = Konva.stages[Konva.stages.length - 1];
+  it.skip('test correct set', async function () {
+    const { stage } = await render(<App />);
     expect(stage.findOne('Rect').fill()).to.equal('black');
   });
 });
 
 // wait for react team response
-describe('try lazy and suspense', function () {
+describe('try lazy and suspense', async function () {
   const LazyRect = React.lazy(() => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -949,28 +946,19 @@ describe('try lazy and suspense', function () {
     }
   }
 
-  let instance;
-  beforeEach(() => {
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-  });
-
-  it('can use lazy and suspense', function (done) {
-    const stageRef = instance.stage;
-    const stage = stageRef.getStage();
+  it('can use lazy and suspense', async function () {
+    const { stage } = await render(<App />);
     expect(stage.find('Text').length).to.equal(1);
     expect(stage.find('Shape').length).to.equal(1);
 
-    setTimeout(() => {
-      expect(stage.find('Text').length).to.equal(0);
-      expect(stage.find('Rect').length).to.equal(1);
-      expect(stage.find('Shape').length).to.equal(1);
-      done();
-    }, 50);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(stage.find('Text').length).to.equal(0);
+    expect(stage.find('Rect').length).to.equal(1);
+    expect(stage.find('Shape').length).to.equal(1);
   });
 });
 
-describe('Fragments', function () {
+describe('Fragments', async function () {
   const Fragmented = () => (
     <React.Fragment>
       <Rect />
@@ -990,19 +978,13 @@ describe('Fragments', function () {
     }
   }
 
-  let instance;
-  beforeEach(() => {
-    const wrapper = mount(<App />);
-    instance = wrapper.instance();
-  });
-
-  it('can use lazy and suspense', function () {
-    const stage = instance.stage;
+  it('can use lazy and suspense', async function () {
+    const { stage } = await render(<App />);
     expect(stage.find('Rect').length).to.equal(2);
   });
 });
 
-describe('warnings', function () {
+describe('warnings', async function () {
   class App extends React.Component {
     render() {
       return (
@@ -1015,15 +997,13 @@ describe('warnings', function () {
     }
   }
 
-  it('check draggable warning', function () {
-    const wrapper = mount(<App />);
-    // sinon.spy(console, 'warning');
-    // expect(console.warning.callCount).to.equal(1);
+  it('check draggable warning', async function () {
+    const { stage } = await render(<App />);
   });
 });
 
-describe('Hooks', function () {
-  it('check setState hook', function () {
+describe('Hooks', async function () {
+  it('check setState hook', async function () {
     const App = () => {
       const [fill, setColor] = React.useState('black');
 
@@ -1042,17 +1022,15 @@ describe('Hooks', function () {
         </Stage>
       );
     };
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-
-    const stage = Konva.stages[Konva.stages.length - 1];
+    const { stage } = await render(<App />);
 
     expect(stage.findOne('Rect').fill()).to.equal('black');
     stage.simulateMouseDown({ x: 50, y: 50 });
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(stage.findOne('Rect').fill()).to.equal('red');
   });
 
-  it('check useEffect hook', function (done) {
+  it('check useEffect hook', async function () {
     let callCount = 0;
     const App = () => {
       React.useEffect(() => {
@@ -1065,23 +1043,20 @@ describe('Hooks', function () {
         </Stage>
       );
     };
-    const wrapper = mount(<App />);
+    const { stage, rerender } = await render(<App />);
 
     // not sure why timeouts are required
     // are hooks async?
-    setTimeout(() => {
-      expect(callCount).to.equal(1);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(callCount).to.equal(1);
 
-      wrapper.setProps({ randomProp: 1 });
+    rerender(<App randomProp={1} />);
 
-      setTimeout(() => {
-        expect(callCount).to.equal(2);
-        done();
-      }, 50);
-    }, 50);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(callCount).to.equal(2);
   });
 
-  it('check useEffect hook 2', function (done) {
+  it('check useEffect hook 2', async function () {
     let callCount = 0;
     const MyRect = ({ name }) => {
       React.useEffect(() => {
@@ -1104,22 +1079,52 @@ describe('Hooks', function () {
         </Stage>
       );
     };
-    const wrapper = mount(<App />);
+    const { stage } = await render(<App />);
 
     // not sure why timeouts are required
     // are hooks async?
-    setTimeout(() => {
-      const stage = Konva.stages[Konva.stages.length - 1];
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const rect = stage.findOne('Rect');
 
-      const rect = stage.findOne('Rect');
-
-      expect(rect.name()).to.equal('rect name');
-      expect(callCount).to.equal(2);
-      done();
-    }, 50);
+    expect(rect.name()).to.equal('rect name');
+    expect(callCount).to.equal(2);
   });
 
-  it('check useImage hook', function (done) {
+  it('check useImage hook', async function () {
+    const url = 'https://konvajs.org/favicon-32x32.png?token' + Math.random();
+
+    const App = () => {
+      const [image, status] = useImage(url);
+
+      return (
+        <Stage width={300} height={300}>
+          <Layer>
+            <Image image={image} />
+            <Text text={status} />
+          </Layer>
+        </Stage>
+      );
+    };
+    const { stage } = await render(<App />);
+
+    // not image while loading
+    expect(stage.findOne('Image').image()).to.equal(undefined);
+    expect(stage.findOne('Text').text()).to.equal('loading');
+
+    const img = new window.Image();
+    img.src = url;
+    await new Promise((resolve) => {
+      img.onload = () => {
+        setTimeout(() => resolve(null), 50);
+      };
+    });
+    expect(stage.findOne('Image').image() instanceof window.Image).to.equal(
+      true
+    );
+    expect(stage.findOne('Text').text()).to.equal('loaded');
+  });
+
+  it('unsubscribe on unmount', async function () {
     const url = 'https://konvajs.org/favicon-32x32.png';
 
     const App = () => {
@@ -1134,64 +1139,24 @@ describe('Hooks', function () {
         </Stage>
       );
     };
-    const wrapper = mount(<App />);
-
-    const stage = Konva.stages[Konva.stages.length - 1];
+    const { stage } = await render(<App />);
 
     // not image while loading
     expect(stage.findOne('Image').image()).to.equal(undefined);
     expect(stage.findOne('Text').text()).to.equal('loading');
 
     const img = new window.Image();
-    img.onload = () => {
-      // here should hook trigger
-      setTimeout(() => {
-        expect(stage.findOne('Image').image()).not.to.equal(undefined);
-        expect(stage.findOne('Text').text()).to.equal('loaded');
-        done();
-      }, 50);
-    };
     img.src = url;
-  });
-
-  it('unsubscribe on unmount', function (done) {
-    const url = 'https://konvajs.org/favicon-32x32.png';
-
-    const App = () => {
-      const [image, status] = useImage(url);
-
-      return (
-        <Stage width={300} height={300}>
-          <Layer>
-            <Image image={image} />
-            <Text text={status} />
-          </Layer>
-        </Stage>
-      );
-    };
-    const wrapper = mount(<App />);
-    const stage = Konva.stages[Konva.stages.length - 1];
-
-    // not image while loading
-    expect(stage.findOne('Image').image()).to.equal(undefined);
-    expect(stage.findOne('Text').text()).to.equal('loading');
-
-    wrapper.unmount();
-    const img = new window.Image();
-    img.onload = () => {
-      setTimeout(() => {
-        // image is loaded here
-        // if hook is unsubcribed we should have no errors
-        // so just
-        done();
-      }, 50);
-    };
-    img.src = url;
+    await new Promise((resolve) => {
+      img.onload = () => {
+        setTimeout(() => resolve(null), 50);
+      };
+    });
   });
 });
 
 describe('external', () => {
-  it('make sure node has _applyProps for react-spring integration', function () {
+  it('make sure node has _applyProps for react-spring integration', async function () {
     class App extends React.Component {
       render() {
         return (
@@ -1204,9 +1169,7 @@ describe('external', () => {
       }
     }
 
-    const wrapper = mount(<App />);
-    const instance = wrapper.instance();
-    const stage = instance.stage;
+    const { stage } = await render(<App />);
     expect(typeof stage.findOne('Rect')._applyProps).to.equal('function');
   });
 });

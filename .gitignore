@@ -7,5 +7,7 @@ test/tests.bundle.js
 .lock
 lib
 es
-
+test-build
+.parcel-cache
+dist
 package-lock.json

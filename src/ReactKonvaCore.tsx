@@ -10,6 +10,7 @@
 import React from 'react';
 import Konva from 'konva/lib/Core';
 import ReactFiberReconciler from 'react-reconciler';
+import { LegacyRoot } from 'react-reconciler/constants';
 import * as HostConfig from './ReactKonvaHostConfig';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates';
 
@@ -49,7 +50,12 @@ const StageWrap = (props) => {
 
     _setRef(stage.current);
 
-    fiberRef.current = KonvaRenderer.createContainer(stage.current);
+    fiberRef.current = KonvaRenderer.createContainer(
+      stage.current,
+      LegacyRoot,
+      false,
+      null
+    );
     KonvaRenderer.updateContainer(props.children, fiberRef.current);
 
     return () => {
@@ -68,17 +74,15 @@ const StageWrap = (props) => {
     KonvaRenderer.updateContainer(props.children, fiberRef.current, null);
   });
 
-  return (
-    <div
-      ref={container}
-      accessKey={props.accessKey}
-      className={props.className}
-      role={props.role}
-      style={props.style}
-      tabIndex={props.tabIndex}
-      title={props.title}
-    />
-  );
+  return React.createElement('div', {
+    ref: container,
+    accessKey: props.accessKey,
+    className: props.className,
+    role: props.role,
+    style: props.style,
+    tabIndex: props.tabIndex,
+    title: props.title,
+  });
 };
 
 export const Layer = 'Layer';
@@ -114,7 +118,7 @@ KonvaRenderer.injectIntoDevTools({
 });
 
 export const Stage = React.forwardRef((props, ref) => {
-  return <StageWrap {...props} forwardedRef={ref} />;
+  return React.createElement(StageWrap, { ...props, forwardedRef: ref });
 });
 
 export const useStrictMode = toggleStrictMode;

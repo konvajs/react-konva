@@ -17,9 +17,11 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "@types/react-reconciler": "~0.26.2",
-    "react-reconciler": "~0.26.2",
-    "scheduler": "^0.20.2"
+    "react-reconciler": "~0.27.0",
+    "scheduler": "^0.21.0"
+  },
+  "targets": {
+    "none": {}
   },
   "funding": [
     {
@@ -37,33 +39,34 @@
   ],
   "peerDependencies": {
     "konva": "^8.0.1 || ^7.2.5",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/react": "17.0.6",
-    "@wojtekmaj/enzyme-adapter-react-17": "0.6.1",
-    "chai": "4.3.4",
-    "enzyme": "3.11.0",
-    "konva": "^8.0.1",
-    "nwb": "0.23.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "sinon": "^9.2.2",
-    "typescript": "^4.2.4",
-    "use-image": "^1.0.7"
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.0",
+    "@types/react": "18.0.1",
+    "chai": "4.3.6",
+    "konva": "^8.3.5",
+    "mocha-headless-chrome": "^4.0.0",
+    "parcel": "^2.4.1",
+    "process": "^0.11.10",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "sinon": "^13.0.1",
+    "typescript": "^4.6.3",
+    "use-image": "^1.0.12",
+    "util": "^0.12.4"
   },
   "scripts": {
-    "build": "nwb build-react-component && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
-    "clean": "nwb clean-module && nwb clean-demo",
-    "start": "nwb serve-react-demo",
-    "test": "nwb test-react && npm run test:typings",
+    "build": " tsc -outDir ./es &&  tsc -module commonjs ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
     "test:typings": "tsc --noEmit",
-    "test:coverage": "nwb test-react --coverage",
-    "test:watch": "nwb test-react --server",
     "preversion": "npm test",
     "version": "npm run build",
-    "postversion": ""
+    "postversion": "",
+    "test": "npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
+    "test:build": "parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
+    "test:watch": "rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
   },
   "typings": "react-konva.d.ts",
   "files": [

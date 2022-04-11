@@ -6,6 +6,7 @@ export {
   unstable_IdlePriority as idlePriority,
   unstable_runWithPriority as run,
 } from 'scheduler';
+import { DefaultEventPriority } from 'react-reconciler/constants';
 
 const NO_CONTEXT = {};
 const UPDATE_SIGNAL = {};
@@ -213,3 +214,7 @@ export function unhideTextInstance(textInstance, text) {
 export function clearContainer(container) {
   // Noop
 }
+
+export function detachDeletedInstance() {}
+
+export const getCurrentEventPriority = () => DefaultEventPriority;
