@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import sinon from 'sinon';
 import { expect } from 'chai';
@@ -119,18 +119,9 @@ describe('Test stage component', async function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage
-            ref={(node) => (this.stage = node)}
-            width={300}
-            height={300}
-            onMouseDown={handleEvent}
-          >
-            <Layer ref={(node) => (this.layer = node)}>
-              <Rect
-                ref={(node) => (this.rect = node)}
-                width={100}
-                height={100}
-              />
+          <Stage width={300} height={300} onMouseDown={handleEvent}>
+            <Layer>
+              <Rect width={100} height={100} />
             </Layer>
           </Stage>
         );
@@ -149,8 +140,8 @@ describe('Test stage component', async function () {
           return <div />;
         }
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)} />
+          <Stage width={300} height={300}>
+            <Layer />
           </Stage>
         );
       }
@@ -166,18 +157,9 @@ describe('Test stage component', async function () {
     class App extends React.Component {
       render() {
         return (
-          <Stage
-            ref={(node) => (this.stage = node)}
-            width={300}
-            height={300}
-            onMouseDown={null}
-          >
-            <Layer ref={(node) => (this.layer = node)}>
-              <Rect
-                ref={(node) => (this.rect = node)}
-                width={100}
-                height={100}
-              />
+          <Stage width={300} height={300} onMouseDown={null}>
+            <Layer>
+              <Rect width={100} height={100} />
             </Layer>
           </Stage>
         );
@@ -194,12 +176,9 @@ describe('Test props setting', async function () {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-          <Layer ref={(node) => (this.layer = node)}>
-            <Rect
-              ref={(node) => (this.rect = node)}
-              {...this.props.rectProps}
-            />
+        <Stage width={300} height={300}>
+          <Layer>
+            <Rect {...this.props.rectProps} />
           </Layer>
         </Stage>
       );
@@ -358,7 +337,7 @@ describe('Test props setting', async function () {
 });
 
 describe('test lifecycle methods', () => {
-  class SubComponent extends React.Component {
+  class SubComponent extends React.Component<any> {
     // comment, as it will be removed
     // componentWillMount() {
     //   this.props.componentWillMount();
@@ -389,8 +368,8 @@ describe('test lifecycle methods', () => {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-          <Layer ref={(node) => (this.layer = node)}>
+        <Stage width={300} height={300}>
+          <Layer>
             {this.props.dontDrawChildren ? null : (
               <SubComponent {...this.props} />
             )}
@@ -465,13 +444,8 @@ describe('Test Events', async function () {
   class App extends React.Component {
     render() {
       return (
-        <Stage width={300} height={300} ref={(node) => (this.stage = node)}>
-          {this.props.shouldDrawLayer && (
-            <Layer
-              ref={(node) => (this.layer = node)}
-              onClick={this.props.onClick}
-            />
-          )}
+        <Stage width={300} height={300}>
+          {this.props.shouldDrawLayer && <Layer onClick={this.props.onClick} />}
         </Stage>
       );
     }
@@ -516,7 +490,7 @@ describe('Bad structure', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Stage width={300} height={300}>
             <Layer>
               <div />
             </Layer>
@@ -539,7 +513,7 @@ describe('Check id saving', () => {
           <Rect key="2" id="rect2" fill="green" />,
         ];
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Stage width={300} height={300}>
             <Layer>
               {this.props.drawAsGroup ? <Group>{kids}</Group> : kids}
             </Layer>
@@ -564,7 +538,7 @@ describe('Test drawing calls', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Stage width={300} height={300}>
             <Layer>
               <Rect fill="red" />
             </Layer>
@@ -585,7 +559,7 @@ describe('Test drawing calls', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Stage width={300} height={300}>
             <Layer>{this.props.showRect && <Rect fill="red" />}</Layer>
           </Stage>
         );
@@ -605,7 +579,7 @@ describe('Test drawing calls', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Stage width={300} height={300}>
             <Layer>{!this.props.hideRect && <Rect fill="red" />}</Layer>
           </Stage>
         );
@@ -630,8 +604,8 @@ describe('test reconciler', () => {
           ? [<Rect key="1" name="rect1" />, <Rect key="2" name="rect2" />]
           : [<Rect key="2" name="rect2" />];
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)}>{kids}</Layer>
+          <Stage width={300} height={300}>
+            <Layer>{kids}</Layer>
           </Stage>
         );
       }
@@ -659,8 +633,8 @@ describe('test reconciler', () => {
             ]
           : [<Rect key="1" name="rect1" />, <Rect key="3" name="rect3" />];
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)}>{kids}</Layer>
+          <Stage width={300} height={300}>
+            <Layer>{kids}</Layer>
           </Stage>
         );
       }
@@ -682,8 +656,8 @@ describe('test reconciler', () => {
           ? [<Rect key="1" name="rect1" />, <Rect key="2" name="rect2" />]
           : [<Rect key="1" name="rect1" />];
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)}>{kids}</Layer>
+          <Stage width={300} height={300}>
+            <Layer>{kids}</Layer>
           </Stage>
         );
       }
@@ -704,8 +678,8 @@ describe('test reconciler', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)}>{this.props.kids}</Layer>
+          <Stage width={300} height={300}>
+            <Layer>{this.props.kids}</Layer>
           </Stage>
         );
       }
@@ -776,8 +750,8 @@ describe('test reconciler', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-            <Layer ref={(node) => (this.layer = node)}>{this.props.kids}</Layer>
+          <Stage width={300} height={300}>
+            <Layer>{this.props.kids}</Layer>
           </Stage>
         );
       }
@@ -855,12 +829,8 @@ describe('Test context API', async function () {
         <Provider value={{ width: 200, height: 100 }}>
           <Consumer>
             {({ width, height }) => (
-              <Stage
-                width={width}
-                height={height}
-                ref={(node) => (this.stage = node)}
-              >
-                <Layer ref={(node) => (this.layer = node)} />
+              <Stage width={width} height={height}>
+                <Layer />
               </Stage>
             )}
           </Consumer>
@@ -897,7 +867,7 @@ describe('Test nested context API', async function () {
     static contextType = Context;
     render() {
       return (
-        <Stage width={300} height={200} ref={(node) => (this.stage = node)}>
+        <Stage width={300} height={200}>
           <Tools />
         </Stage>
       );
@@ -935,8 +905,8 @@ describe('try lazy and suspense', async function () {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-          <Layer ref={(node) => (this.layer = node)}>
+        <Stage width={300} height={300}>
+          <Layer>
             <React.Suspense fallback={<Text text="fallback" />}>
               <LazyRect />
             </React.Suspense>
@@ -969,8 +939,8 @@ describe('Fragments', async function () {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-          <Layer ref={(node) => (this.layer = node)}>
+        <Stage width={300} height={300}>
+          <Layer>
             <Fragmented />
           </Layer>
         </Stage>
@@ -988,8 +958,8 @@ describe('warnings', async function () {
   class App extends React.Component {
     render() {
       return (
-        <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
-          <Layer ref={(node) => (this.layer = node)}>
+        <Stage width={300} height={300}>
+          <Layer>
             <Rect draggable x={0} y={0} />
           </Layer>
         </Stage>
@@ -1160,7 +1130,7 @@ describe('external', () => {
     class App extends React.Component {
       render() {
         return (
-          <Stage ref={(node) => (this.stage = node)} width={300} height={300}>
+          <Stage width={300} height={300}>
             <Layer>
               <Rect fill="red" />
             </Layer>

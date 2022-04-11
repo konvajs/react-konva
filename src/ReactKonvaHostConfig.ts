@@ -12,7 +12,7 @@ const NO_CONTEXT = {};
 const UPDATE_SIGNAL = {};
 
 // for react-spring capability
-Konva.Node.prototype._applyProps = applyNodeProps;
+(Konva.Node.prototype as any)._applyProps = applyNodeProps;
 
 export function appendInitialChild(parentInstance, child) {
   if (typeof child === 'string') {

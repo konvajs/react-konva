@@ -34,7 +34,7 @@ export interface KonvaNodeComponent<
   // We use React.ClassAttributes to fake the 'ref' attribute. This will ensure
   // consumers get the proper 'Node' type in 'ref' instead of the wrapper
   // component type.
-> extends React.SFC<Props & KonvaNodeEvents & React.ClassAttributes<Node>> {
+> extends React.FC<Props & KonvaNodeEvents & React.ClassAttributes<Node>> {
   getPublicInstance(): Node;
   getNativeNode(): Node;
   // putEventListener(type: string, listener: Function): void;
