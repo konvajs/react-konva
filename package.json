@@ -43,6 +43,7 @@
   "devDependencies": {
     "@types/react": "^17.0.6 || ^18.0.0",
     "@wojtekmaj/enzyme-adapter-react-17": "0.6.1",
+    "babel-plugin-import-path-replace": "^0.1.0",
     "chai": "4.3.4",
     "enzyme": "3.11.0",
     "konva": "^8.0.1",
@@ -54,7 +55,10 @@
     "use-image": "^1.0.7"
   },
   "scripts": {
-    "build": "nwb build-react-component && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
+    "build": "npm run build-libs && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
+    "build-cjs": "nwb --config ./nwb.config.cjs.js build-react-component",
+    "build-es": "nwb --config ./nwb.config.es.js build-react-component",
+    "build-libs": "npm run build-cjs && mv lib lib.back && npm run build-es && mv lib.back lib",
     "clean": "nwb clean-module && nwb clean-demo",
     "start": "nwb serve-react-demo",
     "test": "nwb test-react && npm run test:typings",
