@@ -57,7 +57,7 @@
   "scripts": {
     "build": "npm run build-libs && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
     "build-cjs": "nwb --config ./nwb.config.cjs.js build-react-component",
-    "build-es": "nwb --config ./nwb.config.es.js build-react-component",
+    "build-es": "nwb --config ./nwb.config.js build-react-component",
     "build-libs": "npm run build-cjs && mv lib lib.back && npm run build-es && mv lib.back lib",
     "clean": "nwb clean-module && nwb clean-demo",
     "start": "nwb serve-react-demo",

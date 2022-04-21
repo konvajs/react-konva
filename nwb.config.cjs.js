@@ -1,4 +1,4 @@
-const path = require("path");
+// CommonJS build configuration
 module.exports = {
   type: "react-component",
   npm: {

@@ -1,4 +1,4 @@
-const path = require("path");
+// ES6 build configuration
 module.exports = {
   type: "react-component",
   npm: {
