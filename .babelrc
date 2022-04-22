@@ -1,0 +1,20 @@
+{
+	"compact": false,
+	"retainLines": true,
+	"minified": false,
+	"inputSourceMap": false,
+	"sourceMaps": false,
+	"plugins": [
+		[
+			"module-resolver",
+			{
+				"root": [
+					"./lib"
+				],
+				"alias": {
+					"@konva": "konva/cmj"
+				}
+			}
+		]
+	]
+}

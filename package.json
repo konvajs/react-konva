@@ -43,9 +43,12 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.9",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/react": "18.0.1",
+    "babel-plugin-module-resolver": "^4.1.0",
     "chai": "4.3.6",
     "konva": "^8.3.5",
     "mocha-headless-chrome": "^4.0.0",
@@ -60,6 +63,7 @@
   },
   "scripts": {
     "build": " tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
+    "build-cjs": "tsc --project tsconfig-cjs.json && babel lib -d lib",
     "test:typings": "tsc --noEmit",
     "preversion": "npm test",
     "version": "npm run build",

@@ -1,4 +1,4 @@
-import Konva from 'konva/lib/Core';
+import Konva from '@konva/Core';
 import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates';
 
 export {

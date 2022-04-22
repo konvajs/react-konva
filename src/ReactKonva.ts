@@ -7,5 +7,5 @@
  */
 'use strict';
 
-import 'konva';
+import '@konva';
 export * from './ReactKonvaCore';

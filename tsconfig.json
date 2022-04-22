@@ -5,7 +5,13 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@konva/*": [
+        "node_modules/konva/lib"
+      ]
+    }
   },
   "include": ["./src/**/*"],
   "files": [
