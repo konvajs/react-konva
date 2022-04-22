@@ -9,7 +9,10 @@
     "baseUrl": ".",
     "paths": {
       "@konva/*": [
-        "node_modules/konva/lib"
+        "node_modules/konva/lib/*"
+      ],
+      "@konva-index": [
+        "node_modules/konva"
       ]
     }
   },

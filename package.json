@@ -62,8 +62,9 @@
     "util": "^0.12.4"
   },
   "scripts": {
-    "build": " tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
-    "build-cjs": "tsc --project tsconfig-cjs.json && babel lib -d lib",
+    "build": "npm run build-es && npm run build-cjs",
+    "build-cjs": "rm -rf lib && tsc -module commonjs -outDir ./lib && IS_CJS=1 babel lib -d lib && cp ./ReactKonvaCore.d.ts ./lib",
+    "build-es": "rm -rf es && tsc -outDir ./es && IS_CJS=0 babel es -d es && cp ./ReactKonvaCore.d.ts ./es",
     "test:typings": "tsc --noEmit",
     "preversion": "npm test",
     "version": "npm run build",
