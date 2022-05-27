@@ -60,7 +60,7 @@ export interface StageProps
 export var Stage: KonvaNodeComponent<Konva.Stage, StageProps>;
 export var Layer: KonvaNodeComponent<Konva.Layer, Konva.LayerConfig>;
 export var FastLayer: KonvaNodeComponent<Konva.FastLayer, Konva.LayerConfig>;
-export var Group: KonvaNodeComponent<Konva.Group, Konva.ContainerConfig>;
+export var Group: KonvaNodeComponent<Konva.Group, Konva.GroupConfig>;
 export var Label: KonvaNodeComponent<Konva.Label, Konva.LabelConfig>;
 
 /** Shapes */
