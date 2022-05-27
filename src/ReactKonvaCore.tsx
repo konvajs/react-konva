@@ -10,7 +10,7 @@
 import React from 'react';
 import Konva from 'konva/lib/Core';
 import ReactFiberReconciler from 'react-reconciler';
-import { LegacyRoot } from 'react-reconciler/constants';
+import { LegacyRoot, ConcurrentRoot } from 'react-reconciler/constants';
 import * as HostConfig from './ReactKonvaHostConfig';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates';
 
@@ -52,7 +52,7 @@ const StageWrap = (props) => {
 
     fiberRef.current = KonvaRenderer.createContainer(
       stage.current,
-      LegacyRoot,
+      ConcurrentRoot,
       false,
       null
     );
