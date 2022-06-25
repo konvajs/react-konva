@@ -58,6 +58,29 @@ describe('initial mounting and refs', () => {
     await render(React.createElement(App));
   });
 
+  it('check all refs', async () => {
+    const App = () => {
+      const stageRef = React.useRef<Konva.Stage>(null);
+      const layerRef = React.useRef<Konva.Layer>(null);
+      const rectRef = React.useRef<Konva.Rect>(null);
+
+      React.useEffect(() => {
+        expect(stageRef.current instanceof Konva.Stage).to.be.true;
+        expect(layerRef.current instanceof Konva.Layer).to.be.true;
+        expect(rectRef.current instanceof Konva.Rect).to.be.true;
+      });
+
+      return (
+        <Stage ref={stageRef}>
+          <Layer ref={layerRef}>
+            <Rect ref={rectRef} />
+          </Layer>
+        </Stage>
+      );
+    };
+    await render(React.createElement(App));
+  });
+
   it('no fail on no ref', async () => {
     await render(<Stage />);
   });

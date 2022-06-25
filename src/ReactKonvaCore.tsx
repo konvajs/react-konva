@@ -52,7 +52,7 @@ const StageWrap = (props) => {
 
     fiberRef.current = KonvaRenderer.createContainer(
       stage.current,
-      ConcurrentRoot,
+      LegacyRoot,
       false,
       null
     );
