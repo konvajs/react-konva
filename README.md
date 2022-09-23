@@ -39,11 +39,11 @@ import Konva from 'konva';
 
 class ColoredRect extends React.Component {
   state = {
-    color: 'green'
+    color: 'green',
   };
   handleClick = () => {
     this.setState({
-      color: Konva.Util.getRandomColor()
+      color: Konva.Util.getRandomColor(),
     });
   };
   render() {
@@ -100,7 +100,9 @@ class MyShape extends React.Component {
     console.log(this.circle);
   }
   render() {
-    return <Circle ref={ref => (this.circle = ref)} radius={50} fill="black" />;
+    return (
+      <Circle ref={(ref) => (this.circle = ref)} radius={50} fill="black" />
+    );
   }
 }
 ```
@@ -159,24 +161,28 @@ By default `react-konva` imports full `Konva` version. With all the shapes and a
 
 ```javascript
 // load minimal version of 'react-konva`
-import { Stage, Layer, Rect } from "react-konva/lib/ReactKonvaCore";
+import { Stage, Layer, Rect } from 'react-konva/lib/ReactKonvaCore';
 
 // minimal version has NO support for core shapes and filters
 // if you want import a shape into Konva namespace you can just do this:
-import "konva/lib/shapes/Rect";
+import 'konva/lib/shapes/Rect';
 ```
 
 Demo: [https://codesandbox.io/s/6l97wny44z](https://codesandbox.io/s/6l97wny44z)
 
 ### Usage with React Context
-Due to a [known issue](https://github.com/facebook/react/issues/13336) with React, Contexts are not accessible by children of the react-konva `Stage` component. If you need to subscribe to a context from within the `Stage`, you need to "bridge" the context by creating a `Provider` as a child of the `Stage`. For more info, see [this discussion](https://github.com/konvajs/react-konva/issues/188#issuecomment-478302062) and this [react-redux demo](https://github.com/konvajs/react-konva/issues/311#issuecomment-454411007). Here is an example of bridging the context ([live demo](https://codesandbox.io/s/ykqw8r4r21)):
-```js
-import React, { Component } from "react";
-import Konva from "konva";
-import { render } from "react-dom";
-import { Stage, Layer, Rect } from "react-konva";
 
-const ThemeContext = React.createContext("red");
+**Note: this section may be not relevant, because this issue was fixed in `react-konva@18.2.2`. So context should work by default.**
+
+Due to a [known issue](https://github.com/facebook/react/issues/13336) with React, Contexts are not accessible by children of the react-konva `Stage` component. If you need to subscribe to a context from within the `Stage`, you need to "bridge" the context by creating a `Provider` as a child of the `Stage`. For more info, see [this discussion](https://github.com/konvajs/react-konva/issues/188#issuecomment-478302062) and this [react-redux demo](https://github.com/konvajs/react-konva/issues/311#issuecomment-454411007). Here is an example of bridging the context ([live demo](https://codesandbox.io/s/ykqw8r4r21)):
+
+```js
+import React, { Component } from 'react';
+import Konva from 'konva';
+import { render } from 'react-dom';
+import { Stage, Layer, Rect } from 'react-konva';
+
+const ThemeContext = React.createContext('red');
 
 const ThemedRect = () => {
   const value = React.useContext(ThemeContext);
@@ -188,7 +194,7 @@ const ThemedRect = () => {
 const Canvas = () => {
   return (
     <ThemeContext.Consumer>
-      {value => (
+      {(value) => (
         <Stage width={window.innerWidth} height={window.innerHeight}>
           <ThemeContext.Provider value={value}>
             <Layer>
@@ -236,8 +242,5 @@ The purpose of `react-konva` is to reduce the complexity of the application and 
 
 ## [CHANGELOG](https://github.com/konvajs/react-konva/releases)
 
-
 **Note: you can find a lot of demos and examples of using Konva there:
 [http://konvajs.github.io/](http://konvajs.github.io/). Really, just go there and take a look what Konva can do for you. You will be able to do the same with `react-konva` too.**
-
-
