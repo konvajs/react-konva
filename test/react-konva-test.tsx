@@ -6,7 +6,15 @@ import Konva from 'konva';
 import useImage from 'use-image';
 
 import './mocking';
-import { Stage, Rect, Layer, useStrictMode, Group, Text, Image } from '../';
+import {
+  Stage,
+  Rect,
+  Layer,
+  useStrictMode,
+  Group,
+  Text,
+  Image,
+} from '../src/ReactKonva';
 
 const render = async (component) => {
   const node = document.createElement('div');
@@ -934,7 +942,7 @@ describe('Test nested context API', async function () {
     }
   }
 
-  it.skip('test correct set', async function () {
+  it('test correct set', async function () {
     const { stage } = await render(<App />);
     expect(stage.findOne('Rect').fill()).to.equal('black');
   });

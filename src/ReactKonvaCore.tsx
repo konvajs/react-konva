@@ -13,6 +13,7 @@ import ReactFiberReconciler from 'react-reconciler';
 import { LegacyRoot, ConcurrentRoot } from 'react-reconciler/constants';
 import * as HostConfig from './ReactKonvaHostConfig';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates';
+import { useContextBridge, FiberProvider } from 'its-fine';
 
 function usePrevious(value) {
   const ref = React.useRef();
@@ -28,6 +29,7 @@ const StageWrap = (props) => {
   const fiberRef = React.useRef();
 
   const oldProps = usePrevious(props);
+  const Bridge = useContextBridge();
 
   const _setRef = (stage) => {
     const { forwardedRef } = props;
@@ -50,13 +52,17 @@ const StageWrap = (props) => {
 
     _setRef(stage.current);
 
+    // @ts-ignore
     fiberRef.current = KonvaRenderer.createContainer(
       stage.current,
       LegacyRoot,
       false,
       null
     );
-    KonvaRenderer.updateContainer(props.children, fiberRef.current);
+    KonvaRenderer.updateContainer(
+      React.createElement(Bridge, {}, props.children),
+      fiberRef.current
+    );
 
     return () => {
       if (!Konva.isBrowser) {
@@ -71,7 +77,11 @@ const StageWrap = (props) => {
   React.useLayoutEffect(() => {
     _setRef(stage.current);
     applyNodeProps(stage.current, props, oldProps);
-    KonvaRenderer.updateContainer(props.children, fiberRef.current, null);
+    KonvaRenderer.updateContainer(
+      React.createElement(Bridge, {}, props.children),
+      fiberRef.current,
+      null
+    );
   });
 
   return React.createElement('div', {
@@ -108,9 +118,11 @@ export const Arrow = 'Arrow';
 export const Shape = 'Shape';
 export const Transformer = 'Transformer';
 
+// @ts-ignore
 export const KonvaRenderer = ReactFiberReconciler(HostConfig);
 
 KonvaRenderer.injectIntoDevTools({
+  // @ts-ignore
   findHostInstanceByFiber: () => null,
   bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
   version: React.version,
@@ -118,7 +130,11 @@ KonvaRenderer.injectIntoDevTools({
 });
 
 export const Stage = React.forwardRef((props, ref) => {
-  return React.createElement(StageWrap, { ...props, forwardedRef: ref });
+  return React.createElement(
+    FiberProvider,
+    {},
+    React.createElement(StageWrap, { ...props, forwardedRef: ref })
+  );
 });
 
 export const useStrictMode = toggleStrictMode;

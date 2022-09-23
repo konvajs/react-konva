@@ -5,7 +5,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "jsx": "react"
+    "jsx": "react",
+    "skipLibCheck": false
   },
   "include": ["./src/**/*"],
   "files": [
