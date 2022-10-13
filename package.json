@@ -17,7 +17,7 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "its-fine": "^1.0.1",
+    "its-fine": "^1.0.6",
     "react-reconciler": "~0.29.0",
     "scheduler": "^0.23.0"
   },
@@ -48,14 +48,14 @@
     "@types/mocha": "^9.1.1",
     "@types/react": "18.0.21",
     "chai": "4.3.6",
-    "konva": "^8.3.12",
+    "konva": "^8.3.13",
     "mocha-headless-chrome": "^4.0.0",
     "parcel": "^2.7.0",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sinon": "^14.0.0",
-    "typescript": "^4.8.3",
+    "sinon": "^14.0.1",
+    "typescript": "^4.8.4",
     "use-image": "^1.1.0",
     "util": "^0.12.4"
   },
