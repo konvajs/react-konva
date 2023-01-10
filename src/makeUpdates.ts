@@ -60,7 +60,7 @@ export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
     var isEvent = key.slice(0, 2) === 'on';
     var propChanged = oldProps[key] !== props[key];
 
-    // if that is a changed event, we need to remvoe it
+    // if that is a changed event, we need to remove it
     if (isEvent && propChanged) {
       var eventName = key.substr(2).toLowerCase();
       if (eventName.substr(0, 7) === 'content') {
