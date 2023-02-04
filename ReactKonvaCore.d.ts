@@ -26,6 +26,18 @@ export interface KonvaNodeEvents {
   onTransformStart?(evt: Konva.KonvaEventObject<Event>): void;
   onTransformEnd?(evt: Konva.KonvaEventObject<Event>): void;
   onContextMenu?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerDown?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerMove?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerUp?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerCancel?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerEnter?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerLeave?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerOver?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerOut?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerClick?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerDblClick?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onGotPointerCapture?(evt: Konva.KonvaEventObject<PointerEvent>): void;
+  onLostPointerCapture?(evt: Konva.KonvaEventObject<PointerEvent>): void;
 }
 
 export interface KonvaNodeComponent<
