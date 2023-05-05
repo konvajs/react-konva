@@ -227,6 +227,24 @@ describe('Test stage component', async function () {
     const { stage } = await render(<App />);
     stage.simulateMouseDown({ x: 50, y: 50 });
   });
+
+  it('check div props', async function () {
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage width={300} height={300} id="hello">
+            <Layer>
+              <Rect width={100} height={100} />
+            </Layer>
+          </Stage>
+        );
+      }
+    }
+
+    const { stage } = await render(<App />);
+    expect(stage.id()).to.equal('hello');
+    expect(stage.container().id).to.equal('hello');
+  });
 });
 
 describe('Test props setting', async function () {

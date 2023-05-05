@@ -86,6 +86,7 @@ const StageWrap = (props) => {
 
   return React.createElement('div', {
     ref: container,
+    id: props.id,
     accessKey: props.accessKey,
     className: props.className,
     role: props.role,
