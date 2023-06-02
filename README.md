@@ -216,6 +216,8 @@ Note: `react-konva` is designed to work in the client-side. On the server side, 
 
 > Module not found: Can't resolve 'canvas'
 
+Why do we see this error? `canvas` module is used for canvas rendering in Node.JS environment. `konva` library will use it there, but it doesn't have this dependency explicitly.
+
 You have two ways to resolve the issue:
 
 #### 1. Use dynamic loading
@@ -224,7 +226,7 @@ https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
 
 Based on this comment: https://github.com/konvajs/react-konva/issues/588#issuecomment-892895335
 
-With this approach your canvas application will be loaded on the client-side only. So you will not have any issues with server-side rendering.
+With this approach your canvas application will be loaded on the client-side only. So you will not have any issues with server-side rendering. Also `next.js` will automatically understand that it doesn't need to load `canvas` module, because it is used for server-side rendering only.
 I would recommend to use this approach.
 
 You need to define your canvas components somewhere in your `components` folder. It shouldn't be inside `pages` or `app` folder (because they are used for server rendering).
