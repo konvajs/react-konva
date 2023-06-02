@@ -234,6 +234,7 @@ You need to define your canvas components somewhere in your `components` folder.
 Your `components/canvas.js` file may look like this:
 
 ```js
+'use client';
 import { Stage, Layer, Circle } from 'react-konva';
 
 function Canvas(props) {
