@@ -37,45 +37,36 @@ import { render } from 'react-dom';
 import { Stage, Layer, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 
-class ColoredRect extends React.Component {
-  state = {
-    color: 'green',
-  };
-  handleClick = () => {
-    this.setState({
-      color: Konva.Util.getRandomColor(),
-    });
-  };
-  render() {
-    return (
-      <Rect
-        x={20}
-        y={20}
-        width={50}
-        height={50}
-        fill={this.state.color}
-        shadowBlur={5}
-        onClick={this.handleClick}
-      />
-    );
-  }
-}
+const ColoredRect = () => {
+  const [color, setColor] = useState('green');
 
-class App extends Component {
-  render() {
-    // Stage is a div container
-    // Layer is actual canvas element (so you may have several canvases in the stage)
-    // And then we have canvas shapes inside the Layer
-    return (
-      <Stage width={window.innerWidth} height={window.innerHeight}>
-        <Layer>
-          <Text text="Try click on rect" />
-          <ColoredRect />
-        </Layer>
-      </Stage>
-    );
-  }
-}
+  const handleClick = () => {
+    setColor(Konva.Util.getRandomColor());
+  };
+
+  return (
+    <Rect
+      x={20}
+      y={20}
+      width={50}
+      height={50}
+      fill={color}
+      shadowBlur={5}
+      onClick={handleClick}
+    />
+  );
+};
+
+const App = () => {
+  return (
+    <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Layer>
+        <Text text="Try click on rect" />
+        <ColoredRect />
+      </Layer>
+    </Stage>
+  );
+};
 
 render(<App />, document.getElementById('root'));
 ```
@@ -94,17 +85,18 @@ To get more info about `Konva` you can read
 To get reference of `Konva` instance of a node you can use `ref` property.
 
 ```javascript
-class MyShape extends React.Component {
-  componentDidMount() {
+import React, { useEffect, useRef } from 'react';
+
+const MyShape = () => {
+  const circleRef = useRef();
+
+  useEffect(() => {
     // log Konva.Circle instance
-    console.log(this.circle);
-  }
-  render() {
-    return (
-      <Circle ref={(ref) => (this.circle = ref)} radius={50} fill="black" />
-    );
-  }
-}
+    console.log(circleRef.current);
+  }, []);
+
+  return <Circle ref={circleRef} radius={50} fill="black" />;
+};
 ```
 
 ### Strict mode
@@ -218,6 +210,67 @@ class App extends Component {
 }
 ```
 
+### Usage with Next.js
+
+Note: `react-konva` is designed to work in the client-side. On the server side, it will render just empty div. So it doesn't make much sense to use react-konva for server-side rendering. In Next.js you may have issue like
+
+> Module not found: Can't resolve 'canvas'
+
+You have two ways to resolve the issue:
+
+#### 1. Use dynamic loading
+
+https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
+
+Based on this comment: https://github.com/konvajs/react-konva/issues/588#issuecomment-892895335
+
+With this approach your canvas application will be loaded on the client-side only. So you will not have any issues with server-side rendering.
+I would recommend to use this approach.
+
+You need to define your canvas components somewhere in your `components` folder. It shouldn't be inside `pages` or `app` folder (because they are used for server rendering).
+
+Your `components/canvas.js` file may look like this:
+
+```js
+import { Stage, Layer, Circle } from 'react-konva';
+
+function Canvas(props) {
+  return (
+    <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Layer>
+        <Circle x={200} y={100} radius={50} fill="green" />
+      </Layer>
+    </Stage>
+  );
+}
+
+export default Canvas;
+```
+
+Then you can use it in your page like this:
+
+```js
+import dynamic from 'next/dynamic';
+
+const Canvas = dynamic(() => import('../components/canvas'), {
+  ssr: false,
+});
+
+export default function Page(props) {
+  return <Canvas />;
+}
+```
+
+#### 2. Install `canvas` package manually
+
+To just ignore the error from Next.JS you can install `canvas` module manually:
+
+```bash
+npm install canvas
+```
+
+Next.js will still try to load full canvas module on the server-side, but it will not fail.
+
 ## Comparisons
 
 ### react-konva vs react-canvas
@@ -244,3 +297,7 @@ The purpose of `react-konva` is to reduce the complexity of the application and 
 
 **Note: you can find a lot of demos and examples of using Konva there:
 [http://konvajs.github.io/](http://konvajs.github.io/). Really, just go there and take a look what Konva can do for you. You will be able to do the same with `react-konva` too.**
+
+```
+
+```
