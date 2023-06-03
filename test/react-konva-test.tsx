@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { unstable_batchedUpdates as batchedUpdates } from 'react-dom';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import Konva from 'konva';
@@ -1262,5 +1263,78 @@ describe('external', () => {
 
     const { stage } = await render(<App />);
     expect(typeof stage.findOne('Rect')._applyProps).to.equal('function');
+  });
+});
+
+describe('update order', () => {
+  const store = {
+    listeners: [],
+    state: {
+      name: 'test',
+    },
+    getState() {
+      return store.state;
+    },
+    subscribe(cb) {
+      this.listeners.push(cb);
+    },
+    async dispatch() {
+      await Promise.resolve();
+
+      this.state = {
+        name: 'test2',
+      };
+      this.listeners.forEach((cb) => cb());
+    },
+  };
+
+  function useSelector(selector) {
+    return React.useSyncExternalStore(
+      (callback) => store.subscribe(callback),
+      () => store.getState(),
+      undefined,
+      selector
+    );
+  }
+
+  const App = () => {
+    return (
+      <Stage width={window.innerWidth} height={window.innerHeight}>
+        <ViewLayer />
+      </Stage>
+    );
+  };
+
+  const renderCallStack = [];
+  function ViewLayer() {
+    renderCallStack.push('ViewLayer');
+
+    useSelector((state) => state.name);
+
+    return (
+      <Layer>
+        <ViewText />
+      </Layer>
+    );
+  }
+
+  function ViewText() {
+    renderCallStack.push('ViewText');
+
+    const name = useSelector((state) => state.name);
+
+    return <Text text={name} fontSize={15} />;
+  }
+
+  it.skip('update order', async function () {
+    const { stage } = await render(<App />);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await store.dispatch();
+    expect(renderCallStack).to.deep.equal([
+      'ViewLayer',
+      'ViewText',
+      'ViewLayer',
+      'ViewText',
+    ]);
   });
 });
