@@ -968,31 +968,30 @@ describe('Test nested context API', async function () {
 
 // wait for react team response
 describe('try lazy and suspense', async function () {
-  const LazyRect = React.lazy(() => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          default: () => <Rect />,
-        });
-      }, 5);
-    });
-  });
-
-  class App extends React.Component {
-    render() {
-      return (
-        <Stage width={300} height={300}>
-          <Layer>
-            <React.Suspense fallback={<Text text="fallback" />}>
-              <LazyRect />
-            </React.Suspense>
-          </Layer>
-        </Stage>
-      );
-    }
-  }
-
   it('can use lazy and suspense', async function () {
+    const LazyRect = React.lazy(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            default: () => <Rect />,
+          });
+        }, 5);
+      });
+    });
+
+    class App extends React.Component {
+      render() {
+        return (
+          <Stage width={300} height={300}>
+            <Layer>
+              <React.Suspense fallback={<Text text="fallback" />}>
+                <LazyRect />
+              </React.Suspense>
+            </Layer>
+          </Stage>
+        );
+      }
+    }
     const { stage } = await render(<App />);
     expect(stage.find('Text').length).to.equal(1);
     expect(stage.find('Shape').length).to.equal(1);
@@ -1001,6 +1000,52 @@ describe('try lazy and suspense', async function () {
     expect(stage.find('Text').length).to.equal(0);
     expect(stage.find('Rect').length).to.equal(1);
     expect(stage.find('Shape').length).to.equal(1);
+  });
+
+  it('suspends whole stage', async () => {
+    const LazyDiv = React.lazy(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            default: () => <div />,
+          });
+        }, 500);
+      });
+    });
+
+    const Canvas = () => {
+      return (
+        <Stage width={300} height={300} draggable>
+          <Layer>
+            <Rect width={100} height={100} fill="red" />
+          </Layer>
+        </Stage>
+      );
+    };
+    class App extends React.Component {
+      render() {
+        return (
+          <div>
+            <React.Suspense fallback={<div />}>
+              {this.props.showLazy && <LazyDiv />}
+              <Canvas />
+            </React.Suspense>
+          </div>
+        );
+      }
+    }
+
+    // render without lazy first
+    const { stage, rerender } = await render(<App showLazy={false} />);
+    expect(stage.draggable()).to.equal(true);
+    // then show lazy
+    await rerender(<App showLazy={true} />);
+    // wait till lazy component is loaded
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    lastStage = Konva.stages[Konva.stages.length - 1];
+    // make sure all properties are set correctly
+    expect(lastStage).to.not.equal(stage);
+    expect(lastStage.draggable()).to.equal(true);
   });
 });
 

@@ -20,6 +20,15 @@ function usePrevious(value) {
   React.useLayoutEffect(() => {
     ref.current = value;
   });
+  React.useLayoutEffect(() => {
+    return () => {
+      // when using suspense it is possible that stage is unmounted
+      // but React still keep component ref
+      // in that case we need to manually flush props
+      // we have a special test for that
+      ref.current = {};
+    };
+  }, []);
   return ref.current;
 }
 
