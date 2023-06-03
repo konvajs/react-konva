@@ -1266,6 +1266,7 @@ describe('external', () => {
   });
 });
 
+// reference for the test: https://github.com/konvajs/react-konva/issues/748
 describe('update order', () => {
   const store = {
     listeners: [],
