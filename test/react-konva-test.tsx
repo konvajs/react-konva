@@ -1042,7 +1042,7 @@ describe('try lazy and suspense', async function () {
     await rerender(<App showLazy={true} />);
     // wait till lazy component is loaded
     await new Promise((resolve) => setTimeout(resolve, 550));
-    lastStage = Konva.stages[Konva.stages.length - 1];
+    let lastStage = Konva.stages[Konva.stages.length - 1];
     // make sure all properties are set correctly
     expect(lastStage).to.not.equal(stage);
     expect(lastStage.draggable()).to.equal(true);
