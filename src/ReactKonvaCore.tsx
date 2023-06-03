@@ -16,7 +16,7 @@ import { applyNodeProps, toggleStrictMode } from './makeUpdates';
 import { useContextBridge, FiberProvider } from 'its-fine';
 
 function usePrevious(value) {
-  const ref = React.useRef();
+  const ref = React.useRef(value);
   React.useLayoutEffect(() => {
     ref.current = value;
   });
