@@ -253,6 +253,7 @@ export default Canvas;
 Then you can use it in your page like this:
 
 ```js
+'use client';
 import dynamic from 'next/dynamic';
 
 const Canvas = dynamic(() => import('../components/canvas'), {
