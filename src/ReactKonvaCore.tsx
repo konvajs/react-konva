@@ -8,11 +8,11 @@
 'use strict';
 
 import React from 'react';
-import Konva from 'konva/lib/Core';
+import Konva from 'konva/lib/Core.js';
 import ReactFiberReconciler from 'react-reconciler';
-import { LegacyRoot, ConcurrentRoot } from 'react-reconciler/constants';
-import * as HostConfig from './ReactKonvaHostConfig';
-import { applyNodeProps, toggleStrictMode } from './makeUpdates';
+import { LegacyRoot, ConcurrentRoot } from 'react-reconciler/constants.js';
+import * as HostConfig from './ReactKonvaHostConfig.js';
+import { applyNodeProps, toggleStrictMode } from './makeUpdates.js';
 import { useContextBridge, FiberProvider } from 'its-fine';
 
 function usePrevious(value) {

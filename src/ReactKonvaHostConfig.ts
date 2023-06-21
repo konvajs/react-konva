@@ -1,12 +1,12 @@
-import Konva from 'konva/lib/Core';
-import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates';
+import Konva from 'konva/lib/Core.js';
+import { applyNodeProps, updatePicture, EVENTS_NAMESPACE } from './makeUpdates.js';
 
 export {
   unstable_now as now,
   unstable_IdlePriority as idlePriority,
   unstable_runWithPriority as run,
 } from 'scheduler';
-import { DefaultEventPriority } from 'react-reconciler/constants';
+import { DefaultEventPriority } from 'react-reconciler/constants.js';
 
 const NO_CONTEXT = {};
 const UPDATE_SIGNAL = {};

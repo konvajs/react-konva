@@ -1,4 +1,4 @@
-import { Konva } from 'konva/lib/Global';
+import { Konva } from 'konva/lib/Global.js';
 
 const propsToSkip = {
   children: true,
