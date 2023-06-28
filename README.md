@@ -32,7 +32,7 @@ npm install react-konva konva --save
 ## Example
 
 ```javascript
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { render } from 'react-dom';
 import { Stage, Layer, Rect, Text } from 'react-konva';
 import Konva from 'konva';
