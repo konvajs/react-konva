@@ -224,7 +224,7 @@ https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
 
 Based on this comment: https://github.com/konvajs/react-konva/issues/588#issuecomment-892895335
 
-With this approach your canvas application will be loaded on the client-side only. So you will not have any issues with server-side rendering. Also `next.js` will automatically understand that it doesn't need to load `canvas` module, because it is used for server-side rendering only.
+With this approach your canvas component will be loaded on the client-side only. So you will not have any issues with server-side rendering. Also `next.js` will automatically understand that it doesn't need to load `canvas` module, because it is used for server-side rendering only.
 I would recommend to use this approach.
 
 You need to define your canvas components somewhere in your `components` folder. It shouldn't be inside `pages` or `app` folder (because they are used for server rendering).
@@ -232,7 +232,6 @@ You need to define your canvas components somewhere in your `components` folder.
 Your `components/canvas.js` file may look like this:
 
 ```js
-'use client';
 import { Stage, Layer, Circle } from 'react-konva';
 
 function Canvas(props) {
@@ -248,7 +247,7 @@ function Canvas(props) {
 export default Canvas;
 ```
 
-Then you can use it in your page like this:
+Then you can use it in your page. Notice it is imported to have `'use client';`.
 
 ```js
 'use client';
