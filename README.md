@@ -218,9 +218,7 @@ Note: `react-konva` is designed to work in the client-side. On the server side, 
 
 Why do we see this error? `canvas` module is used for canvas rendering in Node.JS environment. `konva` library will use it there, but it doesn't have this dependency explicitly.
 
-You have two ways to resolve the issue:
-
-#### 1. Use dynamic loading
+#### Use dynamic loading
 
 https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
 
@@ -264,16 +262,6 @@ export default function Page(props) {
   return <Canvas />;
 }
 ```
-
-#### 2. Install `canvas` package manually
-
-To just ignore the error from Next.JS you can install `canvas` module manually:
-
-```bash
-npm install canvas
-```
-
-Next.js will still try to load full canvas module on the server-side, but it will not fail.
 
 ## Comparisons
 
