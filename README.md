@@ -162,6 +162,75 @@ import 'konva/lib/shapes/Rect';
 
 Demo: [https://codesandbox.io/s/6l97wny44z](https://codesandbox.io/s/6l97wny44z)
 
+### Usage with Next.js
+
+Note: `react-konva` is designed to work in the client-side. On the server side, it will render just empty div. So it doesn't make much sense to use react-konva for server-side rendering. In Next.js you may have issue like
+
+> Module not found: Can't resolve 'canvas'
+
+Why do we see this error? `canvas` module is used for canvas rendering in Node.JS environment. `konva` library will use it there, but it doesn't have this dependency explicitly.
+
+#### Use dynamic loading
+
+Next.js docs: https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
+
+With this approach your canvas component will be loaded on the client-side only. So you will not have any issues with server-side rendering. Also `next.js` will automatically understand that it doesn't need to load `canvas` module, because it is used for server-side rendering only.
+
+#### (1) Create canvas component
+
+You need to define your canvas components somewhere in your `components` folder. **It must be placed outside of `pages` or `app` folder (because they are used for server rendering).**
+
+Your `components/canvas.js` file may look like this:
+
+```js
+import { Stage, Layer, Circle } from 'react-konva';
+
+function Canvas(props) {
+  return (
+    <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Layer>
+        <Circle x={200} y={100} radius={50} fill="green" />
+      </Layer>
+    </Stage>
+  );
+}
+
+export default Canvas;
+```
+
+#### (2) Use dynamic import
+
+Then you can use it in your page. Notice, it is imported to have `'use client';`.
+
+```js
+'use client';
+import dynamic from 'next/dynamic';
+
+const Canvas = dynamic(() => import('../components/canvas'), {
+  ssr: false,
+});
+
+export default function Page(props) {
+  return <Canvas />;
+}
+```
+
+#### (3) Setup next.config.js
+
+In some versions of next.js you may need to set up `next.config.js` to make it work:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  webpack: (config) => {
+    config.externals = [...config.externals, { canvas: 'canvas' }]; // required to make Konva & react-konva work
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+```
+
 ### Usage with React Context
 
 **Note: this section may be not relevant, because this issue was fixed in `react-konva@18.2.2`. So context should work by default.**
@@ -207,58 +276,6 @@ class App extends Component {
       </ThemeContext.Provider>
     );
   }
-}
-```
-
-### Usage with Next.js
-
-Note: `react-konva` is designed to work in the client-side. On the server side, it will render just empty div. So it doesn't make much sense to use react-konva for server-side rendering. In Next.js you may have issue like
-
-> Module not found: Can't resolve 'canvas'
-
-Why do we see this error? `canvas` module is used for canvas rendering in Node.JS environment. `konva` library will use it there, but it doesn't have this dependency explicitly.
-
-#### Use dynamic loading
-
-https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
-
-Based on this comment: https://github.com/konvajs/react-konva/issues/588#issuecomment-892895335
-
-With this approach your canvas component will be loaded on the client-side only. So you will not have any issues with server-side rendering. Also `next.js` will automatically understand that it doesn't need to load `canvas` module, because it is used for server-side rendering only.
-I would recommend to use this approach.
-
-You need to define your canvas components somewhere in your `components` folder. It shouldn't be inside `pages` or `app` folder (because they are used for server rendering).
-
-Your `components/canvas.js` file may look like this:
-
-```js
-import { Stage, Layer, Circle } from 'react-konva';
-
-function Canvas(props) {
-  return (
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer>
-        <Circle x={200} y={100} radius={50} fill="green" />
-      </Layer>
-    </Stage>
-  );
-}
-
-export default Canvas;
-```
-
-Then you can use it in your page. Notice it is imported to have `'use client';`.
-
-```js
-'use client';
-import dynamic from 'next/dynamic';
-
-const Canvas = dynamic(() => import('../components/canvas'), {
-  ssr: false,
-});
-
-export default function Page(props) {
-  return <Canvas />;
 }
 ```
 
