@@ -176,9 +176,11 @@ Next.js docs: https://nextjs.org/docs/pages/building-your-application/optimizing
 
 With this approach your canvas component will be loaded on the client-side only. So you will not have any issues with server-side rendering. Also `next.js` will automatically understand that it doesn't need to load `canvas` module, because it is used for server-side rendering only.
 
-#### (1) Create canvas component
+#### Step 1 - Create canvas component
 
-You need to define your canvas components somewhere in your `components` folder. **It must be placed outside of `pages` or `app` folder (because they are used for server rendering).**
+You need to define your canvas components somewhere in your `components` folder.
+
+**It must be placed outside of `pages` or `app` folder (because they are used for server rendering).**
 
 Your `components/canvas.js` file may look like this:
 
@@ -198,7 +200,7 @@ function Canvas(props) {
 export default Canvas;
 ```
 
-#### (2) Use dynamic import
+#### Step 2 - Use dynamic import
 
 Then you can use it in your page. Notice, it is imported to have `'use client';`.
 
@@ -215,7 +217,7 @@ export default function Page(props) {
 }
 ```
 
-#### (3) Setup next.config.js
+#### Step 3 - Setup next.config.js
 
 In some versions of next.js you may need to set up `next.config.js` to make it work:
 
