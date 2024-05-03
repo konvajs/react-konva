@@ -11,3 +11,4 @@ test-build
 .parcel-cache
 dist
 package-lock.json
+.vscode

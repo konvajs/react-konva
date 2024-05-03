@@ -1,6 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { unstable_batchedUpdates as batchedUpdates } from 'react-dom';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import Konva from 'konva';
@@ -17,26 +16,22 @@ import {
   Image,
 } from '../src/ReactKonva';
 
+global.IS_REACT_ACT_ENVIRONMENT = true;
+
 const render = async (component) => {
   const node = document.createElement('div');
   document.body.appendChild(node);
   const root = createRoot(node);
-  const App = ({ onUpdate, children }) => {
-    React.useEffect(() => {
-      onUpdate(null);
-    });
-    return children;
-  };
 
-  await new Promise((resolve) => {
-    root.render(<App onUpdate={resolve}>{component}</App>);
+  await React.act(() => {
+    root.render(component);
   });
 
   return {
     stage: Konva.stages[Konva.stages.length - 1],
     rerender: async (component) => {
-      await new Promise((resolve) => {
-        root.render(<App onUpdate={resolve}>{component}</App>);
+      await React.act(() => {
+        root.render(component);
       });
     },
   };
@@ -68,16 +63,14 @@ describe('initial mounting and refs', () => {
   });
 
   it('check all refs', async () => {
-    const App = () => {
-      const stageRef = React.useRef<Konva.Stage>(null);
-      const layerRef = React.useRef<Konva.Layer>(null);
-      const rectRef = React.useRef<Konva.Rect>(null);
+    let stageRef;
+    let layerRef;
+    let rectRef;
 
-      React.useEffect(() => {
-        expect(stageRef.current instanceof Konva.Stage).to.be.true;
-        expect(layerRef.current instanceof Konva.Layer).to.be.true;
-        expect(rectRef.current instanceof Konva.Rect).to.be.true;
-      });
+    const App = () => {
+      stageRef = React.useRef<Konva.Stage>(null);
+      layerRef = React.useRef<Konva.Layer>(null);
+      rectRef = React.useRef<Konva.Rect>(null);
 
       return (
         <Stage ref={stageRef}>
@@ -88,6 +81,9 @@ describe('initial mounting and refs', () => {
       );
     };
     await render(React.createElement(App));
+    expect(stageRef.current instanceof Konva.Stage).to.be.true;
+    expect(layerRef.current instanceof Konva.Layer).to.be.true;
+    expect(rectRef.current instanceof Konva.Rect).to.be.true;
   });
 
   it('no fail on no ref', async () => {
@@ -133,7 +129,7 @@ describe('initial mounting and refs', () => {
         expect((ref.current as any) instanceof Konva.Rect).to.be.true;
       });
       return (
-        <Stage ref={stageRef} name="hello">
+        <Stage ref={stageRef} name='hello'>
           <Layer>
             <MyRect ref={ref} />
           </Layer>
@@ -188,7 +184,9 @@ describe('Test stage component', async function () {
     }
 
     const { stage } = await render(<App />);
-    stage.simulateMouseDown({ x: 50, y: 50 });
+    await React.act(() => {
+      stage.simulateMouseDown({ x: 50, y: 50 });
+    });
     expect(eventCount).to.equal(1);
   });
 
@@ -226,7 +224,9 @@ describe('Test stage component', async function () {
     }
 
     const { stage } = await render(<App />);
-    stage.simulateMouseDown({ x: 50, y: 50 });
+    await React.act(() => {
+      stage.simulateMouseDown({ x: 50, y: 50 });
+    });
   });
 
   it('check div props', async function () {
@@ -281,10 +281,6 @@ describe('Test props setting', async function () {
     };
 
     await setProps({ rectProps: props1 });
-    await new Promise((resolve) => {
-      setTimeout(resolve, 100);
-    });
-
     expect(rect.width()).to.equal(100);
 
     const props2 = {
@@ -611,6 +607,11 @@ describe('Check id saving', () => {
 });
 
 describe('Test drawing calls', () => {
+  afterEach(() => {
+    Konva.Layer.prototype.batchDraw.restore &&
+      Konva.Layer.prototype.batchDraw.restore();
+  });
+
   it('Draw layer on mount', async function () {
     class App extends React.Component {
       render() {
@@ -674,6 +675,11 @@ describe('Test drawing calls', () => {
 });
 
 describe('test reconciler', () => {
+  afterEach(() => {
+    Konva.Layer.prototype.batchDraw.restore &&
+      Konva.Layer.prototype.batchDraw.restore();
+  });
+
   it('add before', async function () {
     class App extends React.Component {
       render() {
@@ -844,10 +850,16 @@ describe('test reconciler', () => {
 
     const rect1 = layer.findOne('.rect1');
 
-    layer.getStage().simulateMouseDown({ x: 5, y: 5 });
-    rect1.startDrag();
-    // move mouse
-    layer.getStage().simulateMouseMove({ x: 10, y: 10 });
+    await React.act(() => {
+      layer.getStage().simulateMouseDown({ x: 5, y: 5 });
+    });
+    await React.act(() => {
+      rect1.startDrag();
+    });
+    await React.act(() => {
+      // move mouse
+      layer.getStage().simulateMouseMove({ x: 10, y: 10 });
+    });
 
     expect(rect1.isDragging()).to.equal(true);
 
@@ -885,9 +897,14 @@ describe('test reconciler', () => {
     const { stage } = await render(<App />);
 
     expect(stage.findOne('Rect').fill()).to.equal('black');
-    stage.simulateMouseDown({ x: 50, y: 50 });
-    stage.simulateMouseMove({ x: 55, y: 55 });
-    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    await React.act(() => {
+      stage.simulateMouseDown({ x: 50, y: 50 });
+    });
+    await React.act(() => {
+      stage.simulateMouseMove({ x: 55, y: 55 });
+    });
+    window.stage = stage;
     expect(stage.findOne('Rect').isDragging()).to.equal(true);
     expect(stage.findOne('Rect').fill()).to.equal('red');
   });
@@ -970,13 +987,10 @@ describe('Test nested context API', async function () {
 // wait for react team response
 describe('try lazy and suspense', async function () {
   it('can use lazy and suspense', async function () {
+    let resolvePromise;
     const LazyRect = React.lazy(() => {
       return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            default: () => <Rect />,
-          });
-        }, 5);
+        resolvePromise = resolve;
       });
     });
 
@@ -997,20 +1011,21 @@ describe('try lazy and suspense', async function () {
     expect(stage.find('Text').length).to.equal(1);
     expect(stage.find('Shape').length).to.equal(1);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await React.act(() => {
+      resolvePromise({
+        default: () => <Rect />,
+      });
+    });
     expect(stage.find('Text').length).to.equal(0);
     expect(stage.find('Rect').length).to.equal(1);
     expect(stage.find('Shape').length).to.equal(1);
   });
 
   it('suspends whole stage', async () => {
+    let promiseResolve;
     const LazyDiv = React.lazy(() => {
       return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            default: () => <div />,
-          });
-        }, 500);
+        promiseResolve = resolve;
       });
     });
 
@@ -1042,7 +1057,9 @@ describe('try lazy and suspense', async function () {
     // then show lazy
     await rerender(<App showLazy={true} />);
     // wait till lazy component is loaded
-    await new Promise((resolve) => setTimeout(resolve, 550));
+    await React.act(() => {
+      promiseResolve({ default: () => <div /> });
+    });
     let lastStage = Konva.stages[Konva.stages.length - 1];
     // make sure all properties are set correctly
     expect(lastStage).to.not.equal(stage);
@@ -1117,8 +1134,9 @@ describe('Hooks', async function () {
     const { stage } = await render(<App />);
 
     expect(stage.findOne('Rect').fill()).to.equal('black');
-    stage.simulateMouseDown({ x: 50, y: 50 });
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await React.act(() => {
+      stage.simulateMouseDown({ x: 50, y: 50 });
+    });
     expect(stage.findOne('Rect').fill()).to.equal('red');
   });
 
@@ -1137,14 +1155,10 @@ describe('Hooks', async function () {
     };
     const { stage, rerender } = await render(<App />);
 
-    // not sure why timeouts are required
-    // are hooks async?
-    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(callCount).to.equal(1);
 
     rerender(<App randomProp={1} />);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(callCount).to.equal(2);
   });
 
@@ -1173,9 +1187,6 @@ describe('Hooks', async function () {
     };
     const { stage } = await render(<App />);
 
-    // not sure why timeouts are required
-    // are hooks async?
-    await new Promise((resolve) => setTimeout(resolve, 50));
     const rect = stage.findOne('Rect');
 
     expect(rect.name()).to.equal('rect name');
@@ -1329,7 +1340,6 @@ describe('update order', () => {
 
   it.skip('update order', async function () {
     const { stage } = await render(<App />);
-    await new Promise((resolve) => setTimeout(resolve, 150));
     await store.dispatch();
     expect(renderCallStack).to.deep.equal([
       'ViewLayer',

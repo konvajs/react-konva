@@ -2,7 +2,7 @@
   "license": "MIT",
   "name": "react-konva",
   "description": "React binding to canvas element via Konva framework",
-  "version": "18.2.10",
+  "version": "19.0.0",
   "keywords": [
     "react",
     "canvas",
@@ -18,9 +18,9 @@
   },
   "dependencies": {
     "@types/react-reconciler": "^0.28.2",
-    "its-fine": "^1.1.1",
-    "react-reconciler": "~0.29.0",
-    "scheduler": "^0.23.0"
+    "its-fine": "^1.2.5",
+    "react-reconciler": "0.31.0-beta-73bcdfbae5-20240502",
+    "scheduler": "0.25.0-beta-73bcdfbae5-20240502"
   },
   "targets": {
     "none": {}
@@ -41,8 +41,8 @@
   ],
   "peerDependencies": {
     "konva": "^8.0.1 || ^7.2.5 || ^9.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": ">=19.0.0-beta",
+    "react-dom": ">=19.0.0-beta"
   },
   "devDependencies": {
     "@types/chai": "^4.3.5",
@@ -53,8 +53,8 @@
     "mocha-headless-chrome": "^4.0.0",
     "parcel": "^2.9.1",
     "process": "^0.11.10",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.0.0-beta-73bcdfbae5-20240502",
+    "react-dom": "19.0.0-beta-73bcdfbae5-20240502",
     "sinon": "^15.1.0",
     "timers-browserify": "^2.0.12",
     "typescript": "^5.1.3",
@@ -67,9 +67,9 @@
     "preversion": "npm test",
     "version": "npm run build",
     "postversion": "",
-    "test": "npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
-    "test:build": "parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
-    "test:watch": "rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
+    "test": "NODE_ENV=test npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
+    "test:build": "NODE_ENV=test parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
+    "test:watch": "NODE_ENV=test rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
   },
   "typings": "react-konva.d.ts",
   "files": [
