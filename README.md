@@ -1,6 +1,8 @@
 # React Konva
 
-[![Build Status](https://travis-ci.org/konvajs/react-konva.svg?branch=master)](https://travis-ci.org/konvajs/react-konva) [![Greenkeeper badge](https://badges.greenkeeper.io/konvajs/react-konva.svg)](https://greenkeeper.io/)
+[![Financial Contributors on Open Collective](https://opencollective.com/konva/all/badge.svg?label=financial+contributors)](https://opencollective.com/konva)
+[![npm version](https://badge.fury.io/js/react-konva.svg)](http://badge.fury.io/js/react-konva)
+[![Build Status](https://github.com/konvajs/react-konva/actions/workflows/test.yml/badge.svg)](https://github.com/konvajs/react-konva/actions/workflows/test.ym)
 
 ![ReactKonva Logo](https://cloud.githubusercontent.com/assets/1443320/12193428/3bda2fcc-b623-11e5-8319-b1ccfc95eaec.png)
 

@@ -11,7 +11,7 @@ export {
   unstable_runWithPriority as run,
 } from 'scheduler';
 import {
-  NoEventPriority,
+  // NoEventPriority,
   DefaultEventPriority,
 } from 'react-reconciler/constants.js';
 
@@ -21,7 +21,8 @@ const UPDATE_SIGNAL = {};
 // for react-spring capability
 (Konva.Node.prototype as any)._applyProps = applyNodeProps;
 
-let currentUpdatePriority: number = NoEventPriority;
+// let currentUpdatePriority: number = NoEventPriority;
+let currentUpdatePriority: number = DefaultEventPriority;
 
 export function appendInitialChild(parentInstance, child) {
   if (typeof child === 'string') {
@@ -191,12 +192,7 @@ export function commitMount(instance, type, newProps) {
   // Noop
 }
 
-export function commitUpdate(
-  instance,
-  type,
-  oldProps,
-  newProps
-) {
+export function commitUpdate(instance, type, oldProps, newProps) {
   applyNodeProps(instance, newProps, oldProps);
 }
 
