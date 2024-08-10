@@ -9,11 +9,37 @@
 
 import React from 'react';
 import Konva from 'konva/lib/Core.js';
-import ReactFiberReconciler from 'react-reconciler';
+import ReactFiberReconciler, {
+  RootTag,
+  SuspenseHydrationCallbacks,
+  TransitionTracingCallbacks,
+} from 'react-reconciler';
 import { LegacyRoot } from 'react-reconciler/constants.js';
 import * as HostConfig from './ReactKonvaHostConfig.js';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates.js';
 import { useContextBridge, FiberProvider } from 'its-fine';
+import { Container } from 'konva/lib/Container.js';
+
+/**
+ * React 19 introduced a new `ReactFiberReconciler.createContainer` signature 
+ * with more error handling options [1]. The DefinitelyTyped types are also
+ * out of date because of this [2].
+ * 
+ * 1. https://github.com/facebook/react/commit/a0537160771bafae90c6fd3154eeead2f2c903e7
+ * 2. https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react-reconciler/index.d.ts#L920
+ */
+type NewCreateContainer = (
+  containerInfo: Container,
+  tag: RootTag,
+  hydrationCallbacks: null | SuspenseHydrationCallbacks<any>,
+  isStrictMode: boolean,
+  concurrentUpdatesByDefaultOverride: null | boolean,
+  identifierPrefix: string,
+  onUncaughtError: (error: Error) => void,
+  onCaughtError: (error: Error) => void,
+  onRecoverableError: (error: Error) => void,
+  transitionCallbacks: null | TransitionTracingCallbacks
+) => ReactFiberReconciler.FiberRoot;
 
 function usePrevious(value) {
   const ref = React.useRef({});
@@ -61,12 +87,18 @@ const StageWrap = (props) => {
 
     _setRef(stage.current);
 
-    // @ts-ignore
-    fiberRef.current = KonvaRenderer.createContainer(
+    // @ts-ignore 
+    fiberRef.current = (KonvaRenderer.createContainer as NewCreateContainer)(
       stage.current,
       LegacyRoot,
-      false,
-      null
+      null,
+      null,
+      undefined,
+      undefined,
+      console.error, 
+      console.error,
+      console.error,
+      null,
     );
     KonvaRenderer.updateContainer(
       React.createElement(Bridge, {}, props.children),
