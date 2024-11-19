@@ -23,6 +23,11 @@ and to have similar data-flow model.
 Currently you can use all `Konva` components as React components and all `Konva`
 events are supported on them in same way as normal browser events are supported.
 
+## React-Konva AI Bot
+
+[React-Konva](https://codeparrot.ai/oracle?owner=konvajs&repo=react-konva) Bot will help you understand this repository better. You can ask for code examples, installation guide, debugging help and much more.
+
+
 ## Installation
 
 ```bash
