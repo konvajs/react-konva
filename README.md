@@ -164,7 +164,7 @@ import 'konva/lib/shapes/Rect';
 
 Demo: [https://codesandbox.io/s/6l97wny44z](https://codesandbox.io/s/6l97wny44z)
 
-### Usage with Next.js
+## Usage with Next.js
 
 Note: `react-konva` is designed to work in the client-side. On the server side, it will render just empty div. So it doesn't make much sense to use react-konva for server-side rendering. In Next.js you may have issue like
 
@@ -172,7 +172,19 @@ Note: `react-konva` is designed to work in the client-side. On the server side, 
 
 Why do we see this error? `canvas` module is used for canvas rendering in Node.JS environment. `konva` library will use it there, but it doesn't have this dependency explicitly.
 
-#### Use dynamic loading
+How to solver this issue? There are two approaches:
+
+### Approach 1: manually install canvas module
+
+You can install `canvas` module manually.
+
+```bash
+npm install canvas@next
+```
+
+The solution will solve the issue, but it will have unnecessary dependency on `canvas` module which may increase build time a little bit.
+
+### Approach 2: Use dynamic import
 
 Next.js docs: https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading
 
