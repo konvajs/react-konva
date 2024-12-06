@@ -72,6 +72,10 @@ describe('initial mounting and refs', () => {
       layerRef = React.useRef<Konva.Layer>(null);
       rectRef = React.useRef<Konva.Rect>(null);
 
+      React.useEffect(() => {
+        expect(stageRef.current instanceof Konva.Stage).to.be.true;
+      });
+
       return (
         <Stage ref={stageRef}>
           <Layer ref={layerRef}>
