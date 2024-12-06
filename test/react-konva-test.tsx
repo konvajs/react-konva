@@ -1342,9 +1342,10 @@ describe('update order', () => {
     return <Text text={name} fontSize={15} />;
   }
 
-  it.skip('update order', async function () {
+  it('update order', async function () {
     const { stage } = await render(<App />);
     await store.dispatch();
+    await new Promise((resolve) => setTimeout(resolve, 100));
     expect(renderCallStack).to.deep.equal([
       'ViewLayer',
       'ViewText',
