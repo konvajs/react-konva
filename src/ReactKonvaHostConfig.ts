@@ -136,6 +136,8 @@ export function shouldSetTextContent(type, props) {
 export const isPrimaryRenderer = false;
 export const warnsIfNotActing = true;
 export const supportsMutation = true;
+export const supportsPersistence = false;
+export const supportsHydration = false;
 
 export function appendChild(parentInstance, child) {
   if (child.parent === parentInstance) {

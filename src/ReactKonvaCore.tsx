@@ -9,12 +9,13 @@
 
 import React from 'react';
 import Konva from 'konva/lib/Core.js';
+import type { Stage as KonvaStage } from 'konva/lib/Stage.js';
 import ReactFiberReconciler, {
   RootTag,
   SuspenseHydrationCallbacks,
   TransitionTracingCallbacks,
 } from 'react-reconciler';
-import { LegacyRoot } from 'react-reconciler/constants.js';
+import { ConcurrentRoot } from 'react-reconciler/constants.js';
 import * as HostConfig from './ReactKonvaHostConfig.js';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates.js';
 import { useContextBridge, FiberProvider } from 'its-fine';
@@ -90,11 +91,11 @@ const StageWrap = (props) => {
     // @ts-ignore
     fiberRef.current = (KonvaRenderer.createContainer as NewCreateContainer)(
       stage.current,
-      LegacyRoot,
+      ConcurrentRoot,
       null,
+      false,
       null,
-      undefined,
-      undefined,
+      '',
       console.error,
       console.error,
       console.error,
@@ -102,7 +103,9 @@ const StageWrap = (props) => {
     );
     KonvaRenderer.updateContainer(
       React.createElement(Bridge, {}, props.children),
-      fiberRef.current
+      fiberRef.current,
+      null,
+      () => {}
     );
 
     return () => {
@@ -171,7 +174,17 @@ KonvaRenderer.injectIntoDevTools({
   rendererPackageName: 'react-konva',
 });
 
-export const Stage = React.forwardRef((props, ref) => {
+// Add this interface
+interface StageProps extends React.RefAttributes<KonvaStage> {
+  children?: React.ReactNode;
+  width?: number;
+  height?: number;
+  name?: string;
+  [key: string]: any;
+}
+
+// Update Stage component declaration
+export const Stage: React.FC<StageProps> = React.forwardRef((props, ref) => {
   return React.createElement(
     FiberProvider,
     {},

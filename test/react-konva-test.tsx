@@ -107,11 +107,11 @@ describe('initial mounting and refs', () => {
 
   it('check initial props', async () => {
     const App = ({ width, height }) => {
-      React.useEffect(() => {
-        expect(ref.current.width()).equals(100);
-      });
       const ref = React.useRef<Konva.Stage>(null);
-      return <Stage ref={ref} width={width} heigh={height} />;
+      React.useEffect(() => {
+        expect(ref.current?.width()).equals(100);
+      });
+      return <Stage ref={ref} width={width} height={height} />;
     };
     await render(<App width={100} height={100} />);
   });
@@ -123,13 +123,13 @@ describe('initial mounting and refs', () => {
     const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
 
     const App = () => {
-      const ref = React.useRef();
-      const stageRef = React.useRef();
+      const ref = React.useRef<Konva.Rect>(null);
+      const stageRef = React.useRef<Konva.Stage>(null);
       React.useEffect(() => {
         expect((ref.current as any) instanceof Konva.Rect).to.be.true;
       });
       return (
-        <Stage ref={stageRef} name='hello'>
+        <Stage ref={stageRef} name="hello">
           <Layer>
             <MyRect ref={ref} />
           </Layer>
