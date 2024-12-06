@@ -21,10 +21,10 @@ import { useContextBridge, FiberProvider } from 'its-fine';
 import { Container } from 'konva/lib/Container.js';
 
 /**
- * React 19 introduced a new `ReactFiberReconciler.createContainer` signature 
+ * React 19 introduced a new `ReactFiberReconciler.createContainer` signature
  * with more error handling options [1]. The DefinitelyTyped types are also
  * out of date because of this [2].
- * 
+ *
  * 1. https://github.com/facebook/react/commit/a0537160771bafae90c6fd3154eeead2f2c903e7
  * 2. https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react-reconciler/index.d.ts#L920
  */
@@ -59,9 +59,9 @@ function usePrevious(value) {
 }
 
 const StageWrap = (props) => {
-  const container = React.useRef();
-  const stage = React.useRef<any>();
-  const fiberRef = React.useRef();
+  const container = React.useRef(null);
+  const stage = React.useRef<any>(null);
+  const fiberRef = React.useRef(null);
 
   const oldProps = usePrevious(props);
   const Bridge = useContextBridge();
@@ -87,7 +87,7 @@ const StageWrap = (props) => {
 
     _setRef(stage.current);
 
-    // @ts-ignore 
+    // @ts-ignore
     fiberRef.current = (KonvaRenderer.createContainer as NewCreateContainer)(
       stage.current,
       LegacyRoot,
@@ -95,10 +95,10 @@ const StageWrap = (props) => {
       null,
       undefined,
       undefined,
-      console.error, 
       console.error,
       console.error,
-      null,
+      console.error,
+      null
     );
     KonvaRenderer.updateContainer(
       React.createElement(Bridge, {}, props.children),

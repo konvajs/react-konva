@@ -6,7 +6,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "jsx": "react",
-    "skipLibCheck": false
+    "skipLibCheck": true
   },
   "include": ["./src/**/*"],
   "files": [
