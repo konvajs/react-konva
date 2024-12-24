@@ -101,6 +101,7 @@ const StageWrap = (props) => {
       console.error,
       null
     );
+
     KonvaRenderer.updateContainer(
       React.createElement(Bridge, {}, props.children),
       fiberRef.current,
@@ -109,9 +110,6 @@ const StageWrap = (props) => {
     );
 
     return () => {
-      if (!Konva.isBrowser) {
-        return;
-      }
       _setRef(null);
       KonvaRenderer.updateContainer(null, fiberRef.current, null);
       stage.current.destroy();

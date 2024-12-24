@@ -69,7 +69,7 @@
     "version": "npm run build",
     "postversion": "",
     "test": "NODE_ENV=test npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
-    "test:build": "NODE_ENV=test parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
+    "test:build": "rm -rf ./.parcel-cache && NODE_ENV=test parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
     "test:watch": "NODE_ENV=test rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
   },
   "typings": "react-konva.d.ts",

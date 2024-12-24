@@ -136,6 +136,7 @@ describe('initial mounting and refs', () => {
         <Stage ref={stageRef} name="hello">
           <Layer>
             <MyRect ref={ref} />
+            <Rect />
           </Layer>
         </Stage>
       );
@@ -143,11 +144,13 @@ describe('initial mounting and refs', () => {
     await render(<App />);
   });
   it('forward ref deep in Konva tree', async () => {
+    let effectRun = false;
     const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
 
     const MyLayer = () => {
       const ref = React.useRef();
       React.useEffect(() => {
+        effectRun = true;
         expect((ref.current as any) instanceof Konva.Rect).to.be.true;
       });
       return (
@@ -165,6 +168,7 @@ describe('initial mounting and refs', () => {
       );
     };
     await render(<App />);
+    expect(effectRun).to.be.true;
   });
 });
 
