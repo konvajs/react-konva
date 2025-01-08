@@ -8,6 +8,13 @@
 'use strict';
 
 import React from 'react';
+
+if (React.version.indexOf('19') === -1) {
+  throw new Error(
+    'react-konva version 19 is only compatible with React 19. Make sure to have the last version of react-konva and react or downgrade react-konva to version 18.'
+  );
+}
+
 import Konva from 'konva/lib/Core.js';
 import type { Stage as KonvaStage } from 'konva/lib/Stage.js';
 import ReactFiberReconciler, {
