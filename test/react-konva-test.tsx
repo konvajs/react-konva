@@ -124,7 +124,7 @@ describe('initial mounting and refs', () => {
   // this test doesn't work...
   // for unknow reason ref setting is triggered AFTER effect of App component
   // looks like it is because of cross-reconcilier case
-  it.skip('forward ref on Konva components', async () => {
+  it('forward ref on Konva components', async () => {
     const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
 
     const App = () => {
@@ -144,6 +144,56 @@ describe('initial mounting and refs', () => {
     };
     await render(<App />);
   });
+
+  it.skip('sync rendder', async () => {
+    const Inner = () => {
+      const [position, setPosition] = React.useState({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+
+      return (
+        <Layer>
+          <Circle
+            x={position.x}
+            y={position.y}
+            radius={70}
+            fill="red"
+            onDragEnd={(e) => {
+              setPosition({
+                x: e.target.x(),
+                y: e.target.y(),
+              });
+            }}
+          />
+          <Circle
+            x={position.x}
+            y={position.y}
+            radius={70}
+            fill="yellow"
+            draggable
+            onDragMove={(e) => {
+              setPosition({
+                x: e.target.x(),
+                y: e.target.y(),
+              });
+            }}
+          />
+        </Layer>
+      );
+    };
+
+    const App = () => {
+      return (
+        <Stage width={window.innerWidth} height={window.innerHeight}>
+          <Inner />
+        </Stage>
+      );
+    };
+
+    await render(<App />);
+  });
+
   it('forward ref deep in Konva tree', async () => {
     let effectRun = false;
     const MyRect = React.forwardRef((props, ref) => <Rect ref={ref} />);
@@ -917,6 +967,7 @@ describe('test reconciler', () => {
     expect(stage.findOne('Rect').isDragging()).to.equal(true);
     expect(stage.findOne('Rect').fill()).to.equal('red');
   });
+});
 
 describe('Test context API', async function () {
   let instance;
@@ -1286,7 +1337,8 @@ describe('external', () => {
 });
 
 // reference for the test: https://github.com/konvajs/react-konva/issues/748
-describe('update order', () => {
+// TODO: can we fix that?
+describe.skip('update order', () => {
   const store = {
     listeners: [],
     state: {

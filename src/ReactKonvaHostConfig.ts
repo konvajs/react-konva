@@ -13,6 +13,7 @@ export {
 import {
   // NoEventPriority,
   DefaultEventPriority,
+  DiscreteEventPriority,
 } from 'react-reconciler/constants.js';
 
 const NO_CONTEXT = {};
@@ -124,6 +125,16 @@ export function getChildHostContext() {
 
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
+export const supportsMicrotasks = true;
+// use this to schedule microtasks
+// I don't know if we should do this in react-konva
+// better to run schedule in sync mode
+// so setState will call render imidiatly
+// it may be not optimal
+// but working in sync mode is simpler.
+export const scheduleMicrotask = (fn) => {
+  fn();
+};
 export const noTimeout = -1;
 // export const schedulePassiveEffects = scheduleDeferredCallback;
 // export const cancelPassiveEffects = cancelDeferredCallback;
@@ -134,7 +145,7 @@ export function shouldSetTextContent(type, props) {
 
 // The Konva renderer is secondary to the React DOM renderer.
 export const isPrimaryRenderer = false;
-export const warnsIfNotActing = true;
+export const warnsIfNotActing = false;
 export const supportsMutation = true;
 export const supportsPersistence = false;
 export const supportsHydration = false;
@@ -224,7 +235,7 @@ export function clearContainer(container) {
 export function detachDeletedInstance() {}
 
 export function getCurrentEventPriority() {
-  return currentUpdatePriority;
+  return DefaultEventPriority;
 }
 
 export function prepareScopeUpdate() {}
@@ -242,7 +253,7 @@ export function getCurrentUpdatePriority() {
 }
 
 export function resolveUpdatePriority() {
-  return currentUpdatePriority || DefaultEventPriority;
+  return DiscreteEventPriority;
 }
 
 export function shouldAttemptEagerTransition() {
