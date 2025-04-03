@@ -172,7 +172,7 @@ Note: `react-konva` is designed to work in the client-side. On the server side, 
 
 Why do we see this error? `canvas` module is used for canvas rendering in Node.JS environment. `konva` library will use it there, but it doesn't have this dependency explicitly.
 
-How to solver this issue? There are two approaches:
+How to solve this issue? There are two approaches:
 
 ### Approach 1: manually install canvas module
 
@@ -233,7 +233,7 @@ export default function Page(props) {
 
 #### Step 3 - Setup next.config.js
 
-In some versions of next.js you may need to set up `next.config.js` to make it work:
+1. In some versions of next.js you may need to set up `next.config.js` to make it work:
 
 ```js
 /** @type {import('next').NextConfig} */
@@ -246,6 +246,25 @@ const nextConfig = {
 
 module.exports = nextConfig;
 ```
+
+If you are using `turbopack` you may need to use this configuration:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        canvas: './empty.js',
+      },
+    },
+  },
+};
+
+module.exports = nextConfig;
+```
+
+Also create empty file `empty.js` in the root of your project. That file will be used as replacement for `canvas` library. As we don't really need to use it, it will be just empty file.
 
 ### Usage with React Context
 
