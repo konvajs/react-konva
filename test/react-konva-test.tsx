@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import sinon from 'sinon';
@@ -15,9 +16,27 @@ import {
   Text,
   Image,
   Circle,
+  Transformer,
 } from '../src/ReactKonva';
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
+
+// Suppress console warnings about act() for custom reconciler updates
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
+console.error = (...args) => {
+  const message = args[0];
+  if (
+    typeof message === 'string' &&
+    (message.includes('was not wrapped in act') ||
+      message.includes('suspended resource finished loading'))
+  ) {
+    // Suppress act warnings for custom reconciler
+    return;
+  }
+  originalConsoleError.apply(console, args);
+};
 
 const render = async (component) => {
   const node = document.createElement('div');
@@ -89,6 +108,7 @@ describe('initial mounting and refs', () => {
     expect(stageRef.current instanceof Konva.Stage).to.be.true;
     expect(layerRef.current instanceof Konva.Layer).to.be.true;
     expect(rectRef.current instanceof Konva.Rect).to.be.true;
+    expect(rectRef.current.getAttr('ref')).to.be.undefined;
   });
 
   it('no fail on no ref', async () => {
@@ -619,6 +639,9 @@ describe('Test Events', async function () {
 
 describe('Bad structure', () => {
   it('No dom inside Konva', async function () {
+    const originalError = console.error;
+    const error = sinon.spy();
+    console.error = error;
     class App extends React.Component {
       render() {
         return (
@@ -632,6 +655,11 @@ describe('Bad structure', () => {
     }
 
     const { stage } = await render(<App />);
+    expect(error.callCount).to.equal(1);
+    expect(error.firstCall.args[0]).to.include(
+      'Konva has no node with the type div'
+    );
+    console.error = originalError;
     // check check that this test is not failed
   });
 });
@@ -1253,7 +1281,7 @@ describe('Hooks', async function () {
   });
 
   it('check useImage hook', async function () {
-    const url = 'https://konvajs.org/favicon-32x32.png?token' + Math.random();
+    const url = 'https://konvajs.org//img/icon.png?token' + Math.random();
 
     const App = () => {
       const [image, status] = useImage(url);
@@ -1287,7 +1315,7 @@ describe('Hooks', async function () {
   });
 
   it('unsubscribe on unmount', async function () {
-    const url = 'https://konvajs.org/favicon-32x32.png';
+    const url = 'https://konvajs.org//img/icon.png';
 
     const App = () => {
       const [image, status] = useImage(url);
@@ -1333,6 +1361,59 @@ describe('external', () => {
 
     const { stage } = await render(<App />);
     expect(typeof stage.findOne('Rect')._applyProps).to.equal('function');
+  });
+});
+
+describe('React StrictMode', () => {
+  it('make sure effect is called AFTER we set refs of konva nodes', async function () {
+    const App = () => {
+      const stageRef = React.useRef<Konva.Stage>(null);
+      const [count, setCount] = React.useState(0);
+      const shapeRef = React.useRef<Konva.Rect>(null);
+      const trRef = React.useRef<Konva.Transformer>(null);
+
+      const isMounted = React.useRef(false);
+
+      React.useEffect(() => {
+        setCount(1);
+        setTimeout(() => {
+          setCount(2);
+          setTimeout(() => {
+            setCount(3);
+          }, 10);
+        }, 10);
+      }, []);
+
+      React.useEffect(() => {
+        // we need to attach transformer manually
+        trRef.current?.nodes([shapeRef.current]);
+        trRef.current?.getLayer().batchDraw();
+      }, [count]);
+
+      return (
+        <>
+          {count !== 2 && (
+            <Stage width={300} height={300} ref={stageRef}>
+              <Layer>
+                <Rect fill="red" ref={shapeRef} />
+                <Transformer ref={trRef} />
+              </Layer>
+            </Stage>
+          )}
+        </>
+      );
+    };
+
+    const { stage } = await render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const lastStage = Konva.stages[Konva.stages.length - 1];
+    const lastTransformer = lastStage.findOne('Transformer');
+    expect(lastTransformer.nodes().length).to.equal(1);
+    expect(lastTransformer.nodes()[0].fill()).to.equal('red');
   });
 });
 

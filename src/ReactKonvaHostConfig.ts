@@ -58,6 +58,10 @@ export function createInstance(type, props, internalInstanceHandle) {
   const propsWithOnlyEvents = {};
 
   for (var key in props) {
+    // ignore ref
+    if (key === 'ref') {
+      continue;
+    }
     var isEvent = key.slice(0, 2) === 'on';
     if (isEvent) {
       propsWithOnlyEvents[key] = props[key];

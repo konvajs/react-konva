@@ -25,7 +25,7 @@ import ReactFiberReconciler, {
 import { ConcurrentRoot } from 'react-reconciler/constants.js';
 import * as HostConfig from './ReactKonvaHostConfig.js';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates.js';
-import { useContextBridge, FiberProvider } from 'its-fine';
+import { useContextBridge, FiberProvider, useFiber } from 'its-fine';
 import { Container } from 'konva/lib/Container.js';
 
 /**
@@ -66,6 +66,15 @@ function usePrevious(value) {
   return ref.current;
 }
 
+const useIsReactStrictMode = () => {
+  const memoCount = React.useRef(0);
+  // in strict mode, memo will be called twice
+  React.useMemo(() => {
+    memoCount.current++;
+  }, []);
+  return memoCount.current > 1;
+};
+
 const StageWrap = (props) => {
   const container = React.useRef(null);
   const stage = React.useRef<any>(null);
@@ -73,6 +82,7 @@ const StageWrap = (props) => {
 
   const oldProps = usePrevious(props);
   const Bridge = useContextBridge();
+  const isMounted = React.useRef(false);
 
   const _setRef = (stage) => {
     const { forwardedRef } = props;
@@ -86,7 +96,20 @@ const StageWrap = (props) => {
     }
   };
 
+  const isStrictMode = useIsReactStrictMode();
+
   React.useLayoutEffect(() => {
+    // is we are in strict mode, we need to ignore the second full render
+    // instead do nothing and just return clean function
+    if (isMounted.current && isStrictMode) {
+      return () => {
+        isMounted.current = false;
+        _setRef(null);
+        KonvaRenderer.updateContainer(null, fiberRef.current, null);
+        stage.current.destroy();
+      };
+    }
+    isMounted.current = true;
     stage.current = new Konva.Stage({
       width: props.width,
       height: props.height,
@@ -117,6 +140,10 @@ const StageWrap = (props) => {
     );
 
     return () => {
+      // inside React strict mode, we need to ignore cleanup, because it will mess with refs
+      if (isStrictMode) {
+        return;
+      }
       _setRef(null);
       KonvaRenderer.updateContainer(null, fiberRef.current, null);
       stage.current.destroy();
