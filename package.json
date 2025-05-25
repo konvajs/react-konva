@@ -1,1 +1,83 @@
-{}
+{
+  "license": "MIT",
+  "name": "react-konva",
+  "description": "React binding to canvas element via Konva framework",
+  "version": "19.0.3",
+  "keywords": [
+    "react",
+    "canvas",
+    "jsx",
+    "konva"
+  ],
+  "bugs": "https://github.com/konvajs/react-konva/issues",
+  "main": "lib/ReactKonva.js",
+  "module": "es/ReactKonva.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:konvajs/react-konva.git"
+  },
+  "dependencies": {
+    "@types/react-reconciler": "^0.32.0",
+    "its-fine": "^2.0.0",
+    "react-reconciler": "0.32.0",
+    "scheduler": "0.26.0"
+  },
+  "targets": {
+    "none": {}
+  },
+  "funding": [
+    {
+      "type": "patreon",
+      "url": "https://www.patreon.com/lavrton"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/konva"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/lavrton"
+    }
+  ],
+  "peerDependencies": {
+    "konva": "^8.0.1 || ^7.2.5 || ^9.0.0",
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/react": "19.1.5",
+    "assert": "^2.1.0",
+    "chai": "5.2.0",
+    "konva": "^9.3.20",
+    "mocha-headless-chrome": "^4.0.0",
+    "parcel": "^2.15.2",
+    "process": "^0.11.10",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sinon": "^20.0.0",
+    "timers-browserify": "^2.0.12",
+    "typescript": "^5.8.3",
+    "use-image": "^1.1.2",
+    "util": "^0.12.5"
+  },
+  "scripts": {
+    "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
+    "test:typings": "tsc --noEmit",
+    "preversion": "npm test",
+    "version": "npm run build",
+    "postversion": "",
+    "test": "NODE_ENV=test npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
+    "test:build": "rm -rf ./.parcel-cache && NODE_ENV=test parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
+    "test:watch": "NODE_ENV=test rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
+  },
+  "typings": "react-konva.d.ts",
+  "files": [
+    "README.md",
+    "lib",
+    "es",
+    "react-konva.d.ts",
+    "ReactKonvaCore.d.ts"
+  ]
+}
