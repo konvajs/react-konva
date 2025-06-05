@@ -47,7 +47,7 @@
   "devDependencies": {
     "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
-    "@types/react": "19.1.5",
+    "@types/react": "19.1.6",
     "assert": "^2.1.0",
     "chai": "5.2.0",
     "konva": "^9.3.20",
@@ -59,7 +59,7 @@
     "sinon": "^20.0.0",
     "timers-browserify": "^2.0.12",
     "typescript": "^5.8.3",
-    "use-image": "^1.1.2",
+    "use-image": "^1.1.4",
     "util": "^0.12.5"
   },
   "scripts": {
