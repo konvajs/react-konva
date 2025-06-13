@@ -1415,6 +1415,23 @@ describe('React StrictMode', () => {
     expect(lastTransformer.nodes().length).to.equal(1);
     expect(lastTransformer.nodes()[0].fill()).to.equal('red');
   });
+
+  it('event listeners in strict mode', async function () {
+    const App = () => {
+      return (
+        <Stage width={300} height={300} onMouseDown={() => {}}>
+          <Layer></Layer>
+        </Stage>
+      );
+    };
+
+    const { stage } = await render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+    expect(stage.eventListeners.mousedown.length).to.equal(1);
+  });
 });
 
 // reference for the test: https://github.com/konvajs/react-konva/issues/748

@@ -121,6 +121,9 @@ export function applyNodeProps(instance, props, oldProps = EMPTY_PROPS) {
   // we need it to fix https://github.com/konvajs/react-konva/issues/471
   // settings attrs may add events. Like "draggable: true" will add "mousedown" listener
   for (var eventName in newEvents) {
+    // first clear any existing listeners, it is required for strict mode
+    instance.off(eventName + EVENTS_NAMESPACE);
+    // then attach new one
     instance.on(eventName + EVENTS_NAMESPACE, newEvents[eventName]);
   }
 }
