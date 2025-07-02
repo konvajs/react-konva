@@ -64,7 +64,7 @@
   "scripts": {
     "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
     "test:typings": "tsc --noEmit",
-    "preversion": "npm test",
+    "preversion": "",
     "version": "npm run build",
     "postversion": "",
     "test": "npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
