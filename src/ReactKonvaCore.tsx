@@ -128,6 +128,8 @@ export const Arrow = 'Arrow';
 export const Shape = 'Shape';
 export const Transformer = 'Transformer';
 
+export const version = '18.2.11';
+
 // @ts-ignore
 export const KonvaRenderer = ReactFiberReconciler(HostConfig);
 

@@ -1,6 +1,6 @@
 // special file for minimal import
 import * as React from 'react';
-import * as ReactReconciler from 'react-reconciler'
+import * as ReactReconciler from 'react-reconciler';
 import Konva from 'konva';
 
 export interface KonvaNodeEvents {
@@ -102,4 +102,6 @@ export var Arrow: KonvaNodeComponent<Konva.Arrow, Konva.ArrowConfig>;
 export var Shape: KonvaNodeComponent<Konva.Shape, Konva.ShapeConfig>;
 
 export var useStrictMode: (useStrictMode: boolean) => void;
-export var KonvaRenderer: ReactReconciler.Reconciler<any, any, any, any, any>
+export var KonvaRenderer: ReactReconciler.Reconciler<any, any, any, any, any>;
+
+export var version: string;
