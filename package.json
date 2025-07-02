@@ -47,7 +47,7 @@
   "devDependencies": {
     "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
-    "@types/react": "19.1.6",
+    "@types/react": "19.1.8",
     "assert": "^2.1.0",
     "chai": "5.2.0",
     "konva": "^9.3.20",
@@ -63,7 +63,7 @@
     "util": "^0.12.5"
   },
   "scripts": {
-    "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
+    "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es && node ./replace-version.js",
     "test:typings": "tsc --noEmit",
     "preversion": "npm test",
     "version": "npm run build",

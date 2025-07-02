@@ -110,3 +110,5 @@ export var KonvaRenderer: ReactReconciler.Reconciler<
   any,
   any
 >;
+
+export var version: string;
