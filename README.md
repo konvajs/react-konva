@@ -46,17 +46,7 @@ const ColoredRect = () => {
     setColor(Konva.Util.getRandomColor());
   };
 
-  return (
-    <Rect
-      x={20}
-      y={20}
-      width={50}
-      height={50}
-      fill={color}
-      shadowBlur={5}
-      onClick={handleClick}
-    />
-  );
+  return <Rect x={20} y={20} width={50} height={50} fill={color} shadowBlur={5} onClick={handleClick} />;
 };
 
 const App = () => {
@@ -165,6 +155,10 @@ import 'konva/lib/shapes/Rect';
 Demo: [https://codesandbox.io/s/6l97wny44z](https://codesandbox.io/s/6l97wny44z)
 
 ## Usage with Next.js
+
+**From `konva@10.0.0`, you don't need to do any extra steps. It will work out-of-the-box.**
+
+If you use konva verion <= 9, continue reading.
 
 Note: `react-konva` is designed to work in the client-side. On the server side, it will render just empty div. So it doesn't make much sense to use react-konva for server-side rendering. In Next.js you may have issue like
 
@@ -282,9 +276,7 @@ const ThemeContext = React.createContext('red');
 
 const ThemedRect = () => {
   const value = React.useContext(ThemeContext);
-  return (
-    <Rect x={20} y={50} width={100} height={100} fill={value} shadowBlur={10} />
-  );
+  return <Rect x={20} y={50} width={100} height={100} fill={value} shadowBlur={10} />;
 };
 
 const Canvas = () => {
