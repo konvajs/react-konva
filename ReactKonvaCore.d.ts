@@ -2,6 +2,7 @@
 import * as React from 'react';
 import * as ReactReconciler from 'react-reconciler';
 import Konva from 'konva';
+import { useContextBridge } from 'its-fine';
 
 export interface KonvaNodeEvents {
   onMouseOver?(evt: Konva.KonvaEventObject<MouseEvent>): void;
@@ -112,3 +113,5 @@ export var KonvaRenderer: ReactReconciler.Reconciler<
 >;
 
 export var version: string;
+
+export { useContextBridge };
