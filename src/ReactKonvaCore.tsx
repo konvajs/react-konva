@@ -227,3 +227,7 @@ export const Stage: React.FC<StageProps> = React.forwardRef((props, ref) => {
 });
 
 export const useStrictMode = toggleStrictMode;
+
+// export useContextBridge from its-fine for reuse in react-konva-utils
+// so react-konva-utils don't use its own version of its-fine (it is possible on pnpm)
+export { useContextBridge };
