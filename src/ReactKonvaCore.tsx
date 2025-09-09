@@ -33,9 +33,9 @@ function usePrevious(value) {
 }
 
 const StageWrap = (props) => {
-  const container = React.useRef();
-  const stage = React.useRef<any>();
-  const fiberRef = React.useRef();
+  const container = React.useRef(null);
+  const stage = React.useRef<any>(null);
+  const fiberRef = React.useRef(null);
 
   const oldProps = usePrevious(props);
   const Bridge = useContextBridge();
