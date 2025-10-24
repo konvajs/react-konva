@@ -201,13 +201,16 @@ export const version = '{VERSION}';
 // @ts-ignore
 export const KonvaRenderer = ReactFiberReconciler(HostConfig);
 
-KonvaRenderer.injectIntoDevTools({
-  // @ts-ignore
-  findHostInstanceByFiber: () => null,
-  bundleType: 0,
-  version: React.version,
-  rendererPackageName: 'react-konva',
-});
+// we should inject into dev tools, but it is not working with React 19.2
+// with error "Invalid argument not valid semver ('' received)"
+// KonvaRenderer.injectIntoDevTools({
+//   // @ts-ignore
+//   findHostInstanceByFiber: () => null,
+//   bundleType: 0,
+//   version: React.version,
+//   rendererPackageName: 'react-konva',
+//   reconcilerVersion: '19.2.0',
+// });
 
 // Add this interface
 interface StageProps extends React.RefAttributes<KonvaStage> {
