@@ -1,3 +1,4 @@
+import React from 'react';
 import Konva from 'konva/lib/Core.js';
 import {
   applyNodeProps,
@@ -238,6 +239,14 @@ export function clearContainer(container) {
 
 export function detachDeletedInstance() {}
 
+export function getInstanceFromNode() {
+  return null;
+}
+
+export function beforeActiveInstanceBlur() {}
+
+export function afterActiveInstanceBlur() {}
+
 export function getCurrentEventPriority() {
   return DefaultEventPriority;
 }
@@ -264,6 +273,16 @@ export function shouldAttemptEagerTransition() {
   return false;
 }
 
+export function trackSchedulerEvent() {}
+
+export function resolveEventType() {
+  return null;
+}
+
+export function resolveEventTimeStamp() {
+  return -1.1;
+}
+
 export function requestPostPaintCallback() {}
 
 export function maySuspendCommit() {
@@ -283,5 +302,8 @@ export function waitForCommitToBeReady() {
 }
 
 export const NotPendingTransition = null;
+
+// React 19 transition context - create as React context that can be cast by reconciler
+export const HostTransitionContext = /* @__PURE__ */ React.createContext(null);
 
 export function resetFormInstance() {}

@@ -22,6 +22,7 @@ import ReactFiberReconciler, {
   SuspenseHydrationCallbacks,
   TransitionTracingCallbacks,
 } from 'react-reconciler';
+import type { ReactContext } from 'react-reconciler';
 import { ConcurrentRoot } from 'react-reconciler/constants.js';
 import * as HostConfig from './ReactKonvaHostConfig.js';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates.js';

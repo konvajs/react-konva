@@ -19,8 +19,8 @@
   "dependencies": {
     "@types/react-reconciler": "^0.32.2",
     "its-fine": "^2.0.0",
-    "react-reconciler": "0.32.0",
-    "scheduler": "0.25.0"
+    "react-reconciler": "0.33.0",
+    "scheduler": "0.27.0"
   },
   "targets": {
     "none": {}
@@ -50,8 +50,8 @@
     "@vitest/browser-playwright": "^4.0.2",
     "konva": "^10.0.7",
     "playwright": "^1.56.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "use-image": "^1.1.4",
     "vitest": "^4.0.2"
