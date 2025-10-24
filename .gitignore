@@ -12,3 +12,4 @@ test-build
 dist
 package-lock.json
 .vscode
+__screenshots__

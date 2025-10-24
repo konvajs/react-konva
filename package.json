@@ -17,10 +17,10 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "@types/react-reconciler": "^0.32.1",
+    "@types/react-reconciler": "^0.32.2",
     "its-fine": "^2.0.0",
     "react-reconciler": "0.32.0",
-    "scheduler": "0.26.0"
+    "scheduler": "0.25.0"
   },
   "targets": {
     "none": {}
@@ -45,22 +45,16 @@
     "react-dom": "^18.3.1 || ^19.0.0"
   },
   "devDependencies": {
-    "@types/chai": "^5.2.2",
-    "@types/mocha": "^10.0.10",
-    "@types/react": "19.1.12",
-    "assert": "^2.1.0",
-    "chai": "6.0.1",
-    "konva": "^10.0.0",
-    "mocha-headless-chrome": "^4.0.0",
-    "parcel": "^2.15.4",
-    "process": "^0.11.10",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "sinon": "^21.0.0",
-    "timers-browserify": "^2.0.12",
-    "typescript": "^5.9.2",
+    "@types/react": "19.2.2",
+    "@vitest/browser": "^4.0.2",
+    "@vitest/browser-playwright": "^4.0.2",
+    "konva": "^10.0.7",
+    "playwright": "^1.56.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.9.3",
     "use-image": "^1.1.4",
-    "util": "^0.12.5"
+    "vitest": "^4.0.2"
   },
   "scripts": {
     "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es && node ./replace-version.js",
@@ -68,9 +62,10 @@
     "preversion": "npm test",
     "version": "npm run build",
     "postversion": "",
-    "test": "NODE_ENV=test npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security -a no-sandbox -a disable-setuid-sandbox && npm run test:typings",
-    "test:build": "rm -rf ./.parcel-cache && NODE_ENV=test parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
-    "test:watch": "NODE_ENV=test rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
+    "test": "vitest run && npm run test:typings",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:debug": "HEADLESS=false vitest"
   },
   "typings": "react-konva.d.ts",
   "files": [

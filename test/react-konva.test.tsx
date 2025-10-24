@@ -18,7 +18,7 @@ import {
   Transformer,
 } from '../src/ReactKonva';
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+window.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Suppress console warnings about act() for custom reconciler updates
 const originalConsoleError = console.error;

@@ -203,7 +203,7 @@ export const KonvaRenderer = ReactFiberReconciler(HostConfig);
 KonvaRenderer.injectIntoDevTools({
   // @ts-ignore
   findHostInstanceByFiber: () => null,
-  bundleType: process.env.NODE_ENV !== 'production' ? 1 : 0,
+  bundleType: 0,
   version: React.version,
   rendererPackageName: 'react-konva',
 });
