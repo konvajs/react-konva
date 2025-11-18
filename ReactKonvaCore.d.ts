@@ -18,8 +18,8 @@ export interface KonvaNodeEvents {
   onTouchStart?(evt: Konva.KonvaEventObject<TouchEvent>): void;
   onTouchMove?(evt: Konva.KonvaEventObject<TouchEvent>): void;
   onTouchEnd?(evt: Konva.KonvaEventObject<TouchEvent>): void;
-  onTap?(evt: Konva.KonvaEventObject<Event>): void;
-  onDblTap?(evt: Konva.KonvaEventObject<Event>): void;
+  onTap?(evt: Konva.KonvaEventObject<TouchEvent>): void;
+  onDblTap?(evt: Konva.KonvaEventObject<TouchEvent>): void;
   onDragStart?(evt: Konva.KonvaEventObject<DragEvent>): void;
   onDragMove?(evt: Konva.KonvaEventObject<DragEvent>): void;
   onDragEnd?(evt: Konva.KonvaEventObject<DragEvent>): void;
