@@ -21,4 +21,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
       - run: npm run test
