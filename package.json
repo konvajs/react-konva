@@ -45,16 +45,16 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/react": "19.2.5",
-    "@vitest/browser": "^4.0.10",
-    "@vitest/browser-playwright": "^4.0.10",
-    "konva": "^10.0.9",
-    "playwright": "^1.56.1",
+    "@types/react": "19.2.7",
+    "@vitest/browser": "^4.0.14",
+    "@vitest/browser-playwright": "^4.0.14",
+    "konva": "^10.0.12",
+    "playwright": "^1.57.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "use-image": "^1.1.4",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.14"
   },
   "scripts": {
     "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es && node ./replace-version.js",

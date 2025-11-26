@@ -22,11 +22,10 @@ import ReactFiberReconciler, {
   SuspenseHydrationCallbacks,
   TransitionTracingCallbacks,
 } from 'react-reconciler';
-import type { ReactContext } from 'react-reconciler';
 import { ConcurrentRoot } from 'react-reconciler/constants.js';
 import * as HostConfig from './ReactKonvaHostConfig.js';
 import { applyNodeProps, toggleStrictMode } from './makeUpdates.js';
-import { useContextBridge, FiberProvider, useFiber } from 'its-fine';
+import { useContextBridge, FiberProvider } from 'its-fine';
 import { Container } from 'konva/lib/Container.js';
 
 /**
@@ -83,7 +82,9 @@ const StageWrap = (props) => {
 
   const oldProps = usePrevious(props);
   const Bridge = useContextBridge();
-  const isMounted = React.useRef(false);
+  const pendingDestroy = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const _setRef = (stage) => {
     const { forwardedRef } = props;
@@ -99,55 +100,61 @@ const StageWrap = (props) => {
 
   const isStrictMode = useIsReactStrictMode();
 
+  const destroyStage = () => {
+    _setRef(null);
+    KonvaRenderer.updateContainer(null, fiberRef.current, null);
+    stage.current?.destroy();
+    stage.current = null;
+  };
+
   React.useLayoutEffect(() => {
-    // is we are in strict mode, we need to ignore the second full render
-    // instead do nothing and just return clean function
-    if (isMounted.current && isStrictMode) {
-      return () => {
-        isMounted.current = false;
-        _setRef(null);
-        KonvaRenderer.updateContainer(null, fiberRef.current, null);
-        stage.current.destroy();
-      };
+    // Cancel any pending destruction (happens during re-ordering in strict mode)
+    if (pendingDestroy.current) {
+      clearTimeout(pendingDestroy.current);
+      pendingDestroy.current = null;
     }
-    isMounted.current = true;
-    stage.current = new Konva.Stage({
-      width: props.width,
-      height: props.height,
-      container: container.current,
-    });
 
-    _setRef(stage.current);
+    // If stage already exists (re-ordering scenario), reuse it
+    if (stage.current) {
+      _setRef(stage.current);
+    } else {
+      stage.current = new Konva.Stage({
+        width: props.width,
+        height: props.height,
+        container: container.current,
+      });
 
-    // @ts-ignore
-    fiberRef.current = (KonvaRenderer.createContainer as NewCreateContainer)(
-      stage.current,
-      ConcurrentRoot,
-      null,
-      false,
-      null,
-      '',
-      console.error,
-      console.error,
-      console.error,
-      null
-    );
+      _setRef(stage.current);
 
-    KonvaRenderer.updateContainer(
-      React.createElement(Bridge, {}, props.children),
-      fiberRef.current,
-      null,
-      () => {}
-    );
+      // @ts-ignore
+      fiberRef.current = (KonvaRenderer.createContainer as NewCreateContainer)(
+        stage.current,
+        ConcurrentRoot,
+        null,
+        false,
+        null,
+        '',
+        console.error,
+        console.error,
+        console.error,
+        null
+      );
+
+      KonvaRenderer.updateContainer(
+        React.createElement(Bridge, {}, props.children),
+        fiberRef.current,
+        null,
+        () => {}
+      );
+    }
 
     return () => {
-      // inside React strict mode, we need to ignore cleanup, because it will mess with refs
       if (isStrictMode) {
-        return;
+        // Delay destruction to allow cancellation on remount
+        pendingDestroy.current = setTimeout(destroyStage, 0);
+      } else {
+        destroyStage();
       }
-      _setRef(null);
-      KonvaRenderer.updateContainer(null, fiberRef.current, null);
-      stage.current.destroy();
     };
   }, []);
 

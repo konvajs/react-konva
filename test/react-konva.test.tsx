@@ -1361,6 +1361,71 @@ describe('external', () => {
 });
 
 describe('React StrictMode', () => {
+  it('refs should be correct when re-ordering stages', async function () {
+    const stage1Ref = React.createRef<Konva.Stage>();
+    const stage2Ref = React.createRef<Konva.Stage>();
+    const layer1Ref = React.createRef<Konva.Layer>();
+    const layer2Ref = React.createRef<Konva.Layer>();
+
+    const App = ({ order }: { order: [string, string] }) => {
+      const stages = {
+        first: (
+          <Stage key="first" width={100} height={100} ref={stage1Ref}>
+            <Layer ref={layer1Ref}>
+              <Rect fill="red" />
+            </Layer>
+          </Stage>
+        ),
+        second: (
+          <Stage key="second" width={200} height={200} ref={stage2Ref}>
+            <Layer ref={layer2Ref}>
+              <Rect fill="blue" />
+            </Layer>
+          </Stage>
+        ),
+      };
+      return (
+        <>
+          {stages[order[0]]}
+          {stages[order[1]]}
+        </>
+      );
+    };
+
+    const { rerender } = await render(
+      <React.StrictMode>
+        <App order={['first', 'second']} />
+      </React.StrictMode>
+    );
+
+    // Check initial refs
+    expect(stage1Ref.current).toBeInstanceOf(Konva.Stage);
+    expect(stage2Ref.current).toBeInstanceOf(Konva.Stage);
+    expect(layer1Ref.current).toBeInstanceOf(Konva.Layer);
+    expect(layer2Ref.current).toBeInstanceOf(Konva.Layer);
+    expect(stage1Ref.current?.width()).toBe(100);
+    expect(stage2Ref.current?.width()).toBe(200);
+
+    // Store initial refs to compare after re-ordering
+    const initialStage1 = stage1Ref.current;
+    const initialStage2 = stage2Ref.current;
+    const initialLayer1 = layer1Ref.current;
+    const initialLayer2 = layer2Ref.current;
+
+    // Re-order stages
+    await rerender(
+      <React.StrictMode>
+        <App order={['second', 'first']} />
+      </React.StrictMode>
+    );
+
+    // Check refs after re-ordering - must be exact same instances
+    expect(stage1Ref.current).toBe(initialStage1);
+    expect(stage2Ref.current).toBe(initialStage2);
+    expect(layer1Ref.current).toBe(initialLayer1);
+    expect(layer2Ref.current).toBe(initialLayer2);
+  });
+
   it('make sure effect is called AFTER we set refs of konva nodes', async function () {
     const App = () => {
       const stageRef = React.useRef<Konva.Stage>(null);
