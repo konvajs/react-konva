@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import { vi, expect } from 'vitest';
 import Konva from 'konva';
 import useImage from 'use-image';
@@ -16,6 +17,7 @@ import {
   Image,
   Circle,
   Transformer,
+  useContextBridge,
 } from '../src/ReactKonva';
 
 window.IS_REACT_ACT_ENVIRONMENT = true;
@@ -654,7 +656,8 @@ describe('Bad structure', () => {
     }
 
     const { stage } = await render(<App />);
-    expect(error).toHaveBeenCalledTimes(1);
+    // Error may be called multiple times due to flushSync in Stage's useLayoutEffect
+    expect(error).toHaveBeenCalled();
     expect(error.mock.calls[0][0]).toContain(
       'Konva has no node with the type div'
     );
@@ -1493,79 +1496,339 @@ describe('React StrictMode', () => {
     );
     expect(stage.eventListeners.mousedown.length).toBe(1);
   });
+
+  // Simulates MobX timing: Page re-renders first, Elements re-renders later
+  // Page's useLayoutEffect should still find shapes after Elements catches up
+  it('useLayoutEffect finds shapes when sibling updates are batched', async function () {
+    let elementsUpdateFn: () => void;
+    let pageUpdateFn: () => void;
+
+    // Elements component - has its own state (like MobX observer)
+    const Elements = () => {
+      const [elements, setElements] = React.useState(['existing']);
+      elementsUpdateFn = () => setElements(['existing', 'newRect']);
+
+      return (
+        <>
+          {elements.map((id) => (
+            <Rect key={id} id={id} name={id} />
+          ))}
+        </>
+      );
+    };
+
+    // Page component - has separate state that triggers useLayoutEffect
+    const App = () => {
+      const stageRef = React.useRef<Konva.Stage>(null);
+      const [selectedId, setSelectedId] = React.useState<string | null>(null);
+      pageUpdateFn = () => setSelectedId('newRect');
+
+      React.useLayoutEffect(() => {
+        if (selectedId) {
+          const rect = stageRef.current?.findOne('#' + selectedId);
+          // When we select 'newRect', it should be findable
+          expect(rect).toBeTruthy();
+        }
+      }, [selectedId]);
+
+      return (
+        <Stage ref={stageRef} width={300} height={300}>
+          <Layer>
+            <Elements />
+          </Layer>
+        </Stage>
+      );
+    };
+
+    await render(<App />);
+
+    // Simulate MobX action: update both in the same act() batch
+    // Both updates should be processed before layout effects run
+    await React.act(async () => {
+      elementsUpdateFn(); // Add 'newRect' to Elements
+      pageUpdateFn(); // Select 'newRect' in Page
+    });
+  });
 });
 
-// reference for the test: https://github.com/konvajs/react-konva/issues/748
-// TODO: can we fix that?
-describe.skip('update order', () => {
-  const store = {
-    listeners: [],
-    state: {
-      name: 'test',
-    },
-    getState() {
-      return store.state;
-    },
-    subscribe(cb) {
-      this.listeners.push(cb);
-    },
-    async dispatch() {
-      await Promise.resolve();
+// Tests for useSyncExternalStore behavior (used by MobX, Zustand, etc.)
+describe('useSyncExternalStore behavior', () => {
+  // This test verifies that useSyncExternalStore works correctly with react-konva.
+  // Note: The exact render order on updates is NOT guaranteed by React.
+  // What matters is that all subscribed components eventually update consistently.
+  it('all subscribed components update after store change', async function () {
+    const store = {
+      listeners: [] as (() => void)[],
+      state: { name: 'initial' },
+      getState() { return store.state; },
+      subscribe(cb: () => void) {
+        this.listeners.push(cb);
+        return () => { this.listeners = this.listeners.filter(l => l !== cb); };
+      },
+      dispatch(newName: string) {
+        this.state = { name: newName };
+        this.listeners.forEach(cb => cb());
+      },
+    };
 
-      this.state = {
-        name: 'test2',
-      };
-      this.listeners.forEach((cb) => cb());
-    },
-  };
+    function useSelector<T>(selector: (s: typeof store.state) => T): T {
+      return React.useSyncExternalStore(
+        cb => store.subscribe(cb),
+        () => selector(store.getState())
+      );
+    }
 
-  function useSelector(selector) {
-    return React.useSyncExternalStore(
-      (callback) => store.subscribe(callback),
-      () => store.getState(),
-      undefined,
-      selector
-    );
-  }
+    const parentValues: string[] = [];
+    const childValues: string[] = [];
 
-  const App = () => {
-    return (
-      <Stage width={window.innerWidth} height={window.innerHeight}>
-        <ViewLayer />
+    function ChildText() {
+      const name = useSelector(s => s.name);
+      childValues.push(name);
+      return <Text text={name} fontSize={15} />;
+    }
+
+    function ParentLayer() {
+      const name = useSelector(s => s.name);
+      parentValues.push(name);
+      return (
+        <Layer>
+          <ChildText />
+        </Layer>
+      );
+    }
+
+    const App = () => (
+      <Stage width={300} height={300}>
+        <ParentLayer />
       </Stage>
     );
-  };
 
-  const renderCallStack = [];
-  function ViewLayer() {
-    renderCallStack.push('ViewLayer');
+    await render(<App />);
 
-    useSelector((state) => state.name);
+    // Initial render: both should see 'initial'
+    expect(parentValues).toContain('initial');
+    expect(childValues).toContain('initial');
 
-    return (
-      <Layer>
-        <ViewText />
-      </Layer>
-    );
+    // Trigger update
+    await new Promise<void>(resolve => {
+      setTimeout(() => { store.dispatch('updated'); resolve(); }, 10);
+    });
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // After update: both should see 'updated' (order doesn't matter)
+    expect(parentValues).toContain('updated');
+    expect(childValues).toContain('updated');
+  });
+});
+
+// Test with Html component pattern (secondary React roots via Bridge)
+// This simulates Polotno's structure where Html components create DOM elements
+// inside the Stage container using a separate React root with Bridge.
+//
+// NOTE: These tests verify the pattern works correctly, but they CANNOT reproduce
+// the actual production bug that required the flushSyncFromReconciler fix.
+// The bug only manifests in production builds with specific timing conditions.
+// See ReactKonvaCore.tsx for details about the fix.
+describe('Html component pattern', () => {
+  // Simplified Html component (like react-konva-utils Html)
+  // Creates a secondary React root using Bridge for context bridging
+  function Html({ children }: { children: React.ReactNode }) {
+    const Bridge = useContextBridge();
+    const groupRef = React.useRef<Konva.Group>(null);
+    const [div] = React.useState(() => document.createElement('div'));
+    const root = React.useMemo(() => createRoot(div), [div]);
+
+    React.useLayoutEffect(() => {
+      const group = groupRef.current;
+      if (!group) return;
+      const container = group.getStage()?.container();
+      if (!container) return;
+      container.appendChild(div);
+      return () => { div.parentNode?.removeChild(div); };
+    }, []);
+
+    React.useLayoutEffect(() => {
+      queueMicrotask(() => {
+        flushSync(() => {
+          root.render(<Bridge>{children}</Bridge>);
+        });
+      });
+    });
+
+    React.useLayoutEffect(() => {
+      return () => { setTimeout(() => root.unmount()); };
+    }, []);
+
+    return <Group ref={groupRef} />;
   }
 
-  function ViewText() {
-    renderCallStack.push('ViewText');
+  // Multi-stage test: simulates Polotno's Workspace with multiple Pages
+  // Each Page has a Stage with Elements and Html components
+  it('multiple pages with Html components - useLayoutEffect finds shapes', async function () {
+    const store = {
+      listeners: [] as (() => void)[],
+      state: {
+        pages: [
+          { id: 'page1', elements: [] as string[] },
+          { id: 'page2', elements: [] as string[] },
+          { id: 'page3', elements: [] as string[] },
+        ],
+      },
+      subscribe(cb: () => void) {
+        this.listeners.push(cb);
+        return () => { this.listeners = this.listeners.filter(l => l !== cb); };
+      },
+      getState() { return this.state; },
+      addElement(pageId: string, elementId: string) {
+        const page = this.state.pages.find(p => p.id === pageId);
+        if (page) page.elements = [...page.elements, elementId];
+        this.listeners.forEach(cb => cb());
+      },
+    };
 
-    const name = useSelector((state) => state.name);
+    function useSelector<T>(selector: (s: typeof store.state) => T): T {
+      return React.useSyncExternalStore(
+        cb => store.subscribe(cb),
+        () => selector(store.getState())
+      );
+    }
 
-    return <Text text={name} fontSize={15} />;
-  }
+    const effectLogs: { pageId: string; foundCount: number; expectedCount: number }[] = [];
 
-  it('update order', async function () {
-    const { stage } = await render(<App />);
-    await store.dispatch();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(renderCallStack).toEqual([
-      'ViewLayer',
-      'ViewText',
-      'ViewLayer',
-      'ViewText',
-    ]);
+    function Elements({ pageId }: { pageId: string }) {
+      const elements = useSelector(s => s.pages.find(p => p.id === pageId)?.elements || []);
+      return <>{elements.map(id => <Rect key={id} id={id} name={id} />)}</>;
+    }
+
+    function Page({ pageId }: { pageId: string }) {
+      const stageRef = React.useRef<Konva.Stage>(null);
+      const elements = useSelector(s => s.pages.find(p => p.id === pageId)?.elements || []);
+
+      React.useLayoutEffect(() => {
+        if (elements.length > 0 && stageRef.current) {
+          const foundNodes = elements
+            .map(id => stageRef.current?.findOne('#' + id))
+            .filter(Boolean);
+          effectLogs.push({ pageId, foundCount: foundNodes.length, expectedCount: elements.length });
+        }
+      }, [elements.join(',')]);
+
+      return (
+        <div>
+          <Stage ref={stageRef} width={200} height={200}>
+            <Layer>
+              <Elements pageId={pageId} />
+              <Html><div>Toolbar</div></Html>
+              <Html><div>Selection</div></Html>
+            </Layer>
+          </Stage>
+        </div>
+      );
+    }
+
+    function Workspace() {
+      const pages = useSelector(s => s.pages);
+      return <div>{pages.map(page => <Page key={page.id} pageId={page.id} />)}</div>;
+    }
+
+    await render(<Workspace />);
+    effectLogs.length = 0;
+
+    // Add elements to different pages
+    await new Promise<void>(resolve => setTimeout(() => { store.addElement('page1', 'rect1'); resolve(); }, 10));
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise<void>(resolve => setTimeout(() => { store.addElement('page2', 'rect2'); resolve(); }, 10));
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise<void>(resolve => setTimeout(() => { store.addElement('page3', 'rect3'); resolve(); }, 10));
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // All pages should find their elements
+    for (const log of effectLogs) {
+      expect(log.foundCount).toBe(log.expectedCount);
+    }
+  });
+});
+
+// Regression test for React 19 timing issue with custom reconcilers
+// 
+// Bug: When using useSyncExternalStore (like MobX) with react-konva,
+// parent component's useLayoutEffect couldn't find nodes rendered by
+// child components after state updates. This happened because React 19's
+// updateContainer could defer Konva reconciler work to a later microtask.
+//
+// Fix: Using flushSyncFromReconciler ensures synchronous reconciliation.
+//
+// Production conditions where bug manifested:
+// - MobX/useSyncExternalStore for state management  
+// - Html components that create secondary React roots with Bridge
+// - Complex component hierarchies with multiple useSyncExternalStore subscribers
+describe('React 19 reconciler timing fix', () => {
+  it('parent useLayoutEffect finds shapes rendered by child with useSyncExternalStore', async function () {
+    // Simple external store (like MobX uses internally via useSyncExternalStore)
+    const store = {
+      listeners: [] as (() => void)[],
+      state: { elements: ['existing'], selectedId: null as string | null },
+      subscribe(cb: () => void) {
+        this.listeners.push(cb);
+        return () => { this.listeners = this.listeners.filter(l => l !== cb); };
+      },
+      getState() { return this.state; },
+      addAndSelect(id: string) {
+        this.state = { elements: [...this.state.elements, id], selectedId: id };
+        this.listeners.forEach(cb => cb());
+      },
+    };
+
+    function useSelector<T>(selector: (s: typeof store.state) => T): T {
+      return React.useSyncExternalStore(
+        cb => store.subscribe(cb),
+        () => selector(store.getState())
+      );
+    }
+
+    const effectLog = vi.fn();
+
+    // Child component: renders shapes based on store.elements
+    // In production, this is wrapped with MobX observer
+    function Elements() {
+      const elements = useSelector(s => s.elements);
+      return <>{elements.map(id => <Rect key={id} id={id} name={id} />)}</>;
+    }
+
+    // Parent component: observes selectedId and uses useLayoutEffect
+    // The bug: useLayoutEffect runs before Elements renders the new shape
+    function Page() {
+      const stageRef = React.useRef<Konva.Stage>(null);
+      const selectedId = useSelector(s => s.selectedId);
+
+      React.useLayoutEffect(() => {
+        if (selectedId && stageRef.current) {
+          const node = stageRef.current.findOne('#' + selectedId);
+          effectLog({ selectedId, foundNode: !!node });
+        }
+      }, [selectedId]);
+
+      return (
+        <Stage ref={stageRef} width={300} height={300}>
+          <Layer>
+            <Elements />
+          </Layer>
+        </Stage>
+      );
+    }
+
+    await render(<Page />);
+    effectLog.mockClear();
+
+    // Trigger update outside React's batching (like real user interaction)
+    await new Promise<void>(resolve => {
+      setTimeout(() => { store.addAndSelect('newRect'); resolve(); }, 10);
+    });
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Verify parent's useLayoutEffect found the node on FIRST call
+    // Without flushSyncFromReconciler, this fails in production (foundNode=false)
+    expect(effectLog.mock.calls.length).toBeGreaterThan(0);
+    expect(effectLog.mock.calls[0][0].foundNode).toBe(true);
   });
 });

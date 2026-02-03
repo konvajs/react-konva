@@ -131,12 +131,7 @@ export function getChildHostContext() {
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
 export const supportsMicrotasks = true;
-// use this to schedule microtasks
-// I don't know if we should do this in react-konva
-// better to run schedule in sync mode
-// so setState will call render imidiatly
-// it may be not optimal
-// but working in sync mode is simpler.
+// Run microtasks synchronously for immediate updates
 export const scheduleMicrotask = (fn) => {
   fn();
 };
