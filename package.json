@@ -17,7 +17,7 @@
     "url": "git@github.com:konvajs/react-konva.git"
   },
   "dependencies": {
-    "@types/react-reconciler": "^0.32.3",
+    "@types/react-reconciler": "^0.33.0",
     "its-fine": "^2.0.0",
     "react-reconciler": "0.33.0",
     "scheduler": "0.27.0"
@@ -45,16 +45,16 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/react": "19.2.7",
-    "@vitest/browser": "^4.0.14",
-    "@vitest/browser-playwright": "^4.0.14",
-    "konva": "^10.0.12",
-    "playwright": "^1.57.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "@types/react": "19.2.10",
+    "@vitest/browser": "^4.0.18",
+    "@vitest/browser-playwright": "^4.0.18",
+    "konva": "^10.2.0",
+    "playwright": "^1.58.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "typescript": "^5.9.3",
     "use-image": "^1.1.4",
-    "vitest": "^4.0.14"
+    "vitest": "^4.0.18"
   },
   "scripts": {
     "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es && node ./replace-version.js",
