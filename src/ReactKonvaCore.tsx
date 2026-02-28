@@ -102,7 +102,13 @@ const StageWrap = (props) => {
 
   const destroyStage = () => {
     _setRef(null);
-    KonvaRenderer.updateContainer(null, fiberRef.current, null);
+    // CRITICAL: flushSyncFromReconciler is required here to ensure pending work
+    // (e.g. stale MobX updates on child components) is flushed synchronously
+    // before the tree is torn down. Without it, unmounting a Stage can leave
+    // pending Konva work that runs after the stage is already destroyed.
+    KonvaRenderer.flushSyncFromReconciler(() => {
+      KonvaRenderer.updateContainer(null, fiberRef.current, null);
+    });
     stage.current?.destroy();
     stage.current = null;
   };
