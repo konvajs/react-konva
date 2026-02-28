@@ -11,7 +11,7 @@ import React from 'react';
 
 if (React.version.indexOf('19') === -1) {
   throw new Error(
-    'react-konva version 19 is only compatible with React 19. Make sure to have the last version of react-konva and react or downgrade react-konva to version 18.'
+    'react-konva version 19 is only compatible with React 19. Make sure to have the last version of react-konva and react or downgrade react-konva to version 18.',
   );
 }
 
@@ -46,7 +46,7 @@ type NewCreateContainer = (
   onUncaughtError: (error: Error) => void,
   onCaughtError: (error: Error) => void,
   onRecoverableError: (error: Error) => void,
-  transitionCallbacks: null | TransitionTracingCallbacks
+  transitionCallbacks: null | TransitionTracingCallbacks,
 ) => ReactFiberReconciler.FiberRoot;
 
 function usePrevious(value) {
@@ -83,7 +83,7 @@ const StageWrap = (props) => {
   const oldProps = usePrevious(props);
   const Bridge = useContextBridge();
   const pendingDestroy = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null
+    null,
   );
 
   const _setRef = (stage) => {
@@ -137,14 +137,14 @@ const StageWrap = (props) => {
         console.error,
         console.error,
         console.error,
-        null
+        null,
       );
 
       KonvaRenderer.updateContainer(
         React.createElement(Bridge, {}, props.children),
         fiberRef.current,
         null,
-        () => {}
+        () => {},
       );
     }
 
@@ -195,7 +195,7 @@ const StageWrap = (props) => {
       KonvaRenderer.updateContainer(
         React.createElement(Bridge, {}, props.children),
         fiberRef.current,
-        null
+        null,
       );
     });
   });
@@ -265,7 +265,7 @@ export const Stage: React.FC<StageProps> = React.forwardRef((props, ref) => {
   return React.createElement(
     FiberProvider,
     {},
-    React.createElement(StageWrap, { ...props, forwardedRef: ref })
+    React.createElement(StageWrap, { ...props, forwardedRef: ref }),
   );
 });
 
