@@ -6,7 +6,7 @@
 //      loudly (no half-initialized state).
 //
 // Vitest's browser mode applies globally, so this runs as a standalone
-// Node script (`node test/sections/11-ssr.mjs`) wired into npm scripts.
+// Node script (`node test/11-ssr.mjs`) wired into npm scripts.
 
 import assert from 'node:assert/strict';
 
@@ -31,7 +31,7 @@ try {
 assert.ok(typeof RK.Stage === 'object' || typeof RK.Stage === 'function');
 assert.ok(typeof RK.Layer === 'string');
 assert.ok(typeof RK.Rect === 'string');
-assert.ok(typeof RK.flushSync === 'function');
+assert.ok(typeof RK.KonvaRenderer === 'object', 'KonvaRenderer must be exported');
 console.log('§11.1 module-load OK');
 
 // §11.2 — enableStaticRendering(true) does not blow up react-konva.
