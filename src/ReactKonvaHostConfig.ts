@@ -131,7 +131,11 @@ export function getChildHostContext() {
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
 export const supportsMicrotasks = true;
-// Run microtasks synchronously for immediate updates
+// Synchronous: runs the reconciler's work loop inline. Combined with
+// `resolveUpdatePriority` returning Discrete (sync lane) below, secondary
+// commits land in the same commit cycle as the parent's effects.
+// Switching to `queueMicrotask` defers the loop and breaks
+// parent-finds-children — see `resolveUpdatePriority` for the full picture.
 export const scheduleMicrotask = (fn) => {
   fn();
 };
@@ -260,6 +264,17 @@ export function getCurrentUpdatePriority() {
   return currentUpdatePriority;
 }
 
+// LOAD-BEARING: secondary-reconciler updates run on React's SyncLane.
+// This is what makes the parent-finds-children invariant work — sync-lane
+// commits land before the scheduler yields, so a parent's useLayoutEffect
+// can read Konva nodes added by useSyncExternalStore-subscribing children
+// in the same commit cycle.
+//
+// Changing to Default/Continuous/Idle reproduces ~18 failures in
+// test/sections/01 and test/sections/16 (parent reads return null). If you
+// MUST change this, compensate by either keeping the (removed) flushSync
+// wrapper around `updateContainer`, or by calling
+// `flushSyncWorkAcrossRoots` from react-reconciler at commit time.
 export function resolveUpdatePriority() {
   return DiscreteEventPriority;
 }

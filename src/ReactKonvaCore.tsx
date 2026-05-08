@@ -168,42 +168,17 @@ const StageWrap = (props) => {
     _setRef(stage.current);
     applyNodeProps(stage.current, props, oldProps);
 
-    // =============================================================================
-    // CRITICAL FIX - DO NOT REMOVE
-    // =============================================================================
-    // This flushSyncFromReconciler wrapper is CRITICAL for React 19 compatibility.
-    //
-    // THE BUG:
-    // When using useSyncExternalStore (MobX, Zustand, etc.) with react-konva,
-    // parent component's useLayoutEffect couldn't find newly added Konva nodes.
-    // The nodes were added to the store, but not yet rendered to the canvas.
-    //
-    // ROOT CAUSE:
-    // React 19's updateContainer can defer Konva reconciler work to a later
-    // microtask. Combined with Bridge component (from its-fine) and Html components
-    // that create secondary React roots, this caused child components to render
-    // AFTER parent's useLayoutEffect completed.
-    //
-    // THE FIX:
-    // flushSyncFromReconciler forces ALL scheduled Konva reconciler work to
-    // complete synchronously within this useLayoutEffect, ensuring child
-    // components render before any parent effects run.
-    //
-    // WARNING - NOT COVERED BY TESTS:
-    // This bug CANNOT be reproduced in local test environments (Vitest/Playwright).
-    // It only manifests in production builds with specific conditions:
-    // - MobX/useSyncExternalStore for state management
-    // - Html components with secondary React roots using Bridge
-    // - Complex component hierarchies (multiple pages/stages)
-    // The fix was verified in Polotno production app.
-    // =============================================================================
-    (KonvaRenderer as any).flushSyncFromReconciler(() => {
-      KonvaRenderer.updateContainer(
-        React.createElement(Bridge, {}, props.children),
-        fiberRef.current,
-        null,
-      );
-    });
+    // No flushSync wrapper here — Discrete priority in HostConfig pins
+    // commits to sync lane, so they land in this same commit cycle. The
+    // wrapper was redundant since resolveUpdatePriority was set to Discrete.
+    // If you change Discrete or scheduleMicrotask in HostConfig, restore a
+    // wrapper here (`flushSyncFromReconciler` or the more targeted
+    // `flushSyncWorkAcrossRoots`).
+    KonvaRenderer.updateContainer(
+      React.createElement(Bridge, {}, props.children),
+      fiberRef.current,
+      null,
+    );
   });
 
   return React.createElement('div', {
