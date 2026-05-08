@@ -15,4 +15,7 @@ package-lock.json
 __screenshots__
 .vitest-attachments
 .claude
+.bench-tools
 polotno-reply.md
+Trace-*.json
+

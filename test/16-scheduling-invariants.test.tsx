@@ -1,56 +1,11 @@
-// §16 — Scheduling invariants (adapted from Polotno team's proposal).
-//
-// The Polotno team proposed three "invariants" pinning down behavior they
-// believe react-konva's HostConfig provides. Their original framing was that
-// these would catch regressions in:
-//   - `scheduleMicrotask = (fn) => fn();` (sync inline)
-//   - `flushSyncFromReconciler` wrapping `updateContainer` in Stage's effect
-//
-// We received the proposal as a single test file and did a skeptical review
-// before adopting. Findings:
-//
-//   INVARIANT 1 — "Konva refs ready in parent useLayoutEffect"
-//     5 tests proposed. All pass on master and under every config we tried
-//     (variants A, B, A+B). They overlap heavily with §1.1, §1.4, §1.5, §1.7.
-//     KEPT because the scheduling-invariant FRAMING is load-bearing for code
-//     review when someone touches HostConfig — these tests are anchors with
-//     a clear "if this regresses, you broke X" story, even if they pass under
-//     more configs than the Polotno table claimed.
-//
-//   INVARIANT 2 — "state changes between same-tick DOM events"
-//     2 tests proposed using `el.dispatchEvent(new MouseEvent(...))` to
-//     synthesize events. DROPPED. The proposed tests FAIL on master (sync
-//     scheduleMicrotask + flushSync ON), which contradicts the claimed toggle
-//     table. The reason: `dispatchEvent` from JS code goes through React's
-//     automatic-batching path, NOT React's discrete-event sync-commit path.
-//     We confirmed this is NOT specific to react-konva — pure react-dom
-//     `<div onClick>` + `dispatchEvent` also doesn't sync-commit. So those
-//     tests can't catch what they claim to catch.
-//
-//     We then tested the same scenario via `vitest/browser`'s
-//     `userEvent.click()` — which dispatches REAL Playwright-driven events
-//     through the browser's native event loop. That path DOES go through
-//     React's discrete-event handling. Under that path, the polotno scenario
-//     passes under BOTH sync and async `scheduleMicrotask`, because real
-//     browser events provide enough microtask drain between mousedown and
-//     mouseup for the queued reconciler work to flush before mouseup fires.
-//
-//     Net: the polotno team's INV 2 concern (drag/draw tools breaking under
-//     async scheduleMicrotask) does not reproduce with real events. There IS
-//     a single real-event-driven anchor test below (§16.2.1) verifying the
-//     drag-tool scenario works — but it is NOT a regression test for
-//     `scheduleMicrotask = fn => fn()`, because it would pass under async
-//     scheduleMicrotask too. It only catches gross breakage.
-//
-//   INVARIANT 3 — "rapid mount/unmount with pending state, no errors"
-//     The polotno team's own note: "we couldn't reproduce a failure for this
-//     from tests, so it's a defensive guard." Already covered by §8.5 (50
-//     rapid mount/unmount cycles) and §12.1 (1000-cycle loop). DROPPED.
-//
-// Bottom line: of the polotno team's proposed 8 tests, 5 are kept (INV 1,
-// duplicative but worth re-anchoring under scheduling-invariant framing),
-// 1 is added (real-event drag-tool anchor), and 2+1 are dropped (broken or
-// redundant).
+// §16 — Scheduling invariants.
+// Anchor tests pinning the scheduling-contract framing for code reviews
+// touching HostConfig. INV 1 (Konva refs ready in parent useLayoutEffect)
+// duplicates §1 but under scheduling-invariant naming. INV 2 (drag-tool
+// window-listener pattern) uses real Playwright events — synthetic
+// dispatchEvent from JS goes through React's automatic-batching path, not
+// the discrete-event sync-commit path, so it can't catch what the polotno
+// team's original dispatchEvent-based tests claimed.
 
 import * as React from 'react';
 import { describe, it, expect, vi } from 'vitest';

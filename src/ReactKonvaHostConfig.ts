@@ -131,14 +131,12 @@ export function getChildHostContext() {
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
 export const supportsMicrotasks = true;
-// Synchronous: runs the reconciler's work loop inline. Combined with
-// `resolveUpdatePriority` returning Discrete (sync lane) below, secondary
-// commits land in the same commit cycle as the parent's effects.
-// Switching to `queueMicrotask` defers the loop and breaks
-// parent-finds-children — see `resolveUpdatePriority` for the full picture.
-export const scheduleMicrotask = (fn) => {
-  fn();
-};
+// Async — fixes the mobx-react-lite snapshot race. Stage's useLayoutEffect
+// then explicitly calls `flushSyncWork()` to keep parent useLayoutEffect able
+// to read Konva nodes added by subscribing children (see ReactKonvaCore.tsx).
+export const scheduleMicrotask = typeof queueMicrotask === 'function'
+  ? queueMicrotask
+  : (fn) => Promise.resolve(null).then(fn);
 export const noTimeout = -1;
 // export const schedulePassiveEffects = scheduleDeferredCallback;
 // export const cancelPassiveEffects = cancelDeferredCallback;
@@ -264,17 +262,10 @@ export function getCurrentUpdatePriority() {
   return currentUpdatePriority;
 }
 
-// LOAD-BEARING: secondary-reconciler updates run on React's SyncLane.
-// This is what makes the parent-finds-children invariant work — sync-lane
-// commits land before the scheduler yields, so a parent's useLayoutEffect
-// can read Konva nodes added by useSyncExternalStore-subscribing children
-// in the same commit cycle.
-//
-// Changing to Default/Continuous/Idle reproduces ~18 failures in
-// test/sections/01 and test/sections/16 (parent reads return null). If you
-// MUST change this, compensate by either keeping the (removed) flushSync
-// wrapper around `updateContainer`, or by calling
-// `flushSyncWorkAcrossRoots` from react-reconciler at commit time.
+// Load-bearing: pins secondary commits to React's sync lane so they land
+// before the scheduler yields. Required for parent useLayoutEffect to read
+// Konva nodes added by subscribing children. Changing to Default/Continuous/
+// Idle breaks ~18 tests in test/01-mounting and test/16-scheduling-invariants.
 export function resolveUpdatePriority() {
   return DiscreteEventPriority;
 }

@@ -1,14 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 
-// Single browser config used by both `npm test` (dev React) and
-// `npm run test:prod` (production React). Project mode is NOT used here:
-// switching React's NODE_ENV-gated entry between dev and prod requires that
-// vite's deps optimizer be invoked with the matching NODE_ENV at process start,
-// which is not reliably overridable per-vitest-project. Instead, the prod run
-// is a separate `NODE_ENV=production` vitest invocation that re-runs a curated
-// subset of section files (see package.json `test:prod`). One config, two
-// invocations — simpler and more robust than per-project cache + alias plumbing.
+// Single browser config. The dev/prod React build split is handled by the
+// `test:prod` npm script invoking vitest with `NODE_ENV=production` on a
+// curated subset of files — vite's deps optimizer respects that env at
+// process start, which is more reliable than per-vitest-project overrides.
 export default defineConfig({
   test: {
     browser: {

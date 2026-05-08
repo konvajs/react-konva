@@ -1,28 +1,18 @@
-// §7 — mobx-react-lite × secondary-reconciler snapshot race (real mobx).
+// §7 — mobx-react-lite × secondary-reconciler snapshot race.
 //
-// The bug, in one paragraph:
-// mobx-react-lite's Reaction defers the useSyncExternalStore snapshot bump
-// (adm.stateVersion = Symbol()) to a queued handler that only runs if mobx's
-// shouldCompute() check returns true. If anything re-renders the same observer
-// between "deps changed" (onBecomeStale_) and "queued handler runs"
-// (runReaction_), the render's reaction.track() resets dependenciesState_ to
-// UP_TO_DATE_. shouldCompute then returns false, the handler never runs, and
-// the snapshot Symbol stays stale. useSyncExternalStore reads the unchanged
-// Symbol on the next render, sets didReceiveUpdate=false, and React's
-// bailoutOnAlreadyFinishedWork discards the (correct) new JSX. Result: stale
-// Konva subtree.
+// mobx-react-lite defers its `useSyncExternalStore` snapshot bump
+// (`adm.stateVersion = Symbol()`) to a queued handler gated by
+// `shouldCompute()`. If anything re-renders the observer between
+// `onBecomeStale_` and `runReaction_`, the render's `reaction.track()` resets
+// deps to UP_TO_DATE_, `shouldCompute` returns false, the handler skips, the
+// Symbol stays stale, React's `useSyncExternalStore` bails out, and the JSX
+// update is discarded — leaving a stale Konva subtree.
 //
-// The bug requires SOMETHING that flushes a re-render between mobx's
-// onBecomeStale_ and runReaction_. react-konva's secondary reconciler (sync
-// scheduleMicrotask, flushSyncFromReconciler) is one such mechanism — pure
-// react-dom apps don't easily reproduce it.
-//
-// Upstream fix (for context): mobx-react-lite's useObserver.ts createReaction
-// should bump adm.stateVersion synchronously inside an onBecomeStale_ wrapper
-// so the snapshot is up-to-date regardless of whether the queued handler runs.
-//
-// This test guards against future scheduling changes in react-konva that might
-// unmask the bug again on react-konva's side.
+// react-konva's scheduling can drive that interleaved re-render. With async
+// `scheduleMicrotask` (current), the secondary reconciler defers past the
+// race window; mobx's queued handler runs first, the Symbol bumps, and the
+// observer re-renders cleanly. This test guards against any scheduling
+// regression that would re-unmask the bug.
 
 import * as React from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -49,14 +39,13 @@ beforeEach(() => {
 });
 
 describe('§7 mobx-react-lite × react-konva snapshot race', () => {
-  // Marked `.fails` because mobx-react-lite 4.1.0 has not landed the upstream
-  // `onBecomeStale_` synchronous-version-bump workaround. When upstream lands
-  // it (or downgrades mobx-react-lite below a hypothetical fixed version),
-  // this test will START passing — at which point vitest will fail the
-  // `.fails` annotation, forcing us to flip it back to a regular `it()`.
-  // This is the desired signal: we want a code review when the upstream
-  // fix lands, not silent passing.
-  it.fails('§7 focus rect disappears when an observable flips off (no stale snapshot)', async () => {
+  // Passes under react-konva's current scheduling: async `scheduleMicrotask`
+  // defers the secondary reconciler's commit past the moment when mobx's
+  // interleaved render would have triggered the `shouldCompute=false` gate,
+  // so the version Symbol bumps correctly and `useSyncExternalStore` does
+  // NOT bail out. Without that scheduling change, this test reproduces the
+  // race and fails (focus rect lingers).
+  it('§7 focus rect disappears when an observable flips off (no stale snapshot)', async () => {
     const FocusBox = observer(() => {
       const isSelected = store.selected;
       const focusedId = store.focusedId;

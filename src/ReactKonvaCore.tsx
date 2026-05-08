@@ -168,17 +168,16 @@ const StageWrap = (props) => {
     _setRef(stage.current);
     applyNodeProps(stage.current, props, oldProps);
 
-    // No flushSync wrapper here — Discrete priority in HostConfig pins
-    // commits to sync lane, so they land in this same commit cycle. The
-    // wrapper was redundant since resolveUpdatePriority was set to Discrete.
-    // If you change Discrete or scheduleMicrotask in HostConfig, restore a
-    // wrapper here (`flushSyncFromReconciler` or the more targeted
-    // `flushSyncWorkAcrossRoots`).
+    // updateContainer schedules sync-lane work; with async scheduleMicrotask
+    // the work is queued, so flushSyncWork() drains it inline here so that
+    // a parent useLayoutEffect can read Konva nodes added by subscribing
+    // children. (Lighter than flushSyncFromReconciler — no callback wrapper.)
     KonvaRenderer.updateContainer(
       React.createElement(Bridge, {}, props.children),
       fiberRef.current,
       null,
     );
+    KonvaRenderer.flushSyncWork();
   });
 
   return React.createElement('div', {

@@ -143,10 +143,8 @@ describe('§15 design-decision anchors', () => {
     expect(KonvaRenderer).toBeDefined();
     // These methods are public API for sibling packages (react-konva-utils,
     // react-konva-spring, etc.). Renaming them is a breaking change.
-    expect(typeof (KonvaRenderer as any).flushSyncFromReconciler).toBe(
-      'function'
-    );
-    expect(typeof (KonvaRenderer as any).batchedUpdates).toBe('function');
+    expect(typeof KonvaRenderer.flushSyncFromReconciler).toBe('function');
+    expect(typeof KonvaRenderer.batchedUpdates).toBe('function');
   });
 
   // §15.6 — flushSyncFromReconciler actually flushes synchronously.
@@ -177,7 +175,7 @@ describe('§15 design-decision anchors', () => {
       );
 
       // First, schedule an updateContainer that creates the initial layer + rect.
-      (KonvaRenderer as any).flushSyncFromReconciler(() => {
+      KonvaRenderer.flushSyncFromReconciler(() => {
         KonvaRenderer.updateContainer(
           <Layer>
             <Rect name="r" x={5} width={10} height={10} />
@@ -193,7 +191,7 @@ describe('§15 design-decision anchors', () => {
       // Now schedule a re-render and assert the new x value is on the Konva
       // node immediately after flushSyncFromReconciler returns — proving the
       // commit happened inside the callback, not on a later microtask.
-      (KonvaRenderer as any).flushSyncFromReconciler(() => {
+      KonvaRenderer.flushSyncFromReconciler(() => {
         KonvaRenderer.updateContainer(
           <Layer>
             <Rect name="r" x={123} width={10} height={10} />
@@ -205,7 +203,7 @@ describe('§15 design-decision anchors', () => {
       expect((stage.findOne('.r') as Konva.Rect).x()).toBe(123);
 
       // Tear down the secondary root so afterEach's leak guard is happy.
-      (KonvaRenderer as any).flushSyncFromReconciler(() => {
+      KonvaRenderer.flushSyncFromReconciler(() => {
         KonvaRenderer.updateContainer(null, fiberRoot, null);
       });
     } finally {
