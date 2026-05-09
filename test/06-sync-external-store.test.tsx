@@ -117,7 +117,7 @@ describe('§6 useSyncExternalStore', () => {
     expect(renderCount).toBeLessThan(10);
   });
 
-  it('§6.5 multiple subscribers — both update on change', () => {
+  it('§6.4 multiple subscribers — both update on change', () => {
     const store = makeStore({ x: 0 });
     const SubA = () => {
       const { x } = React.useSyncExternalStore(
@@ -146,7 +146,7 @@ describe('§6 useSyncExternalStore', () => {
     expect((stage()!.findOne('.b') as Konva.Rect).x()).toBe(43);
   });
 
-  it('§6.6 subscriber unsubscribes on teardown — listener count returns to zero', () => {
+  it('§6.5 subscriber unsubscribes on teardown — listener count returns to zero', () => {
     const store = makeStore({ x: 0 });
     expect(store.listenerCount()).toBe(0);
     const Sub = () => {
@@ -161,7 +161,7 @@ describe('§6 useSyncExternalStore', () => {
       </Stage>
     );
     expect(store.listenerCount()).toBeGreaterThan(0);
-    act(() => result.unmount());
+    result.unmount();
     expect(store.listenerCount()).toBe(0);
   });
 });

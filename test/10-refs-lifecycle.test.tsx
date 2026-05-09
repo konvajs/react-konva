@@ -1,8 +1,8 @@
 // §10 — Refs, dispose, lifecycle.
 
 import * as React from 'react';
-import { describe, it, expect } from 'vitest';
-import { autorun } from 'mobx';
+import { describe, it, expect, vi } from 'vitest';
+import { autorun, observable, runInAction } from 'mobx';
 import useImage from 'use-image';
 import Konva from 'konva';
 import {
@@ -15,7 +15,9 @@ import {
 } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
 
-const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
+// 1×1 transparent PNG, embedded so the test never touches the network.
+const TINY_PNG_DATA_URL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';
 
 describe('§10 refs / dispose / lifecycle', () => {
   it('§10.1 forwarded refs with useImperativeHandle survive unmount/remount', () => {
@@ -67,17 +69,20 @@ describe('§10 refs / dispose / lifecycle', () => {
 
   it('§10.3 mobx autorun disposer fires on unmount — no leaked subscription', () => {
     let runs = 0;
-    let observeMe = { val: 0 };
+    const store = observable({ val: 0 });
+    const disposeSpy = vi.fn();
     const App = () => {
       React.useEffect(() => {
         const dispose = autorun(() => {
           runs++;
-          // Read so mobx tracks; using observable would be more idiomatic, but
-          // the contract under test is "the disposer is called on unmount,
-          // not whether autorun fires when state changes".
-          void observeMe.val;
+          // Real observable read — mobx tracks this dep, so a later runInAction
+          // would re-fire autorun if (and only if) the disposer never ran.
+          void store.val;
         });
-        return dispose;
+        return () => {
+          disposeSpy();
+          dispose();
+        };
       }, []);
       return (
         <Stage width={50} height={50}>
@@ -86,52 +91,56 @@ describe('§10 refs / dispose / lifecycle', () => {
       );
     };
     const result = render(<App />);
-    const runsBefore = runs;
-    act(() => result.unmount());
-    // After unmount, autorun must be disposed. We can't directly assert
-    // disposer ran, but a follow-up state mutation must not bump runs.
-    observeMe = { val: 1 };
-    expect(runs).toBe(runsBefore); // no extra runs (it's not even tracking val)
+    expect(runs).toBe(1);
+    expect(disposeSpy).not.toHaveBeenCalled();
+
+    result.unmount();
+    expect(disposeSpy).toHaveBeenCalledTimes(1);
+
+    // Mutate the tracked observable. If the disposer leaked, autorun would
+    // re-fire and `runs` would bump to 2.
+    runInAction(() => {
+      store.val = 1;
+    });
+    expect(runs).toBe(1);
   });
 
-  it('§10.4 FinalizationRegistry semantics — react-konva does not retain extra refs', async () => {
-    if (typeof FinalizationRegistry === 'undefined') return; // browsers without FR
-    let collected = 0;
-    const reg = new FinalizationRegistry(() => {
-      collected++;
-    });
-    const App = () => {
-      const ref = React.useRef<Konva.Rect>(null);
-      React.useEffect(() => {
-        if (ref.current) reg.register(ref.current, 'rect');
-      }, []);
-      return (
-        <Stage width={50} height={50}>
-          <Layer>
-            <Rect ref={ref} width={10} height={10} />
-          </Layer>
-        </Stage>
-      );
-    };
+  it('§10.4 unmount detaches the Konva node from its stage (no react-side retention surface)', () => {
+    // The original §10.4 used FinalizationRegistry to assert "react-konva
+    // doesn't retain extra refs", but FR is non-deterministic in a browser
+    // test runner — we can't force GC. The deterministic surface we *can*
+    // assert is: after the Stage subtree unmounts, the Rect is detached
+    // from its stage. If react-konva ever held an extra ref that prevented
+    // disposal, getStage() would still return the Stage.
+    let captured: Konva.Rect | null = null;
+    const App = () => (
+      <Stage width={50} height={50}>
+        <Layer>
+          <Rect
+            ref={(r) => {
+              if (r) captured = r;
+            }}
+            width={10}
+            height={10}
+          />
+        </Layer>
+      </Stage>
+    );
     const result = render(<App />);
-    act(() => result.unmount());
-    // FinalizationRegistry firing is not deterministic — it requires GC.
-    // We can only assert "no error from registering / unmounting" here, not
-    // that `collected` hits 1. This documents the contract, not the timing.
-    await tick();
-    expect(collected).toBeGreaterThanOrEqual(0);
+    expect(captured).toBeInstanceOf(Konva.Rect);
+    expect(captured!.getStage()).toBeInstanceOf(Konva.Stage);
+    result.unmount();
+    expect(captured!.getStage()).toBeNull();
   });
 
   it('§10.5 use-image hook integrates with <Image> and updates on load', async () => {
     // External-library integration anchor: `use-image` is the canonical hook
     // for loading images into Konva. It returns [HTMLImageElement|undefined,
     // status]. While loading, image is undefined and status is 'loading';
-    // after the actual <img> finishes loading, status flips to 'loaded'.
-    const url =
-      'https://konvajs.org//img/icon.png?token' + Math.random();
-
+    // after the <img> decodes, status flips to 'loaded'. We use an embedded
+    // data URL so the test is hermetic — no network, no flake.
     const App = () => {
-      const [image, status] = useImage(url);
+      const [image, status] = useImage(TINY_PNG_DATA_URL);
       return (
         <Stage width={50} height={50}>
           <Layer>
@@ -146,19 +155,12 @@ describe('§10 refs / dispose / lifecycle', () => {
     expect((stage()!.findOne('Image') as Konva.Image).image()).toBeUndefined();
     expect((stage()!.findOne('Text') as Konva.Text).text()).toBe('loading');
 
-    // Wait for the real image network load to complete (use-image kicks off
-    // the load on first call). We poll instead of relying on a fixed timeout.
-    const start = Date.now();
-    while (
-      (stage()!.findOne('Text') as Konva.Text).text() === 'loading' &&
-      Date.now() - start < 5000
-    ) {
-      await tick(50);
-    }
-    expect((stage()!.findOne('Text') as Konva.Text).text()).toBe('loaded');
-    expect(
-      (stage()!.findOne('Image') as Konva.Image).image() instanceof
-        window.Image
-    ).toBe(true);
+    await vi.waitFor(() => {
+      expect((stage()!.findOne('Text') as Konva.Text).text()).toBe('loaded');
+      expect(
+        (stage()!.findOne('Image') as Konva.Image).image() instanceof
+          window.Image
+      ).toBe(true);
+    });
   });
 });

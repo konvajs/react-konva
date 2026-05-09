@@ -7,12 +7,10 @@
 // here render Konva elements as their fallback rather than DOM <div>s.
 
 import * as React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Konva from 'konva';
 import { Stage, Layer, Rect, Group } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
-
-const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 
 class KonvaBoundary extends React.Component<
   { children: React.ReactNode; fallback: React.ReactNode },
@@ -28,6 +26,17 @@ class KonvaBoundary extends React.Component<
 }
 
 describe('§13 error handling', () => {
+  // These tests intentionally trigger errors React reports via console.error.
+  // Silence them for the duration of the describe so the suite-wide strict
+  // console.error guard (helpers/render.tsx) doesn't fail them.
+  let errSpy: ReturnType<typeof vi.spyOn> | undefined;
+  beforeEach(() => {
+    errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    errSpy?.mockRestore();
+  });
+
   it('§13.1 user onClick that throws — does not crash; Konva tree remains', () => {
     let stageRef!: Konva.Stage;
     const App = () => {
@@ -52,12 +61,26 @@ describe('§13 error handling', () => {
     };
     render(<App />);
     expect(stageRef!.findOne('.r')).toBeInstanceOf(Konva.Rect);
+    // Real DOM dispatchEvent swallows listener throws (the browser reports
+    // them via window.onerror instead of propagating up). So act() does NOT
+    // re-throw here — the contract is just "no crash, tree stays intact".
+    // Vitest's browser mode promotes window.onerror events to "Unhandled
+    // Error" reports, so swallow this specific one for the duration of the
+    // dispatch.
+    const seen: ErrorEvent[] = [];
+    const swallow = (e: ErrorEvent) => {
+      if (e.message?.includes('user handler throws')) {
+        e.preventDefault();
+        seen.push(e);
+      }
+    };
+    window.addEventListener('error', swallow);
     try {
       act(() => stageRef!.simulateMouseDown({ x: 10, y: 10 }));
-    } catch {
-      // act() rethrows — expected.
+    } finally {
+      window.removeEventListener('error', swallow);
     }
-    // Tree state still consistent.
+    expect(seen.length).toBe(1);
     expect(stageRef!.findOne('.r')).toBeInstanceOf(Konva.Rect);
   });
 
@@ -79,9 +102,8 @@ describe('§13 error handling', () => {
       </Stage>
     );
     expect(stage()!.findOne('.bomb')).toBeInstanceOf(Konva.Rect);
-    try {
-      act(() => trigger());
-    } catch {}
+    act(() => trigger());
+    // Boundary catches; tree swaps cleanly.
     expect(stage()!.findOne('.fallback')).toBeInstanceOf(Konva.Rect);
     expect(stage()!.findOne('.bomb')).toBeUndefined();
   });
@@ -105,34 +127,38 @@ describe('§13 error handling', () => {
         </Layer>
       </Stage>
     );
-    try {
-      await act(async () => {
-        await Promise.resolve();
-        trigger();
-      });
-    } catch {}
-    await tick();
-    expect(stage()!.findOne('.async-fallback')).toBeInstanceOf(Konva.Rect);
+    await act(async () => {
+      await Promise.resolve();
+      trigger();
+    });
+    await vi.waitFor(() =>
+      expect(stage()!.findOne('.async-fallback')).toBeInstanceOf(Konva.Rect)
+    );
   });
 
-  it('§13.4 unknown Konva element type — render fails cleanly, no half-mounted state', () => {
+  it('§13.4 unknown Konva element type — logs warning, falls back to Group, tree stays consistent', () => {
+    // Source contract (src/ReactKonvaHostConfig.ts:43-50):
+    //   - console.error a "no such node" warning
+    //   - substitute Konva.Group as the fallback
+    //   - mount succeeds; afterEach's leak guard verifies clean unmount
+    // The describe-level errSpy (above) catches the warning so we can
+    // inspect its calls.
     const before = Konva.stages.length;
-    let threw = false;
-    try {
-      render(
-        <Stage width={50} height={50}>
-          <Layer>
-            {React.createElement('NotARealKonvaType' as any, {})}
-          </Layer>
-        </Stage>
-      );
-    } catch {
-      threw = true;
-    }
-    void threw;
-    // Either react-konva threw on createInstance (clean error path) OR it
-    // mounted with a missing element. Hard requirement: no leaked Stage.
-    // afterEach asserts that.
-    expect(Konva.stages.length).toBeLessThanOrEqual(before + 1);
+    const { stage } = render(
+      <Stage width={50} height={50}>
+        <Layer>
+          {React.createElement('NotARealKonvaType' as any, {
+            name: 'fallback-target',
+          })}
+        </Layer>
+      </Stage>
+    );
+    expect(Konva.stages.length).toBe(before + 1);
+    const fallbackNode = stage()!.findOne('.fallback-target');
+    expect(fallbackNode).toBeInstanceOf(Konva.Group);
+    const warnedAboutType = errSpy!.mock.calls.some(
+      (args) => typeof args[0] === 'string' && args[0].includes('NotARealKonvaType')
+    );
+    expect(warnedAboutType).toBe(true);
   });
 });

@@ -9,7 +9,6 @@ import {
   Stage,
   Layer,
   Rect,
-  Group,
   Transformer,
 } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
@@ -136,9 +135,7 @@ describe('§1 mounting / first-paint timing', () => {
     };
     const { rerender } = render(<App width={100} />);
     expect(observedWidthAfterUpdate).toBe(100);
-    act(() => {
-      rerender(<App width={250} />);
-    });
+    rerender(<App width={250} />);
     expect(observedWidthAfterUpdate).toBe(250);
   });
 
@@ -161,13 +158,11 @@ describe('§1 mounting / first-paint timing', () => {
     };
     const { rerender } = render(<App count={1} />);
     expect(observed).toBe(1);
-    act(() => {
-      rerender(<App count={3} />);
-    });
+    rerender(<App count={3} />);
     expect(observed).toBe(3);
   });
 
-  it('§1.9 keyed reorder with shrinking length — no leaks, correct z-order, instance identity preserved', () => {
+  it('§1.8 keyed reorder with shrinking length — no leaks, correct z-order, instance identity preserved', () => {
     // Adapted from r3f's `'should properly handle array of components with
     // changing keys and order'`. Stresses placeChild/moveChild/removeChild
     // simultaneously. Konva Layer.children is paint-order, so a buggy
@@ -214,7 +209,7 @@ describe('§1 mounting / first-paint timing', () => {
     expect(layer.getChildren().length).toBe(2);
   });
 
-  it('§1.8 children removed after first mount — no zombie Konva node remains', () => {
+  it('§1.9 children removed after first mount — no zombie Konva node remains', () => {
     let observed = -1;
     const App = ({ count }: { count: number }) => {
       const stageRef = React.useRef<Konva.Stage>(null);
@@ -233,9 +228,7 @@ describe('§1 mounting / first-paint timing', () => {
     };
     const { rerender, stage } = render(<App count={3} />);
     expect(observed).toBe(3);
-    act(() => {
-      rerender(<App count={1} />);
-    });
+    rerender(<App count={1} />);
     expect(observed).toBe(1);
     expect(stage()?.find('Rect').length).toBe(1);
   });
@@ -260,7 +253,7 @@ describe('§1 mounting / first-paint timing', () => {
     rect.x(20);
 
     // Re-render with the SAME JSX x={10} — react-konva must not clobber the 20.
-    act(() => rerender(<App x={10} />));
+    rerender(<App x={10} />);
     expect(rect.x()).toBe(20);
   });
 
@@ -276,8 +269,8 @@ describe('§1 mounting / first-paint timing', () => {
     );
     const { rerender, stage } = render(<App x={0} />);
     const initialId = (stage()!.findOne('.r') as Konva.Rect)._id;
-    act(() => rerender(<App x={5} />));
-    act(() => rerender(<App x={10} />));
+    rerender(<App x={5} />);
+    rerender(<App x={10} />);
     const laterId = (stage()!.findOne('.r') as Konva.Rect)._id;
     expect(laterId).toBe(initialId);
   });
@@ -307,7 +300,7 @@ describe('§1 mounting / first-paint timing', () => {
     const { rerender } = render(<App show={false} />);
     const spy = vi.spyOn(Konva.Layer.prototype, 'batchDraw');
     try {
-      act(() => rerender(<App show={true} />));
+      rerender(<App show={true} />);
       expect(spy).toHaveBeenCalled();
     } finally {
       spy.mockRestore();
@@ -323,7 +316,7 @@ describe('§1 mounting / first-paint timing', () => {
     const { rerender } = render(<App hide={false} />);
     const spy = vi.spyOn(Konva.Layer.prototype, 'batchDraw');
     try {
-      act(() => rerender(<App hide={true} />));
+      rerender(<App hide={true} />);
       expect(spy).toHaveBeenCalled();
     } finally {
       spy.mockRestore();

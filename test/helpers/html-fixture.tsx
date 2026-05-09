@@ -1,9 +1,9 @@
-// Minimal <Html> fixture mirroring react-konva-utils' Html. Co-located here so
-// react-konva's tests can exercise the secondary-react-dom-root + useContextBridge
-// + queueMicrotask + flushSync contract without taking a dep on the sibling package.
-//
-// Keep this in sync with react-konva-utils/src/Html.tsx — if behavior diverges,
-// these fixture-based tests will silently stop reflecting reality.
+// Minimal <Html> fixture for tests. NOT a sync'd copy of react-konva-utils'
+// Html — it's a deliberately minimal implementation that exercises the
+// secondary-react-dom-root + useContextBridge + queueMicrotask + flushSync
+// contract that react-konva must support. We don't pull react-konva-utils
+// as a dev dep because that creates a chicken-and-egg test setup: a bug in
+// react-konva could break the fixture, masking the bug under test.
 
 import * as React from 'react';
 import { createRoot, type Root } from 'react-dom/client';

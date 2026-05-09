@@ -2,14 +2,11 @@
 
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { createRoot } from 'react-dom/client';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import Konva from 'konva';
 import { Stage, Layer, Rect, Group } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
 import { Html } from './helpers/html-fixture';
-
-const tick = (ms = 50) => new Promise((r) => setTimeout(r, ms));
 
 describe('§5 multi-root & portals', () => {
   it('§5.1 two independent <Stage> instances — state changes update both without cross-contamination', () => {
@@ -76,8 +73,6 @@ describe('§5 multi-root & portals', () => {
   });
 
   it('§5.3 <Html> portal inside Stage — drains via queueMicrotask + flushSync', async () => {
-    const spy = document.createElement('span');
-    spy.textContent = 'before';
     const App = () => (
       <Stage width={50} height={50}>
         <Layer>
@@ -88,12 +83,13 @@ describe('§5 multi-root & portals', () => {
       </Stage>
     );
     const { container } = render(<App />);
-    await act(() => tick());
-    const stageContainer = container.querySelector('div')!;
-    const found = stageContainer.querySelector('[data-html-content="yes"]');
-    expect(found).not.toBeNull();
-    expect(found!.textContent).toBe('html-content');
-    spy.remove();
+    const found = await vi.waitFor(() => {
+      const stageContainer = container.querySelector('div')!;
+      const node = stageContainer.querySelector('[data-html-content="yes"]');
+      expect(node).not.toBeNull();
+      return node!;
+    });
+    expect(found.textContent).toBe('html-content');
   });
 
   it('§5.4 nested <Html> — inner content reaches the secondary root', async () => {
@@ -109,57 +105,51 @@ describe('§5 multi-root & portals', () => {
       </Stage>
     );
     const { container } = render(<App />);
-    await act(() => tick());
-    expect(container.querySelector('[data-outer="yes"]')).not.toBeNull();
-    expect(container.querySelector('[data-inner="yes"]')?.textContent).toBe(
-      'nested'
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-outer="yes"]')).not.toBeNull();
+      expect(container.querySelector('[data-inner="yes"]')?.textContent).toBe(
+        'nested'
+      );
+    });
+  });
+
+  it('§5.5 switching DOM roots — mount Stage in root A, unmount, mount in root B', async () => {
+    // Each helper-render creates its own DOM container and react-dom root, so
+    // calling it twice models the "swap to a new container" scenario without
+    // ad-hoc createRoot wiring.
+    const refA = React.createRef<Konva.Stage>();
+    const resultA = render(
+      <Stage ref={refA} width={50} height={50}>
+        <Layer>
+          <Rect width={10} height={10} fill="red" />
+        </Layer>
+      </Stage>
     );
+    const stageA = refA.current!;
+    expect(stageA).toBeInstanceOf(Konva.Stage);
+
+    resultA.unmount();
+    // Stage.destroy() removes itself from Konva.stages — that's the
+    // observable "destroyed" signal for a Stage. (getStage() on a Stage
+    // returns `this` regardless, so it can't be used here.)
+    await vi.waitFor(() => expect(Konva.stages.includes(stageA)).toBe(false));
+
+    const refB = React.createRef<Konva.Stage>();
+    render(
+      <Stage ref={refB} width={60} height={60}>
+        <Layer>
+          <Rect width={10} height={10} fill="blue" />
+        </Layer>
+      </Stage>
+    );
+    const stageB = refB.current!;
+    expect(stageB).toBeInstanceOf(Konva.Stage);
+    expect(stageB).not.toBe(stageA);
+    expect(stageB.width()).toBe(60);
+    expect(Konva.stages.includes(stageB)).toBe(true);
   });
 
-  it('§5.5 switching DOM roots — mount Stage in root A, unmount, mount in root B', () => {
-    const a = document.createElement('div');
-    const b = document.createElement('div');
-    document.body.appendChild(a);
-    document.body.appendChild(b);
-    try {
-      const rootA = createRoot(a);
-      act(() => {
-        rootA.render(
-          <Stage width={50} height={50}>
-            <Layer>
-              <Rect width={10} height={10} fill="red" />
-            </Layer>
-          </Stage>
-        );
-      });
-      const stageA = Konva.stages[Konva.stages.length - 1];
-      expect(stageA).toBeInstanceOf(Konva.Stage);
-
-      act(() => rootA.unmount());
-
-      const rootB = createRoot(b);
-      act(() => {
-        rootB.render(
-          <Stage width={60} height={60}>
-            <Layer>
-              <Rect width={10} height={10} fill="blue" />
-            </Layer>
-          </Stage>
-        );
-      });
-      const stageB = Konva.stages[Konva.stages.length - 1];
-      expect(stageB).toBeInstanceOf(Konva.Stage);
-      expect(stageB).not.toBe(stageA);
-      expect(stageB.width()).toBe(60);
-
-      act(() => rootB.unmount());
-    } finally {
-      a.parentNode?.removeChild(a);
-      b.parentNode?.removeChild(b);
-    }
-  });
-
-  it('§5.7 keyed Group replacement preserves sibling identity, replaces only the keyed subtree', () => {
+  it('§5.6 keyed Group replacement preserves sibling identity, replaces only the keyed subtree', () => {
     // r3f tests `createPortal` with a Konva-like target getting replaced via
     // key. react-dom's `createPortal` validates the target is a DOM element,
     // so the literal r3f scenario doesn't translate. We test the equivalent
@@ -211,7 +201,7 @@ describe('§5 multi-root & portals', () => {
     expect(target1.find('.child').length).toBe(1);
   });
 
-  it('§5.6 <Html> content unmounts cleanly — no leaked secondary host divs', async () => {
+  it('§5.7 <Html> content unmounts cleanly — no leaked secondary host divs', async () => {
     const App = ({ show }: { show: boolean }) => (
       <Stage width={50} height={50}>
         <Layer>
@@ -224,12 +214,14 @@ describe('§5 multi-root & portals', () => {
       </Stage>
     );
     const { container, rerender } = render(<App show={true} />);
-    await act(() => tick());
-    expect(container.querySelector('[data-tracked="yes"]')).not.toBeNull();
+    await vi.waitFor(() =>
+      expect(container.querySelector('[data-tracked="yes"]')).not.toBeNull()
+    );
 
-    act(() => rerender(<App show={false} />));
-    // The Html fixture defers its unmount via setTimeout; wait for that.
-    await act(() => tick(20));
-    expect(container.querySelector('[data-tracked="yes"]')).toBeNull();
+    rerender(<App show={false} />);
+    // The Html fixture defers its unmount via setTimeout; vi.waitFor polls.
+    await vi.waitFor(() =>
+      expect(container.querySelector('[data-tracked="yes"]')).toBeNull()
+    );
   });
 });

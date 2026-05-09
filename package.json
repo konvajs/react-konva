@@ -22,9 +22,6 @@
     "react-reconciler": "0.33.0",
     "scheduler": "0.27.0"
   },
-  "targets": {
-    "none": {}
-  },
   "funding": [
     {
       "type": "patreon",
@@ -59,24 +56,23 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es && node ./replace-version.js",
+    "build": "node ./build.mjs",
     "test:typings": "tsc --noEmit",
     "preversion": "npm test",
     "version": "npm run build",
     "postversion": "",
     "test": "vitest run && npm run test:prod && npm run test:ssr && npm run test:typings",
-    "test:prod": "NODE_ENV=production vitest run test/01-*.test.tsx test/04-*.test.tsx test/07-*.test.tsx test/08-*.test.tsx test/15-*.test.tsx",
+    "test:prod": "NODE_ENV=production vitest run",
     "test:ssr": "npm run build && node test/11-ssr.mjs",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:debug": "HEADLESS=false vitest"
   },
-  "typings": "react-konva.d.ts",
+  "typings": "ReactKonvaCore.d.ts",
   "files": [
     "README.md",
     "lib",
     "es",
-    "react-konva.d.ts",
     "ReactKonvaCore.d.ts"
   ]
 }

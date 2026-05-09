@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import Konva from 'konva';
 import { FiberProvider } from 'its-fine';
 import { Stage, Layer, Rect, useStrictMode } from '../src/ReactKonva';
-import { render, act } from './helpers/render';
+import { render } from './helpers/render';
 
 describe('§4 StrictMode', () => {
   it('§4.1 mount → unmount → mount cycle leaves exactly one Konva.Stage', () => {
@@ -72,36 +72,13 @@ describe('§4 StrictMode', () => {
     expect(observed).toBe('bridged');
   });
 
-  it('§4.4 render-phase double-invoke — components reading mutable state see consistent results', () => {
-    let renderCount = 0;
-    const observedFills: string[] = [];
-    const App = () => {
-      // Mutating closure state during render is dangerous, but StrictMode
-      // double-invoke must not produce two Konva commits with different fills.
-      renderCount++;
-      const fill = renderCount % 2 === 0 ? 'red' : 'blue';
-      observedFills.push(fill);
-      return (
-        <Stage width={50} height={50}>
-          <Layer>
-            <Rect width={10} height={10} fill={fill} />
-          </Layer>
-        </Stage>
-      );
-    };
-    const { stage } = render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    );
-    // The Konva tree reflects the LAST render only. Whatever the assistant of
-    // double-invoke logs in observedFills, the final canvas state must be one
-    // of the two values, and consistent with the rect on canvas.
-    const rect = stage()!.findOne('Rect') as Konva.Rect;
-    expect(observedFills).toContain(rect.fill());
-  });
+  // §4.4 (deleted): the assertion `expect(observedFills).toContain(rect.fill())`
+  // was tautological — observedFills records every render's fill and rect.fill()
+  // is necessarily one of them. The real "StrictMode doesn't break react-konva"
+  // contract is anchored elsewhere: §4.1 (no leaked Stage), §4.2 (ref callback
+  // settles to a live Stage), §4.7 (no duplicate event listeners).
 
-  it('§4.5 global useStrictMode(true) overwrites Konva-side prop changes', () => {
+  it('§4.4 global useStrictMode(true) overwrites Konva-side prop changes', () => {
     // Mirror of §1.10 (which proves the default behavior preserves manual
     // changes). With `useStrictMode(true)`, the JSX value is canonical and
     // overwrites any imperative mutation on next render.
@@ -120,14 +97,14 @@ describe('§4 StrictMode', () => {
       // Imperative mutation outside React.
       rect.x(20);
       // Strict mode: re-render WITH the same JSX x=10 must overwrite the 20.
-      act(() => rerender(<App x={10} />));
+      rerender(<App x={10} />);
       expect(rect.x()).toBe(10);
     } finally {
       useStrictMode(false);
     }
   });
 
-  it('§4.6 per-component `_useStrictMode: true` opts a single node into prop overwrite', () => {
+  it('§4.5 per-component `_useStrictMode: true` opts a single node into prop overwrite', () => {
     // Without flipping the global, the special `_useStrictMode` prop forces
     // strict-mode prop sync on this node only.
     const App = ({ x, strict }: { x: number; strict?: boolean }) => (
@@ -147,11 +124,11 @@ describe('§4 StrictMode', () => {
     const rect = stage()!.findOne('Rect') as Konva.Rect;
     expect(rect.x()).toBe(10);
     rect.x(20);
-    act(() => rerender(<App x={10} strict />));
+    rerender(<App x={10} strict />);
     expect(rect.x()).toBe(10);
   });
 
-  it('§4.7 event listeners under StrictMode — exactly one listener after double-invoke', () => {
+  it('§4.6 event listeners under StrictMode — exactly one listener after double-invoke', () => {
     const App = () => (
       <Stage width={100} height={100} onMouseDown={() => {}}>
         <Layer />

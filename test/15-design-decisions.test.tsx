@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import { describe, it, expect } from 'vitest';
-import { flushSync } from 'react-dom';
+import { ConcurrentRoot } from 'react-reconciler/constants';
 import Konva from 'konva';
 import {
   Stage,
@@ -19,35 +19,8 @@ import {
 import { render, act } from './helpers/render';
 
 describe('§15 design-decision anchors', () => {
-  // src/ReactKonvaHostConfig.ts:135 — `scheduleMicrotask = fn => fn()`
-  it('§15.1 scheduleMicrotask is synchronous — Konva commits visible before next line', () => {
-    let setX!: (n: number) => void;
-    let stageRef!: Konva.Stage;
-    const App = () => {
-      const [x, set] = React.useState(0);
-      setX = set;
-      const ref = React.useRef<Konva.Stage>(null);
-      React.useLayoutEffect(() => {
-        if (ref.current) stageRef = ref.current;
-      });
-      return (
-        <Stage ref={ref} width={50} height={50}>
-          <Layer>
-            <Rect width={10} height={10} x={x} />
-          </Layer>
-        </Stage>
-      );
-    };
-    render(<App />);
-    flushSync(() => setX(99));
-    // Synchronous scheduleMicrotask means Konva sees the new x BEFORE the
-    // next statement. If scheduleMicrotask were ever changed to async
-    // (queueMicrotask), this would flake.
-    expect((stageRef!.findOne('Rect') as Konva.Rect).x()).toBe(99);
-  });
-
   // src/ReactKonvaHostConfig.ts:147 — `isPrimaryRenderer = false`
-  it('§15.2 isPrimaryRenderer = false — react-dom container exists in DOM before Konva.Stage is created', () => {
+  it('§15.1 isPrimaryRenderer = false — react-dom container exists in DOM before Konva.Stage is created', () => {
     let stageCreatedAt = -1;
     let domContainerCreatedAt = -1;
     const counter = { tick: 0 };
@@ -78,7 +51,7 @@ describe('§15 design-decision anchors', () => {
   });
 
   // src/ReactKonvaHostConfig.ts:263–264 — `resolveUpdatePriority = DiscreteEventPriority`
-  it('§15.3 updates from a Konva pointer event commit synchronously (sync lane)', () => {
+  it('§15.2 updates from a Konva pointer event commit synchronously (sync lane)', () => {
     let stageRef!: Konva.Stage;
     const App = () => {
       const [count, setCount] = React.useState(0);
@@ -109,7 +82,7 @@ describe('§15 design-decision anchors', () => {
   });
 
   // src/ReactKonvaCore.tsx:282 — `useContextBridge` (re-export from its-fine)
-  it('§15.4 useContextBridge propagates DOM-tree contexts into the Konva subtree', () => {
+  it('§15.3 useContextBridge propagates DOM-tree contexts into the Konva subtree', () => {
     const Ctx = React.createContext<string>('default');
     let observed: string | undefined;
 
@@ -139,7 +112,7 @@ describe('§15 design-decision anchors', () => {
 
   // Additional anchor: KonvaRenderer is exported (used by react-konva-utils
   // and other downstream packages for flushSync scheduling).
-  it('§15.5 KonvaRenderer is exported and exposes flushSyncFromReconciler / batchedUpdates', () => {
+  it('§15.4 KonvaRenderer is exported and exposes flushSyncFromReconciler / batchedUpdates', () => {
     expect(KonvaRenderer).toBeDefined();
     // These methods are public API for sibling packages (react-konva-utils,
     // react-konva-spring, etc.). Renaming them is a breaking change.
@@ -147,20 +120,18 @@ describe('§15 design-decision anchors', () => {
     expect(typeof KonvaRenderer.batchedUpdates).toBe('function');
   });
 
-  // §15.6 — flushSyncFromReconciler actually flushes synchronously.
-  // §15.5 only asserts the method exists. This goes deeper: directly drive a
+  // §15.5 — flushSyncFromReconciler actually flushes synchronously.
+  // §15.4 only asserts the method exists. This goes deeper: directly drive a
   // KonvaRenderer container (the same path Stage uses internally — see
   // ReactKonvaCore.tsx:200) and verify that commits inside the callback are
   // visible on the Konva tree before flushSyncFromReconciler returns.
   // Adapted from r3f's `'should update scene synchronously with flushSync'`.
-  it('§15.6 KonvaRenderer.flushSyncFromReconciler commits synchronously inside the callback', () => {
+  it('§15.5 KonvaRenderer.flushSyncFromReconciler commits synchronously inside the callback', () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
     const stage = new Konva.Stage({ container: host, width: 50, height: 50 });
     try {
-      // ConcurrentRoot = 1 in react-reconciler 0.33. Mirrors the call shape
-      // in src/ReactKonvaCore.tsx:136-147.
-      const ConcurrentRoot = 1;
+      // Mirrors the call shape in src/ReactKonvaCore.tsx:136-147.
       const fiberRoot = (KonvaRenderer.createContainer as any)(
         stage,
         ConcurrentRoot,
@@ -212,13 +183,13 @@ describe('§15 design-decision anchors', () => {
     }
   });
 
-  // §15.7 — react-spring integration anchor.
+  // §15.6 — react-spring integration anchor.
   // react-spring's animated.* components call `node._applyProps(node, props)`
   // to push tween values to the underlying Konva node. react-konva sets this
   // method on `Konva.Node.prototype` as a side effect of importing
   // `ReactKonvaHostConfig`. Renaming or removing it breaks every animation
   // built on react-spring + react-konva.
-  it('§15.7 Konva.Node.prototype._applyProps is set (react-spring contract)', () => {
+  it('§15.6 Konva.Node.prototype._applyProps is set (react-spring contract)', () => {
     const { stage } = render(
       <Stage width={50} height={50}>
         <Layer>

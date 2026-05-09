@@ -9,6 +9,7 @@
 
 import * as React from 'react';
 import { describe, it, expect, vi } from 'vitest';
+import { userEvent } from 'vitest/browser';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import Konva from 'konva';
@@ -20,7 +21,7 @@ import { render } from './helpers/render';
 // ----------------------------------------------------------------------------
 
 describe('§16 INVARIANT 1: Konva refs ready in parent useLayoutEffect', () => {
-  it('§16.1.1 Stage forwarded ref is set before parent useLayoutEffect runs', () => {
+  it('§16.1 Stage forwarded ref is set before parent useLayoutEffect runs', () => {
     let observed: Konva.Stage | null = null;
     const stageRef = React.createRef<Konva.Stage>();
     const App = () => {
@@ -39,7 +40,7 @@ describe('§16 INVARIANT 1: Konva refs ready in parent useLayoutEffect', () => {
     expect(observed).toBeInstanceOf(Konva.Stage);
   });
 
-  it('§16.1.2 Konva child node refs are set before parent useLayoutEffect runs', () => {
+  it('§16.2 Konva child node refs are set before parent useLayoutEffect runs', () => {
     let observed: Konva.Rect | null = null;
     const rectRef = React.createRef<Konva.Rect>();
     const App = () => {
@@ -58,7 +59,7 @@ describe('§16 INVARIANT 1: Konva refs ready in parent useLayoutEffect', () => {
     expect(observed).toBeInstanceOf(Konva.Rect);
   });
 
-  it('§16.1.3 parent useLayoutEffect can find Konva nodes via stage.findOne()', () => {
+  it('§16.3 parent useLayoutEffect can find Konva nodes via stage.findOne()', () => {
     let found = false;
     const stageRef = React.createRef<Konva.Stage>();
     const App = () => {
@@ -78,7 +79,7 @@ describe('§16 INVARIANT 1: Konva refs ready in parent useLayoutEffect', () => {
     expect(found).toBe(true);
   });
 
-  it('§16.1.4 after rerender, parent useLayoutEffect sees newly-added Konva nodes', () => {
+  it('§16.4 after rerender, parent useLayoutEffect sees newly-added Konva nodes', () => {
     let rectsAtLayoutEffect = -1;
     const stageRef = React.createRef<Konva.Stage>();
     const App = ({ count }: { count: number }) => {
@@ -101,7 +102,7 @@ describe('§16 INVARIANT 1: Konva refs ready in parent useLayoutEffect', () => {
     expect(rectsAtLayoutEffect).toBe(5);
   });
 
-  it('§16.1.5 useLayoutEffect with stable deps gets correct ref on first run', () => {
+  it('§16.5 useLayoutEffect with stable deps gets correct ref on first run', () => {
     // Polotno bug pattern: imperative ref usage inside a useLayoutEffect whose
     // deps come from a memoized/stable upstream value. If the ref is null on
     // first run, the effect never re-runs (deps don't change) and the
@@ -128,19 +129,16 @@ describe('§16 INVARIANT 1: Konva refs ready in parent useLayoutEffect', () => {
 });
 
 // ----------------------------------------------------------------------------
-// INVARIANT 2 (rewritten): real-event drag-tool anchor
+// Polotno-team reproducer. Functionally identical to §16.5 (and §1.5) — same
+// shape: useLayoutEffect with a stable deps array (no re-run after first
+// commit) and a null-ref guard. Kept under the Polotno framing because their
+// bug reports reference these as "tests C and D" — easier to cross-link than
+// to renumber the world. The mobx variant exists separately because the
+// observer wrapper changed render timing in their original repro.
 // ----------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-// Polotno-team reproducer (their tests C & D verbatim).
-// These are functionally identical to §16.1.5 (and §1.5) — same shape: stable
-// deps array + useLayoutEffect that bails on a null ref. Kept here under the
-// Polotno framing for cross-referencing in their bug reports.
-// Both pass on master and under variant A. Both fail under variant A+B.
-// ----------------------------------------------------------------------------
-
-describe('§16 Polotno reproducer (test C/D — stable-deps + null-ref guard)', () => {
-  it('§16.C stable-deps + null-ref guard, no mobx', async () => {
+describe('§16 Polotno reproducer (stable-deps + null-ref guard)', () => {
+  it('§16.6 stable-deps + null-ref guard, no mobx', async () => {
     let observedRef: Konva.Rect | null = null;
     let effectRunCount = 0;
     const STABLE: unknown[] = [];
@@ -161,13 +159,13 @@ describe('§16 Polotno reproducer (test C/D — stable-deps + null-ref guard)', 
       );
     };
     render(<App />);
-    await new Promise((r) => setTimeout(r, 50));
-
-    expect(effectRunCount).toBeGreaterThan(0);
-    expect(observedRef).toBeInstanceOf(Konva.Rect);
+    await vi.waitFor(() => {
+      expect(effectRunCount).toBeGreaterThan(0);
+      expect(observedRef).toBeInstanceOf(Konva.Rect);
+    });
   });
 
-  it('§16.D stable-deps + null-ref guard, with mobx observer wrapper', async () => {
+  it('§16.7 stable-deps + null-ref guard, with mobx observer wrapper', async () => {
     let observedRef: Konva.Rect | null = null;
     let effectRunCount = 0;
     const store = observable({ tick: 0 });
@@ -189,15 +187,15 @@ describe('§16 Polotno reproducer (test C/D — stable-deps + null-ref guard)', 
       );
     });
     render(<App />);
-    await new Promise((r) => setTimeout(r, 50));
-
-    expect(effectRunCount).toBeGreaterThan(0);
-    expect(observedRef).toBeInstanceOf(Konva.Rect);
+    await vi.waitFor(() => {
+      expect(effectRunCount).toBeGreaterThan(0);
+      expect(observedRef).toBeInstanceOf(Konva.Rect);
+    });
   });
 });
 
 describe('§16 INVARIANT 2: drag-tool window-listener pattern (real events)', () => {
-  it('§16.2.1 mousedown→useEffect→mouseup chain via real Playwright events', async () => {
+  it('§16.8 mousedown→useEffect→mouseup chain via real Playwright events', async () => {
     // Polotno's drag-tool concern, driven via REAL events (Playwright
     // userEvent), not synthetic dispatchEvent. The test that the original
     // polotno proposal used (`el.dispatchEvent(new MouseEvent(...))`) does
@@ -212,7 +210,6 @@ describe('§16 INVARIANT 2: drag-tool window-listener pattern (real events)', ()
     // under BOTH sync and async scheduleMicrotask. It is NOT a regression
     // test for the scheduleMicrotask change. It only catches gross breakage
     // of the drag-tool pattern.
-    const { userEvent } = await import('vitest/browser');
     const handlerFired = vi.fn();
     let target: HTMLElement | null = null;
     const App = () => {

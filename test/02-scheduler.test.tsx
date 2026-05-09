@@ -2,13 +2,11 @@
 // What lane does work land on, and what guarantees hold per lane?
 
 import * as React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { flushSync } from 'react-dom';
 import Konva from 'konva';
 import { Stage, Layer, Rect } from '../src/ReactKonva';
-import { render, act } from './helpers/render';
-
-const tick = (ms = 50) => new Promise((r) => setTimeout(r, ms));
+import { render } from './helpers/render';
 
 describe('§2 scheduler / lanes', () => {
   it('§2.1 startTransition wrapping a Konva-mutating state change eventually commits', async () => {
@@ -27,14 +25,13 @@ describe('§2 scheduler / lanes', () => {
     const { stage } = render(<App />);
     expect((stage()!.findOne('Rect') as Konva.Rect).fill()).toBe('red');
 
-    await act(async () => {
-      React.startTransition(() => setFill('blue'));
-      await tick();
-    });
-    expect((stage()!.findOne('Rect') as Konva.Rect).fill()).toBe('blue');
+    React.startTransition(() => setFill('blue'));
+    await vi.waitFor(() =>
+      expect((stage()!.findOne('Rect') as Konva.Rect).fill()).toBe('blue')
+    );
   });
 
-  it('§2.1b sync update can interrupt a transition without leaving partial state', async () => {
+  it('§2.2 sync update can interrupt a transition without leaving partial state', async () => {
     let setFillTransition!: (next: string) => void;
     let setFillSync!: (next: string) => void;
     const App = () => {
@@ -53,17 +50,16 @@ describe('§2 scheduler / lanes', () => {
     };
     const { stage } = render(<App />);
 
-    await act(async () => {
-      React.startTransition(() => setFillTransition('blue'));
-      // Sync (discrete) update interrupts before the transition commits.
-      flushSync(() => setFillSync('green'));
-      await tick();
-    });
+    React.startTransition(() => setFillTransition('blue'));
+    // Sync (discrete) update interrupts before the transition commits.
+    flushSync(() => setFillSync('green'));
     // Final state must be the high-priority color, not partial.
-    expect((stage()!.findOne('Rect') as Konva.Rect).fill()).toBe('green');
+    await vi.waitFor(() =>
+      expect((stage()!.findOne('Rect') as Konva.Rect).fill()).toBe('green')
+    );
   });
 
-  it('§2.2 useTransition `isPending` flips around a Konva-only update', async () => {
+  it('§2.3 useTransition `isPending` flips around a Konva-only update', async () => {
     const seen: boolean[] = [];
     let setN!: (n: number) => void;
     const App = () => {
@@ -81,15 +77,14 @@ describe('§2 scheduler / lanes', () => {
     };
     render(<App />);
     expect(seen.includes(true)).toBe(false);
-    await act(async () => {
-      setN(10);
-      await tick();
+    setN(10);
+    await vi.waitFor(() => {
+      expect(seen.includes(true)).toBe(true);
+      expect(seen[seen.length - 1]).toBe(false);
     });
-    expect(seen.includes(true)).toBe(true);
-    expect(seen[seen.length - 1]).toBe(false);
   });
 
-  it('§2.3 useDeferredValue on a Konva prop lands eventually', async () => {
+  it('§2.4 useDeferredValue on a Konva prop lands eventually', async () => {
     let setX!: (n: number) => void;
     const App = () => {
       const [x, set] = React.useState(0);
@@ -104,14 +99,13 @@ describe('§2 scheduler / lanes', () => {
       );
     };
     const { stage } = render(<App />);
-    await act(async () => {
-      setX(123);
-      await tick();
-    });
-    expect((stage()!.findOne('Rect') as Konva.Rect).x()).toBe(123);
+    setX(123);
+    await vi.waitFor(() =>
+      expect((stage()!.findOne('Rect') as Konva.Rect).x()).toBe(123)
+    );
   });
 
-  it('§2.4 flushSync from react-dom commits Konva work inside the call', () => {
+  it('§2.5 flushSync from react-dom commits Konva work inside the call', () => {
     let setX!: (n: number) => void;
     let stageRef!: Konva.Stage;
     const App = () => {
@@ -135,7 +129,7 @@ describe('§2 scheduler / lanes', () => {
     expect((stageRef!.findOne('Rect') as Konva.Rect).x()).toBe(77);
   });
 
-  it('§2.5 high-priority sync update wins over scheduled transition', async () => {
+  it('§2.6 high-priority sync update wins over scheduled transition', async () => {
     let setT!: (s: string) => void;
     let setSync!: (s: string) => void;
     const App = () => {
@@ -153,38 +147,19 @@ describe('§2 scheduler / lanes', () => {
     };
     const { stage } = render(<App />);
 
-    await act(async () => {
-      React.startTransition(() => setT('low'));
-      flushSync(() => setSync('high'));
-      await tick();
-    });
-    expect((stage()!.findOne('Rect') as Konva.Rect).name()).toBe('high');
+    React.startTransition(() => setT('low'));
+    flushSync(() => setSync('high'));
+    await vi.waitFor(() =>
+      expect((stage()!.findOne('Rect') as Konva.Rect).name()).toBe('high')
+    );
   });
 
-  it('§2.6 scheduleMicrotask synchrony — flushSync makes Konva visible before next line', () => {
-    // Anchors host-config.scheduleMicrotask = fn => fn() (synchronous).
-    // If scheduleMicrotask were ever changed to defer (queueMicrotask), this
-    // assertion would start failing because the new prop wouldn't be on the
-    // Konva node yet by the time the line after flushSync runs.
-    let setFill!: (s: string) => void;
-    let stageRef!: Konva.Stage;
-    const App = () => {
-      const [fill, set] = React.useState('red');
-      setFill = set;
-      const ref = React.useRef<Konva.Stage>(null);
-      React.useLayoutEffect(() => {
-        if (ref.current) stageRef = ref.current;
-      });
-      return (
-        <Stage ref={ref} width={50} height={50}>
-          <Layer>
-            <Rect width={20} height={20} fill={fill} />
-          </Layer>
-        </Stage>
-      );
-    };
-    render(<App />);
-    flushSync(() => setFill('lime'));
-    expect((stageRef!.findOne('Rect') as Konva.Rect).fill()).toBe('lime');
-  });
+  // §2.7 (deleted): claimed to anchor "scheduleMicrotask is synchronous", but
+  // (a) host-config scheduleMicrotask is queueMicrotask (async, intentional —
+  // see ReactKonvaHostConfig.ts:134-139 and §7's mobx-race regression test),
+  // and (b) the assertion only proved react-dom's flushSync is synchronous,
+  // which §2.5 already covers identically. The async-scheduleMicrotask
+  // contract is anchored by §7. The "parent useLayoutEffect reads Konva
+  // children" contract (the reason Stage's useLayoutEffect calls
+  // flushSyncWork() inline) is anchored by §1.1, §1.2, and §16.1–§16.7.
 });

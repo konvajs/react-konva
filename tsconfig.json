@@ -9,7 +9,5 @@
     "skipLibCheck": false
   },
   "include": ["./src/**/*"],
-  "files": [
-    "react-konva.d.ts"
-  ]
+  "files": ["ReactKonvaCore.d.ts"]
 }

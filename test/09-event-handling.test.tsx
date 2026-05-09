@@ -3,12 +3,10 @@
 // (sync lane) — verified by checking the commit lands before the next line.
 
 import * as React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import Konva from 'konva';
 import { Stage, Layer, Rect } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
-
-const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 
 describe('§9 event handling', () => {
   it('§9.1 Konva pointer event mutating state commits synchronously (DiscreteEventPriority)', () => {
@@ -119,32 +117,35 @@ describe('§9 event handling', () => {
     expect(stageRef!.findOne(`.n-111`)).toBeInstanceOf(Konva.Rect);
   });
 
-  it('§9.4 event after unmount does not crash', async () => {
-    let stageRef!: Konva.Stage;
-    const App = () => {
-      const ref = React.useRef<Konva.Stage>(null);
-      React.useLayoutEffect(() => {
-        if (ref.current) stageRef = ref.current;
-      });
-      return (
-        <Stage ref={ref} width={50} height={50} onMouseDown={() => {}}>
-          <Layer />
-        </Stage>
-      );
-    };
+  it('§9.4 unmount clears react-konva event listeners — handler does not fire post-unmount', async () => {
+    // Concrete contract: after react-konva unmounts, the user's handler
+    // installed via JSX (e.g. onMouseDown) must not fire if the underlying
+    // Konva node is later poked. react-konva's removeChild calls
+    // node.destroy(), which Konva uses to release listeners.
+    const layerRef = React.createRef<Konva.Layer>();
+    const handler = vi.fn();
+    const App = () => (
+      <Stage width={50} height={50}>
+        <Layer ref={layerRef} onMouseDown={handler} />
+      </Stage>
+    );
     const result = render(<App />);
-    const captured = stageRef!;
-    act(() => result.unmount());
-    await tick();
-    // After unmount, dispatching an event on the destroyed stage should not crash.
-    expect(() => {
-      try {
-        captured.simulateMouseDown({ x: 0, y: 0 });
-      } catch {
-        // some Konva internals may throw on a destroyed stage; the React tree
-        // owning it is already unmounted — that's the contract being asserted.
-      }
-    }).not.toThrow();
+    const layer = layerRef.current!;
+    expect(layer).toBeInstanceOf(Konva.Layer);
+
+    // Sanity: a direct .fire('mousedown') on the layer DOES invoke the
+    // handler while mounted — proving react-konva installed the listener.
+    layer.fire('mousedown', { evt: {} as any } as any);
+    expect(handler).toHaveBeenCalledTimes(1);
+    handler.mockClear();
+
+    result.unmount();
+    await vi.waitFor(() => expect(Konva.stages.length).toBe(0));
+
+    // After unmount, the Konva node is destroyed. Firing post-destroy must
+    // NOT invoke the React-side handler — react-konva's listener is gone.
+    layer.fire('mousedown', { evt: {} as any } as any);
+    expect(handler).not.toHaveBeenCalled();
   });
 
   it('§9.5 changing key order during a drag does not stop the drag', () => {
@@ -181,7 +182,7 @@ describe('§9 event handling', () => {
       <Rect key="1" name="rect1" />,
       <Rect key="2" name="rect2" />,
     ];
-    act(() => rerender(<App kids={reorderedKids} />));
+    rerender(<App kids={reorderedKids} />);
     expect(rect1.isDragging()).toBe(true);
     rect1.stopDrag();
   });

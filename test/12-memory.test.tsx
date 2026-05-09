@@ -3,12 +3,10 @@
 // listeners over long runs.
 
 import * as React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import Konva from 'konva';
 import { Stage, Layer, Rect } from '../src/ReactKonva';
-import { render, act } from './helpers/render';
-
-const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
+import { render } from './helpers/render';
 
 describe('§12 memory / long-running app', () => {
   it(
@@ -26,10 +24,9 @@ describe('§12 memory / long-running app', () => {
             </Layer>
           </Stage>
         );
-        act(() => result.unmount());
+        result.unmount();
       }
-      await tick();
-      expect(Konva.stages.length).toBe(before);
+      await vi.waitFor(() => expect(Konva.stages.length).toBe(before));
     }
   );
 
@@ -53,44 +50,16 @@ describe('§12 memory / long-running app', () => {
     const initialCount = seen.size;
     expect(initialCount).toBe(1);
 
-    act(() => rerender(<App x={5} />));
-    act(() => rerender(<App x={10} />));
-    act(() => rerender(<App x={15} />));
+    rerender(<App x={5} />);
+    rerender(<App x={10} />);
+    rerender(<App x={15} />);
     // Same Konva.Rect across re-renders — only the prop changed.
     expect(seen.size).toBe(initialCount);
   });
 
-  it('§12.3 HMR simulation — re-importing the module does not duplicate Konva.Stage instances', async () => {
-    const before = Konva.stages.length;
-    const result = render(
-      <Stage width={50} height={50}>
-        <Layer>
-          <Rect width={10} height={10} />
-        </Layer>
-      </Stage>
-    );
-    expect(Konva.stages.length).toBe(before + 1);
-    // We can't actually invoke vite's HMR from inside a test, but we CAN
-    // simulate it: unmount → re-import the source module → re-mount. If
-    // any module-level state retains a stage, count would not be `before + 1`.
-    act(() => result.unmount());
-    await tick();
-    expect(Konva.stages.length).toBe(before);
-
-    const fresh = await import('../src/ReactKonva');
-    const FreshStage = fresh.Stage;
-    const FreshLayer = fresh.Layer;
-    const FreshRect = fresh.Rect;
-    const result2 = render(
-      <FreshStage width={50} height={50}>
-        <FreshLayer>
-          <FreshRect width={10} height={10} />
-        </FreshLayer>
-      </FreshStage>
-    );
-    expect(Konva.stages.length).toBe(before + 1);
-    act(() => result2.unmount());
-    await tick();
-    expect(Konva.stages.length).toBe(before);
-  });
+  // §12.3 ("HMR simulation") was removed: it dynamic-imported '../src/ReactKonva'
+  // which returns the cached module, so it only re-ran §12.1's mount/unmount
+  // with a different binding. Real HMR coverage would require vite-node's
+  // cache-busting executeFile, which is out of scope for the browser test
+  // runner. Re-add only with a real HMR driver.
 });
