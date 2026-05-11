@@ -12,6 +12,17 @@
   "bugs": "https://github.com/konvajs/react-konva/issues",
   "main": "lib/ReactKonva.js",
   "module": "es/ReactKonva.js",
+  "exports": {
+    ".": {
+      "import": "./es/ReactKonva.js",
+      "require": "./lib/ReactKonva.js"
+    },
+    "./lib/*": "./lib/*.js",
+    "./lib/*.js": "./lib/*.js",
+    "./es/*": "./es/*.js",
+    "./es/*.js": "./es/*.js",
+    "./package.json": "./package.json"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:konvajs/react-konva.git"
