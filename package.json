@@ -14,6 +14,7 @@
   "module": "es/ReactKonva.js",
   "exports": {
     ".": {
+      "types": "./react-konva.d.ts",
       "import": "./es/ReactKonva.js",
       "require": "./lib/ReactKonva.js"
     },
@@ -75,10 +76,11 @@
   "scripts": {
     "build": "tsc -outDir ./es &&  tsc -module commonjs -outDir ./lib && cp ./ReactKonvaCore.d.ts ./lib && cp ./ReactKonvaCore.d.ts ./es",
     "test:typings": "tsc --noEmit",
+    "test:exports": "tsc -p test/exports-check && node test/exports-check/runtime.mjs",
     "preversion": "",
     "version": "npm run build",
     "postversion": "",
-    "test": "npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings",
+    "test": "npm run test:build && mocha-headless-chrome -f ./test-build/unit-tests.html -a disable-web-security && npm run test:typings && npm run test:exports",
     "test:build": "parcel build ./test/unit-tests.html --dist-dir test-build --target none --public-url ./ --no-source-maps",
     "test:watch": "rm -rf ./parcel-cache && parcel serve ./test/unit-tests.html"
   },
