@@ -51,8 +51,8 @@
   "dependencies": {
     "@types/react-reconciler": "^0.33.0",
     "its-fine": "^2.0.0",
-    "react-reconciler": "0.33.0",
-    "scheduler": "0.27.0"
+    "react-reconciler": "0.34.0",
+    "scheduler": "0.28.0"
   },
   "funding": [
     {
@@ -70,19 +70,19 @@
   ],
   "peerDependencies": {
     "konva": "^8.0.1 || ^7.2.5 || ^9.0.0 || ^10.0.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@types/react": "19.2.14",
+    "@types/react": "19.3.0",
     "@vitest/browser": "^4.0.18",
     "@vitest/browser-playwright": "^4.0.18",
     "konva": "latest",
     "mobx": "^6.13.5",
     "mobx-react-lite": "^4.1.0",
     "playwright": "^1.58.2",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "typescript": "^5.9.3",
     "use-image": "^1.1.4",
     "vitest": "^4.0.18"

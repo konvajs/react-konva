@@ -275,6 +275,8 @@ export function startSuspendingCommit() {}
 
 export function suspendInstance() {}
 
+export function suspendOnActiveViewTransition() {}
+
 export function waitForCommitToBeReady() {
   return null;
 }

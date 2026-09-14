@@ -21,7 +21,7 @@ React Konva is MIT licensed. It supports Konva shapes and events. It does not su
 
 ## Install
 
-React Konva 19 requires React and React DOM `^19.2.0`. For React 18, install the latest React Konva 18 release.
+React Konva 19.3 requires React and React DOM `^19.3.0`. For React 19.2, install the latest React Konva 19.2 release; for React 18, the latest React Konva 18 release.
 
 ```bash
 npm install react-konva konva

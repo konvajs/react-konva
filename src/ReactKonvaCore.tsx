@@ -9,9 +9,11 @@
 
 import React from 'react';
 
-if (React.version.indexOf('19') === -1) {
+const [reactMajor, reactMinor] = React.version.split('.').map(Number);
+
+if (reactMajor !== 19 || reactMinor < 3) {
   throw new Error(
-    'react-konva version 19 is only compatible with React 19. Make sure to have the last version of react-konva and react or downgrade react-konva to version 18.',
+    'react-konva version 19.3 is only compatible with React 19.3 and newer. The bundled react-reconciler shares internal state with react-dom, so the two have to be the same minor release. Make sure to have the last version of react-konva and react, or downgrade react-konva to version 19.2 for React 19.2 and to version 18 for React 18.',
   );
 }
 
