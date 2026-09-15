@@ -33,14 +33,6 @@ import {
 } from './makeUpdates.js';
 import { useContextBridge, useFiber, traverseFiber, FiberProvider } from 'its-fine';
 
-function usePrevious(value) {
-  const ref = React.useRef({});
-  React.useLayoutEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
-
 function SuspendCanvas({ promise }: { promise: Promise<void> }): never {
   throw promise;
 }
@@ -58,7 +50,9 @@ const StageWrap = (props) => {
   const identifierPrefix = React.useId();
   const formStatus = useFormStatus();
 
-  const oldProps = usePrevious(props);
+  const previousProps = React.useRef({});
+  // Keep the render-time snapshot when React replays layout effects.
+  const oldProps = previousProps.current;
   const Bridge = useContextBridge();
   const fiber = useFiber();
   const isStrictMode = !!traverseFiber(
@@ -195,6 +189,7 @@ const StageWrap = (props) => {
   React.useImperativeHandle(props.forwardedRef, () => stage.current, []);
 
   React.useLayoutEffect(() => {
+    previousProps.current = props;
     applyNodeProps(stage.current, props, oldProps);
 
     // updateContainer schedules sync-lane work; with async scheduleMicrotask

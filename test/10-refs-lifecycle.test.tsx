@@ -20,46 +20,28 @@ const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';
 
 describe('§10 refs / dispose / lifecycle', () => {
-  it('function component ref props reach shapes and run callback cleanup on replacement and unmount', () => {
+  it.each(['Stage', 'function shape'])('%s callback refs attach once and clean up on replacement and unmount', (target) => {
     const firstCleanup = vi.fn();
     const secondCleanup = vi.fn();
     const first = vi.fn(() => firstCleanup);
     const second = vi.fn(() => secondCleanup);
-    const Shape = ({ ref, fill }: { ref: React.Ref<Konva.Rect>; fill: string }) => (
-      <Rect ref={ref} fill={fill} />
+    const Shape = ({ ref, width }: { ref: React.Ref<Konva.Rect>; width: number }) => (
+      <Rect ref={ref} width={width} />
     );
-    const App = ({ shapeRef, fill = 'red' }: { shapeRef: React.Ref<Konva.Rect>; fill?: string }) => (
-      <Stage width={50} height={50}><Layer><Shape ref={shapeRef} fill={fill} /></Layer></Stage>
+    const App = ({ nodeRef, width = 50 }: { nodeRef: React.RefCallback<Konva.Node>; width?: number }) => (
+      target === 'Stage'
+        ? <Stage ref={nodeRef} width={width} height={50} />
+        : <Stage width={50} height={50}><Layer><Shape ref={nodeRef} width={width} /></Layer></Stage>
     );
-    const view = render(<App shapeRef={first} />);
-    const rect = view.stage()!.findOne('Rect');
-    expect(first).toHaveBeenCalledExactlyOnceWith(rect);
-    view.rerender(<App shapeRef={first} fill="blue" />);
+    const view = render(<App nodeRef={first} />);
+    const node = target === 'Stage' ? view.stage() : view.stage()!.findOne('Rect');
+    expect(first).toHaveBeenCalledExactlyOnceWith(node);
+    view.rerender(<App nodeRef={first} width={60} />);
     expect(first).toHaveBeenCalledTimes(1);
     expect(firstCleanup).not.toHaveBeenCalled();
-    view.rerender(<App shapeRef={second} />);
+    view.rerender(<App nodeRef={second} width={60} />);
     expect(firstCleanup).toHaveBeenCalledTimes(1);
-    expect(second).toHaveBeenCalledExactlyOnceWith(rect);
-    view.unmount();
-    expect(secondCleanup).toHaveBeenCalledTimes(1);
-    expect(first).toHaveBeenCalledTimes(1);
-    expect(second).toHaveBeenCalledTimes(1);
-  });
-
-  it('Stage callback refs attach once and run their cleanup on replacement and unmount', () => {
-    const firstCleanup = vi.fn();
-    const secondCleanup = vi.fn();
-    const first = vi.fn(() => firstCleanup);
-    const second = vi.fn(() => secondCleanup);
-    const view = render(<Stage ref={first} width={50} height={50} />);
-    const stage = view.stage();
-    expect(first).toHaveBeenCalledExactlyOnceWith(stage);
-    view.rerender(<Stage ref={first} width={60} height={50} />);
-    expect(first).toHaveBeenCalledTimes(1);
-    expect(firstCleanup).not.toHaveBeenCalled();
-    view.rerender(<Stage ref={second} width={60} height={50} />);
-    expect(firstCleanup).toHaveBeenCalledTimes(1);
-    expect(second).toHaveBeenCalledExactlyOnceWith(stage);
+    expect(second).toHaveBeenCalledExactlyOnceWith(node);
     view.unmount();
     expect(secondCleanup).toHaveBeenCalledTimes(1);
     expect(first).toHaveBeenCalledTimes(1);

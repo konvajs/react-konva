@@ -49,26 +49,6 @@ describe('§27 React hooks', () => {
     });
   });
 
-  it('§27.3 DOM form status crosses Stage while an action is pending', async () => {
-    let release!: () => void;
-    const Status = ({ canvas = false }) => {
-      const { pending } = useFormStatus();
-      return canvas ? <Rect name={String(pending)} /> : <output>{String(pending)}</output>;
-    };
-    const { container, stage } = render(
-      <form action={() => new Promise<void>((resolve) => { release = resolve; })}>
-        <Status />
-        <Stage width={100} height={100}><Layer><Status canvas /></Layer></Stage>
-      </form>,
-    );
-    container.querySelector('form')!.requestSubmit();
-    await vi.waitFor(() => expect(container.querySelector('output')!.textContent).toBe('true'));
-    expect(stage()!.findOne('Rect')!.name()).toBe('true');
-    await act(() => release());
-    await vi.waitFor(() => expect(container.querySelector('output')!.textContent).toBe('false'));
-    expect(stage()!.findOne('Rect')!.name()).toBe('false');
-  });
-
   it('§27.4 useEffectEvent reads current props without reconnecting its subscription', async () => {
     const events = new EventTarget();
     const received: string[] = [];
@@ -173,9 +153,10 @@ describe('§27 React hooks', () => {
     ]);
   });
 
-  it('§27.8 form payload and action cross into the matching Stage without affecting other Stages', async () => {
+  it('§27.8 DOM form status and payload cross into the matching Stage without affecting other Stages', async () => {
     let release!: () => void;
     const action = () => new Promise<void>((resolve) => { release = resolve; });
+    const DomStatus = () => <output>{String(useFormStatus().pending)}</output>;
     const formStage = React.createRef<Konva.Stage>();
     const otherStage = React.createRef<Konva.Stage>();
     const Status = () => {
@@ -190,6 +171,7 @@ describe('§27 React hooks', () => {
     const view = render(
       <>
         <form action={action}>
+          <DomStatus />
           <input name="color" defaultValue="blue" />
           <Stage ref={formStage} width={100} height={100}><Layer><Status /></Layer></Stage>
         </form>
@@ -201,12 +183,14 @@ describe('§27 React hooks', () => {
     expect(statusOf(formStage)).toEqual(idle);
     const form = view.container.querySelector('form')!;
     form.requestSubmit();
-    await vi.waitFor(() => expect(statusOf(formStage)).toEqual({
+    await vi.waitFor(() => expect(view.container.querySelector('output')!.textContent).toBe('true'));
+    expect(statusOf(formStage)).toEqual({
       pending: true, value: 'blue', method: form.method, action: true,
-    }));
+    });
     expect(statusOf(otherStage)).toEqual(idle);
     await act(() => release());
-    await vi.waitFor(() => expect(statusOf(formStage)).toEqual(idle));
+    await vi.waitFor(() => expect(view.container.querySelector('output')!.textContent).toBe('false'));
+    expect(statusOf(formStage)).toEqual(idle);
     expect(statusOf(otherStage)).toEqual(idle);
   });
 });

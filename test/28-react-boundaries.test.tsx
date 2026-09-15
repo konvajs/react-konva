@@ -9,6 +9,23 @@ import { Stage, Layer, Rect, Group, KonvaRenderer } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
 
 describe('§28 React boundaries', () => {
+  it.each(['StrictMode', 'Activity'])('reapplies Stage props when %s reconnects effects', (boundary) => {
+    const drawing = <Stage width={50} height={50} x={1} ref={(stage) => {
+      if (stage) return () => { stage.x(99); };
+    }}><Layer /></Stage>;
+    const view = render(boundary === 'StrictMode'
+      ? <React.StrictMode>{drawing}</React.StrictMode>
+      : <React.Activity mode="visible">{drawing}</React.Activity>);
+    const stage = view.stage()!;
+    if (boundary === 'Activity') {
+      view.rerender(<React.Activity mode="hidden">{drawing}</React.Activity>);
+      expect(stage.x()).toBe(99);
+      view.rerender(<React.Activity mode="visible">{drawing}</React.Activity>);
+    }
+    expect(view.stage()).toBe(stage);
+    expect(stage.x()).toBe(1);
+  });
+
   it.each([false, true])('disposes an initially hidden Stage before its canvas mounts (StrictMode=%s)', async (strict) => {
     const ref = React.createRef<Konva.Stage>();
     const ui = (

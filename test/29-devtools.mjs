@@ -61,11 +61,8 @@ if (!entry) {
     assert.equal(container.findOne('Rect').x(), 1);
     assert.ok(commits.includes(root), 'DevTools receives canvas commits');
     if (process.env.NODE_ENV === 'development') {
-      const findCounter = (fiber) => fiber && (
-        fiber.type === Counter ? fiber : findCounter(fiber.child) || findCounter(fiber.sibling)
-      );
-      const fiber = findCounter(root.current);
-      assert.ok(fiber, 'DevTools can locate the canvas component');
+      const fiber = root.current.child;
+      assert.equal(fiber.type, Counter);
       renderer.overrideHookState(fiber, 0, [], 2);
       KonvaRenderer.flushSyncWork();
       assert.equal(container.findOne('Rect').x(), 2, 'DevTools can edit canvas hook state');
