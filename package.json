@@ -14,7 +14,7 @@
     "transformer"
   ],
   "homepage": "https://konvajs.org/docs/react/index.html",
-  "version": "19.2.7",
+  "version": "19.3.0",
   "bugs": "https://github.com/konvajs/react-konva/issues",
   "main": "lib/ReactKonva.js",
   "module": "es/ReactKonva.js",
