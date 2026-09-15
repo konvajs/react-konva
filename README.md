@@ -21,7 +21,9 @@ React Konva is MIT licensed. It supports Konva shapes and events. It does not su
 
 ## Install
 
-React Konva 19.3 requires React and React DOM `^19.3.0`. For React 19.2, install the latest React Konva 19.2 release; for React 18, the latest React Konva 18 release.
+React Konva 19.3 requires React and React DOM `^19.3.0`.
+For React 19.2, install the latest React Konva 19.2 release.
+For React 18, install the latest React Konva 18 release.
 
 ```bash
 npm install react-konva konva
@@ -78,6 +80,33 @@ const MyShape = () => {
   return <Circle ref={circleRef} radius={50} fill="black" />;
 };
 ```
+
+### React features inside Stage
+
+`useActionState` and `useOptimistic` work inside a `Stage`.
+Fragments group Konva children, but Fragment refs remain `null` because the
+canvas renderer has no DOM Fragment instance.
+
+`ViewTransition` is not supported inside a `Stage`.
+To animate the Stage's DOM container, place `ViewTransition` around `Stage` in
+the React DOM tree. Individual Konva shapes have no DOM elements for view transitions.
+
+`useFormStatus` reads the surrounding DOM form's status inside `Stage`.
+Place error boundaries inside `Stage` and use Konva elements for their fallbacks.
+Uncaught canvas errors appear in the console with the error and component stack.
+DOM error boundaries around `Stage` do not catch errors from canvas children.
+
+Place `Suspense` inside `Stage` to show a Konva fallback for canvas children.
+For a DOM loading indicator, read the promise in a component above `Stage`.
+The DOM and canvas use separate React roots, so their Suspense boundaries and
+transition pending states do not propagate between roots.
+
+Activity and Suspense around `Stage` preserve canvas component state when they
+hide and reveal an existing Stage. An initially hidden Stage creates its canvas
+on the first reveal.
+
+React's `StrictMode` also enables development checks inside `Stage`.
+For hook coverage and renderer limits, see the [React compatibility matrix](docs/react-compatibility.md).
 
 ### Strict mode
 

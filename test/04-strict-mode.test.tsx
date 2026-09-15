@@ -13,6 +13,29 @@ import { Stage, Layer, Rect, useStrictMode } from '../src/ReactKonva';
 import { render } from './helpers/render';
 
 describe('§4 StrictMode', () => {
+  it('inherits StrictMode render checks from the DOM tree', () => {
+    const domInitializer = vi.fn(() => 1);
+    const canvasInitializer = vi.fn(() => 1);
+    const domMemo = vi.fn(() => 10);
+    const canvasMemo = vi.fn(() => 10);
+    const Content = ({ canvas = false }) => {
+      const [count] = React.useState(canvas ? canvasInitializer : domInitializer);
+      const x = React.useMemo(canvas ? canvasMemo : domMemo, []);
+      return canvas ? <Rect x={count + x} /> : <span>{count + x}</span>;
+    };
+    render(
+      <React.StrictMode>
+        <Content />
+        <Stage width={50} height={50}><Layer><Content canvas /></Layer></Stage>
+      </React.StrictMode>,
+    );
+    const expected = process.env.NODE_ENV === 'production' ? 1 : 2;
+    expect(domInitializer).toHaveBeenCalledTimes(expected);
+    expect(domMemo).toHaveBeenCalledTimes(expected);
+    expect(canvasInitializer).toHaveBeenCalledTimes(expected);
+    expect(canvasMemo).toHaveBeenCalledTimes(expected);
+  });
+
   it('§4.1 mount → unmount → mount cycle leaves exactly one Konva.Stage', () => {
     const before = Konva.stages.length;
     render(
@@ -251,7 +274,7 @@ describe('§4 StrictMode', () => {
     });
   });
 
-  it('§4.9 discards child work when a hidden Stage is deleted before its timer', async () => {
+  it('§4.9 discards child work when a hidden Stage is deleted in the same task', async () => {
     const events: string[] = [];
     let change: () => void;
     let hide: () => void;

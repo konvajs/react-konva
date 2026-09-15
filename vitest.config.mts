@@ -7,6 +7,9 @@ if (browser !== 'chromium' && browser !== 'firefox' && browser !== 'webkit') {
   throw new Error(`Unsupported BROWSER: ${browser}`);
 }
 export default defineConfig({
+  optimizeDeps: {
+    include: ['react-dom/server'],
+  },
   test: {
     exclude: [
       ...configDefaults.exclude,

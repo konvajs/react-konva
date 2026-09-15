@@ -8,12 +8,15 @@
 'use strict';
 
 import React from 'react';
+import { useFormStatus } from 'react-dom';
 
 const [reactMajor, reactMinor] = React.version.split('.').map(Number);
 
 if (reactMajor !== 19 || reactMinor < 3) {
   throw new Error(
-    'react-konva version 19.3 is only compatible with React 19.3 and newer. The bundled react-reconciler shares internal state with react-dom, so the two have to be the same minor release. Make sure to have the last version of react-konva and react, or downgrade react-konva to version 19.2 for React 19.2 and to version 18 for React 18.',
+    'react-konva requires React 19.3 or later within React 19. ' +
+      'Install matching versions of react and react-dom. ' +
+      'For React 19.2, use react-konva 19.2. For React 18, use react-konva 18.',
   );
 }
 
@@ -28,84 +31,110 @@ import {
   toggleStrictMode,
   EVENTS_NAMESPACE,
 } from './makeUpdates.js';
-import { useContextBridge, FiberProvider } from 'its-fine';
+import { useContextBridge, useFiber, traverseFiber, FiberProvider } from 'its-fine';
 
 function usePrevious(value) {
   const ref = React.useRef({});
   React.useLayoutEffect(() => {
     ref.current = value;
   });
-  React.useLayoutEffect(() => {
-    return () => {
-      // when using suspense it is possible that stage is unmounted
-      // but React still keep component ref
-      // in that case we need to manually flush props
-      // we have a special test for that
-      ref.current = {};
-    };
-  }, []);
   return ref.current;
 }
 
-const useIsReactStrictMode = () => {
-  const memoCount = React.useRef(0);
-  // in strict mode, memo will be called twice
-  React.useMemo(() => {
-    memoCount.current++;
-  }, []);
-  return memoCount.current > 1;
-};
+function SuspendCanvas({ promise }: { promise: Promise<void> }): never {
+  throw promise;
+}
 
 const StageWrap = (props) => {
   const container = React.useRef(null);
   const stage = React.useRef<any>(null);
   const fiberRef = React.useRef(null);
+  const children = React.useRef<React.ReactNode>(null);
+  const suspension = React.useRef<{
+    promise: Promise<void>;
+    resolve: () => void;
+  } | null>(null);
+  // DOM and Konva reconcilers have separate useId counters.
+  const identifierPrefix = React.useId();
+  const formStatus = useFormStatus();
 
   const oldProps = usePrevious(props);
   const Bridge = useContextBridge();
-  const pendingDestroy = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null,
+  const fiber = useFiber();
+  const isStrictMode = !!traverseFiber(
+    fiber,
+    true,
+    (node) => node.type === React.StrictMode,
   );
+  const effectsDisconnected = React.useRef(false);
   const isUnmounting = React.useRef(false);
   const cancelUnmount = React.useRef<(() => void) | null>(null);
 
-  // Insertion effects stay mounted during StrictMode's layout-effect replay.
-  // Only mark deletion here; renderer updates belong in layout cleanup.
+  // Insertion effects stay mounted during hiding and StrictMode replay.
+  // Activity has already disconnected layout and passive effects when hidden.
+  // Its remaining insertion cleanups must still run inside a DOM commit.
   React.useInsertionEffect(() => {
     isUnmounting.current = false;
     return () => {
       isUnmounting.current = true;
+      if (effectsDisconnected.current && stage.current) destroyStage();
     };
   }, []);
-
-  const isStrictMode = useIsReactStrictMode();
 
   const destroyStage = () => {
     cancelUnmount.current?.();
     cancelUnmount.current = null;
     prepareUnmounts();
-    // CRITICAL: flushSyncFromReconciler is required here to ensure pending work
-    // (e.g. stale MobX updates on child components) is flushed synchronously
-    // before the tree is torn down. Without it, unmounting a Stage can leave
-    // pending Konva work that runs after the stage is already destroyed.
+    // Discard queued child work before destroying the Stage, including updates
+    // from external stores whose objects are no longer alive.
     KonvaRenderer.flushSyncFromReconciler(() => {
       KonvaRenderer.updateContainer(null, fiberRef.current, null);
     });
     stage.current?.destroy();
     stage.current?.off(EVENTS_NAMESPACE);
     stage.current = null;
+    suspension.current?.resolve();
+    suspension.current = null;
+  };
+
+  const setCanvasVisibility = (mode: 'visible' | 'suspended' | 'hidden') => {
+    if (mode === 'suspended') {
+      if (!suspension.current) {
+        let resolve!: () => void;
+        const promise = new Promise<void>((done) => {
+          resolve = done;
+        });
+        suspension.current = { promise, resolve };
+      }
+    } else {
+      suspension.current?.resolve();
+      suspension.current = null;
+    }
+    KonvaRenderer.updateContainer(
+      React.createElement(React.Activity, {
+        mode: mode === 'hidden' ? 'hidden' : 'visible',
+        children: React.createElement(
+          React.Suspense,
+          { fallback: null },
+          children.current,
+          suspension.current &&
+            React.createElement(SuspendCanvas, {
+              promise: suspension.current.promise,
+            }),
+        ),
+      }),
+      fiberRef.current,
+      null,
+    );
+    prepareUnmounts();
+    // Parent layout effects must see the committed canvas nodes and refs.
+    KonvaRenderer.flushSyncWork();
   };
 
   React.useLayoutEffect(() => {
     cancelUnmount.current?.();
     cancelUnmount.current = null;
-    // Cancel any pending destruction (happens during re-ordering in strict mode)
-    if (pendingDestroy.current) {
-      clearTimeout(pendingDestroy.current);
-      pendingDestroy.current = null;
-    }
-
-    // If stage already exists (re-ordering scenario), reuse it
+    // Reconnecting layout effects reuses the existing Stage.
     if (!stage.current) {
       stage.current = new Konva.Stage({
         width: props.width,
@@ -116,9 +145,9 @@ const StageWrap = (props) => {
         stage.current,
         ConcurrentRoot,
         null,
-        false,
+        isStrictMode,
         null,
-        '',
+        identifierPrefix,
         console.error,
         console.error,
         console.error,
@@ -127,9 +156,9 @@ const StageWrap = (props) => {
     }
 
     return () => {
-      if (isStrictMode) {
-        // Queue real removal before pending child work can render. Queuing it
-        // during replay lets a sibling Stage's flush discard this root's state.
+      if (!isUnmounting.current) {
+        // If this hidden Stage is deleted, discard queued child work before
+        // another root or the scheduler flushes it.
         const unmount = () => {
           if (!isUnmounting.current) return;
           cancelUnmount.current?.();
@@ -137,12 +166,22 @@ const StageWrap = (props) => {
           KonvaRenderer.updateContainer(null, fiberRef.current, null);
         };
         cancelUnmount.current = addPendingUnmount(unmount);
-        unmount();
-        // Keep the Stage available for that remount.
-        pendingDestroy.current = setTimeout(destroyStage, 0);
+        // Suspense disconnects layout effects but keeps passive effects.
+        setCanvasVisibility('suspended');
       } else {
         destroyStage();
       }
+    };
+  }, []);
+
+  React.useEffect(() => {
+    effectsDisconnected.current = false;
+    return () => {
+      effectsDisconnected.current = true;
+      // Activity and StrictMode also disconnect the DOM passive effects.
+      if (!stage.current) return;
+      if (isUnmounting.current) destroyStage();
+      else setCanvasVisibility('hidden');
     };
   }, []);
 
@@ -162,13 +201,12 @@ const StageWrap = (props) => {
     // the work is queued, so flushSyncWork() drains it inline here so that
     // a parent useLayoutEffect can read Konva nodes added by subscribing
     // children. (Lighter than flushSyncFromReconciler — no callback wrapper.)
-    KonvaRenderer.updateContainer(
+    children.current = React.createElement(
+      HostConfig.HostTransitionContext.Provider,
+      { value: formStatus },
       React.createElement(Bridge, {}, props.children),
-      fiberRef.current,
-      null,
     );
-    prepareUnmounts();
-    KonvaRenderer.flushSyncWork();
+    setCanvasVisibility('visible');
   });
 
   return React.createElement('div', {
@@ -208,19 +246,17 @@ export const Transformer = 'Transformer';
 
 export const version = '{VERSION}';
 
-// @ts-ignore
-export const KonvaRenderer = ReactFiberReconciler(HostConfig);
+const rendererConfig = {
+  ...HostConfig,
+  rendererVersion: version,
+  rendererPackageName: 'react-konva',
+};
 
-// we should inject into dev tools, but it is not working with React 19.2
-// with error "Invalid argument not valid semver ('' received)"
-// KonvaRenderer.injectIntoDevTools({
-//   // @ts-ignore
-//   findHostInstanceByFiber: () => null,
-//   bundleType: 0,
-//   version: React.version,
-//   rendererPackageName: 'react-konva',
-//   reconcilerVersion: '19.2.0',
-// });
+// @ts-ignore The published types still describe react-reconciler 0.33.
+export const KonvaRenderer = ReactFiberReconciler(rendererConfig);
+
+// @ts-expect-error Metadata moved into the host config in react-reconciler 0.34.
+KonvaRenderer.injectIntoDevTools();
 
 interface StageProps extends React.RefAttributes<KonvaStage> {
   children?: React.ReactNode;

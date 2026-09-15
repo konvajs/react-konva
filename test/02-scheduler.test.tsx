@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { flushSync } from 'react-dom';
 import Konva from 'konva';
 import { Stage, Layer, Rect } from '../src/ReactKonva';
-import { render } from './helpers/render';
+import { render, act } from './helpers/render';
 
 describe('§2 scheduler / lanes', () => {
   it('§2.1 startTransition wrapping a Konva-mutating state change eventually commits', async () => {
@@ -60,49 +60,66 @@ describe('§2 scheduler / lanes', () => {
   });
 
   it('§2.3 useTransition `isPending` flips around a Konva-only update', async () => {
-    const seen: boolean[] = [];
-    let setN!: (n: number) => void;
-    const App = () => {
+    let release!: () => void;
+    const Canvas = () => {
       const [n, set] = React.useState(0);
       const [isPending, startT] = React.useTransition();
-      setN = (next) => startT(() => set(next));
-      seen.push(isPending);
       return (
-        <Stage width={50} height={50}>
-          <Layer>
-            <Rect width={20} height={20} x={n} />
-          </Layer>
-        </Stage>
+        <Rect width={20} height={20} x={n} name={String(isPending)}
+          onClick={() => startT(async () => {
+            React.addTransitionType('move');
+            await new Promise<void>((resolve) => { release = resolve; });
+            startT(() => set(10));
+          })}
+        />
       );
     };
-    render(<App />);
-    expect(seen.includes(true)).toBe(false);
-    setN(10);
+    const { stage } = render(
+      <Stage width={50} height={50}><Layer><Canvas /></Layer></Stage>,
+    );
+    const rect = stage()!.findOne('Rect')!;
+    expect(rect.name()).toBe('false');
+    await act(() => rect.fire('click'));
+    await vi.waitFor(() => expect(rect.name()).toBe('true'));
+    expect(rect.x()).toBe(0);
+    await act(() => release());
     await vi.waitFor(() => {
-      expect(seen.includes(true)).toBe(true);
-      expect(seen[seen.length - 1]).toBe(false);
+      expect(rect.name()).toBe('false');
+      expect(rect.x()).toBe(10);
     });
   });
 
-  it('§2.4 useDeferredValue on a Konva prop lands eventually', async () => {
-    let setX!: (n: number) => void;
-    const App = () => {
+  it('§2.4 useDeferredValue keeps the old canvas content while new content suspends', async () => {
+    let release!: () => void;
+    const ready = new Promise<void>((resolve) => { release = resolve; });
+    const Result = ({ x }: { x: number }) => {
+      if (x === 123) React.use(ready);
+      return <Rect name="result" x={x} />;
+    };
+    const Canvas = () => {
       const [x, set] = React.useState(0);
-      setX = set;
       const deferred = React.useDeferredValue(x);
       return (
-        <Stage width={200} height={50}>
-          <Layer>
-            <Rect width={20} height={20} x={deferred} />
-          </Layer>
-        </Stage>
+        <>
+          <Rect name="input" x={x} onClick={() => set(123)} />
+          <React.Suspense fallback={<Rect name="fallback" />}>
+            <Result x={deferred} />
+          </React.Suspense>
+        </>
       );
     };
-    const { stage } = render(<App />);
-    setX(123);
-    await vi.waitFor(() =>
-      expect((stage()!.findOne('Rect') as Konva.Rect).x()).toBe(123)
+    const { stage } = render(
+      <Stage width={200} height={50}><Layer><Canvas /></Layer></Stage>,
     );
+    const result = stage()!.findOne('.result')!;
+    await act(() => stage()!.findOne('.input')!.fire('click'));
+    await vi.waitFor(() => expect(stage()!.findOne('.input')!.x()).toBe(123));
+    expect(result.x()).toBe(0);
+    expect(result.visible()).toBe(true);
+    expect(stage()!.findOne('.fallback')).toBeUndefined();
+    await act(() => release());
+    await vi.waitFor(() => expect(result.x()).toBe(123));
+    expect(stage()!.findOne('.result')).toBe(result);
   });
 
   it('§2.5 flushSync from react-dom commits Konva work inside the call', () => {
@@ -152,6 +169,44 @@ describe('§2 scheduler / lanes', () => {
     await vi.waitFor(() =>
       expect((stage()!.findOne('Rect') as Konva.Rect).name()).toBe('high')
     );
+  });
+
+  it('a DOM transition keeps canvas content visible when data is read above Stage', async () => {
+    let release!: (fill: string) => void;
+    const ready = new Promise<string>((resolve) => { release = resolve; });
+    const stageRef = React.createRef<Konva.Stage>();
+    const canvasLayout = vi.fn();
+    const Canvas = ({ fill }: { fill: string }) => {
+      React.useLayoutEffect(() => { canvasLayout(); }, []);
+      return <Rect fill={fill} />;
+    };
+    const Drawing = ({ load }: { load: boolean }) => {
+      const fill = load ? React.use(ready) : 'red';
+      return <Stage ref={stageRef} width={100} height={100}><Layer><Canvas fill={fill} /></Layer></Stage>;
+    };
+    const App = () => {
+      const [load, setLoad] = React.useState(false);
+      const [pending, start] = React.useTransition();
+      return <>
+        <button onClick={() => start(() => setLoad(true))}>{pending ? 'Pending' : 'Load'}</button>
+        <React.Suspense fallback={<p>Loading</p>}><Drawing load={load} /></React.Suspense>
+      </>;
+    };
+    const view = render(<App />);
+    const stage = stageRef.current!;
+    const rect = stage.findOne('Rect') as Konva.Rect;
+    await act(async () => { view.container.querySelector('button')!.click(); });
+    await vi.waitFor(() => expect(view.container.querySelector('button')!.textContent).toBe('Pending'));
+    expect(view.container.querySelector('p')).toBeNull();
+    expect(stageRef.current).toBe(stage);
+    expect(rect.isVisible()).toBe(true);
+    expect(rect.fill()).toBe('red');
+    expect(canvasLayout).toHaveBeenCalledTimes(1);
+    await act(async () => { release('blue'); });
+    await vi.waitFor(() => expect(rect.fill()).toBe('blue'));
+    expect(view.container.querySelector('button')!.textContent).toBe('Load');
+    expect(stage.findOne('Rect')).toBe(rect);
+    expect(canvasLayout).toHaveBeenCalledTimes(1);
   });
 
   // §2.7 (deleted): claimed to anchor "scheduleMicrotask is synchronous", but

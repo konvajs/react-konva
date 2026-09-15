@@ -139,8 +139,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   cleanup();
-  // Stage delays destroy() via setTimeout(0) under StrictMode so same-tick
-  // remount can reuse the Konva.Stage. Wait one tick before asserting no leaks.
+  // Let pending passive effects and scheduled work finish before checking leaks.
   await new Promise((r) => setTimeout(r, 0));
   const leaks: string[] = [];
   if (Konva.stages.length !== 0) {

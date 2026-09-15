@@ -150,12 +150,8 @@ describe('§5 multi-root & portals', () => {
   });
 
   it('§5.6 keyed Group replacement preserves sibling identity, replaces only the keyed subtree', () => {
-    // r3f tests `createPortal` with a Konva-like target getting replaced via
-    // key. react-dom's `createPortal` validates the target is a DOM element,
-    // so the literal r3f scenario doesn't translate. We test the equivalent
-    // *react-konva-supported* scenario: a keyed Group is replaced by a key
-    // change, sibling Groups in the same Layer are NOT remounted, and the
-    // new Group's children are correctly re-attached to the new instance.
+    // Keyed replacement must leave sibling Groups mounted. Actual Konva
+    // portals and target replacement are covered in §28.
     let setKey!: (n: number) => void;
     const App = () => {
       const [k, set] = React.useState(0);

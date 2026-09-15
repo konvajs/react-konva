@@ -95,6 +95,18 @@ export function getPublicInstance(instance) {
   return instance;
 }
 
+// Fragments group Konva children but have no DOM instance or Fragment methods.
+// This matches React's noop renderer.
+export function createFragmentInstance() {
+  return null;
+}
+
+export function updateFragmentInstanceFiber() {}
+
+export function commitNewChildToFragmentInstance() {}
+
+export function deleteChildFromFragmentInstance() {}
+
 export function prepareForCommit() {
   return null;
 }
@@ -264,7 +276,36 @@ export function resolveEventTimeStamp() {
 export function requestPostPaintCallback() {}
 
 export function maySuspendCommit() {
-  return false;
+  // React 19.3 calls this during render only for nodes inside ViewTransition.
+  // Reject before commit, where a view-transition error can escape boundaries.
+  throw new Error(
+    'ViewTransition is not supported inside a Stage. ' +
+      'Place ViewTransition around Stage to animate its DOM container.',
+  );
+}
+
+export const createViewTransitionInstance = maySuspendCommit;
+
+// Empty ViewTransition boundaries can reach commit without any Konva nodes.
+// Finish those commits without animation so ref errors can reach a boundary.
+export function startViewTransition(
+  suspendedState,
+  rootContainer,
+  transitionTypes,
+  mutationCallback,
+  layoutCallback,
+  afterMutationCallback,
+  spawnedWorkCallback,
+  passiveCallback,
+  errorCallback,
+  blockedCallback,
+  finishedAnimation,
+) {
+  mutationCallback();
+  layoutCallback();
+  finishedAnimation?.();
+  spawnedWorkCallback();
+  return null;
 }
 
 export function preloadInstance() {
@@ -275,15 +316,23 @@ export function startSuspendingCommit() {}
 
 export function suspendInstance() {}
 
+// React also calls this for Suspense retries without a ViewTransition component.
 export function suspendOnActiveViewTransition() {}
 
 export function waitForCommitToBeReady() {
   return null;
 }
 
-export const NotPendingTransition = null;
+// Stage provides the surrounding DOM form status. Standalone roots stay idle.
+export const NotPendingTransition = Object.freeze({
+  pending: false,
+  data: null,
+  method: null,
+  action: null,
+});
 
-// React 19 transition context - create as React context that can be cast by reconciler
-export const HostTransitionContext = /* @__PURE__ */ React.createContext(null);
+export const HostTransitionContext = /* @__PURE__ */ React.createContext(
+  NotPendingTransition,
+);
 
 export function resetFormInstance() {}

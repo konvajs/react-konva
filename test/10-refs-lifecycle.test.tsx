@@ -20,6 +20,32 @@ const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';
 
 describe('§10 refs / dispose / lifecycle', () => {
+  it('function component ref props reach shapes and run callback cleanup on replacement and unmount', () => {
+    const firstCleanup = vi.fn();
+    const secondCleanup = vi.fn();
+    const first = vi.fn(() => firstCleanup);
+    const second = vi.fn(() => secondCleanup);
+    const Shape = ({ ref, fill }: { ref: React.Ref<Konva.Rect>; fill: string }) => (
+      <Rect ref={ref} fill={fill} />
+    );
+    const App = ({ shapeRef, fill = 'red' }: { shapeRef: React.Ref<Konva.Rect>; fill?: string }) => (
+      <Stage width={50} height={50}><Layer><Shape ref={shapeRef} fill={fill} /></Layer></Stage>
+    );
+    const view = render(<App shapeRef={first} />);
+    const rect = view.stage()!.findOne('Rect');
+    expect(first).toHaveBeenCalledExactlyOnceWith(rect);
+    view.rerender(<App shapeRef={first} fill="blue" />);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(firstCleanup).not.toHaveBeenCalled();
+    view.rerender(<App shapeRef={second} />);
+    expect(firstCleanup).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledExactlyOnceWith(rect);
+    view.unmount();
+    expect(secondCleanup).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
   it('Stage callback refs attach once and run their cleanup on replacement and unmount', () => {
     const firstCleanup = vi.fn();
     const secondCleanup = vi.fn();
@@ -75,10 +101,18 @@ describe('§10 refs / dispose / lifecycle', () => {
         </Layer>
       </Stage>
     );
-    const { stage } = render(<Wrapper />);
+    const { stage, rerender, unmount } = render(<Wrapper />);
     expect(typeof handle.current?.bump).toBe('function');
     act(() => handle.current?.bump());
     expect((stage()!.findOne('Rect') as Konva.Rect).x()).toBe(1);
+    rerender(<Stage width={50} height={50}><Layer /></Stage>);
+    expect(handle.current).toBeNull();
+    rerender(<Wrapper />);
+    expect((stage()!.findOne('Rect') as Konva.Rect).x()).toBe(0);
+    act(() => handle.current!.bump());
+    expect((stage()!.findOne('Rect') as Konva.Rect).x()).toBe(1);
+    unmount();
+    expect(handle.current).toBeNull();
   });
 
   it('§10.2 refs to children-of-children — set in correct order (children first)', () => {

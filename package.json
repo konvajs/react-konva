@@ -96,7 +96,7 @@
     "test:browser": "vitest run && npm run test:prod",
     "test:performance": "NODE_ENV=production vitest run --config benchmarks/vitest.counts.config.mts",
     "test:prod": "NODE_ENV=production vitest run",
-    "test:ssr": "npm run build && node --no-experimental-detect-module test/11-ssr.mjs && node test/24-package-exports.mjs",
+    "test:ssr": "npm run build && node --no-experimental-detect-module test/11-ssr.mjs && node test/24-package-exports.mjs && node test/29-devtools.mjs",
     "bench:events": "node benchmarks/run.mjs",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -105,6 +105,7 @@
   "typings": "ReactKonvaCore.d.ts",
   "files": [
     "README.md",
+    "docs/react-compatibility.md",
     "RELEASE_NOTES.md",
     "lib",
     "es",

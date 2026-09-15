@@ -1,10 +1,7 @@
 // §13 — Error handling.
 //
-// Important architectural note: react-konva's <Stage> creates its own
-// react-reconciler container, so errors thrown by descendants of <Stage> are
-// caught by error boundaries INSIDE the Stage subtree, not by boundaries
-// above it in the react-dom tree. This is why the §13.2 / §13.3 boundaries
-// here render Konva elements as their fallback rather than DOM <div>s.
+// Boundaries inside Stage render Konva fallbacks. Uncaught canvas errors are
+// reported in the console; DOM boundaries do not catch across renderer roots.
 
 import * as React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -35,6 +32,146 @@ describe('§13 error handling', () => {
   });
   afterEach(() => {
     errSpy?.mockRestore();
+  });
+
+  it.each(['mount', 'render', 'layout', 'action'])('reports uncaught canvas %s errors without replacing the surrounding DOM', async (kind) => {
+    const failure = new Error('canvas failed');
+    const Canvas = () => {
+      const [broken, setBroken] = React.useState(kind === 'mount');
+      const [, submit] = React.useActionState(async () => { throw failure; }, null);
+      React.useLayoutEffect(() => {
+        if (kind === 'layout' && broken) throw failure;
+      }, [broken]);
+      if (broken && kind !== 'layout') throw failure;
+      return <Rect onClick={() => {
+        if (kind === 'action') React.startTransition(() => submit());
+        else setBroken(true);
+      }} />;
+    };
+    const App = () => {
+      const [mounted, setMounted] = React.useState(kind !== 'mount');
+      return <>
+        <button onClick={() => setMounted(true)}>Mount</button>
+        <KonvaBoundary fallback={<p>DOM fallback</p>}>
+          <span>Editor controls</span>
+          {mounted && <Stage width={50} height={50}><Layer><Canvas /></Layer></Stage>}
+        </KonvaBoundary>
+      </>;
+    };
+    const view = render(<App />);
+    // Exercise real application reporting. React.act rethrows uncaught errors
+    // instead of calling a renderer's onUncaughtError callback.
+    if (kind === 'mount') view.container.querySelector('button')!.click();
+    else view.stage()!.findOne('Rect')!.fire('click');
+    await vi.waitFor(() => expect(errSpy!.mock.calls.some(([error, info]) =>
+      error === failure && info?.componentStack?.includes('Canvas'),
+    )).toBe(true));
+    expect(view.container.querySelector('p')).toBeNull();
+    expect(view.container.querySelector('span')?.textContent).toBe('Editor controls');
+    expect(view.stage()!.getChildren()).toHaveLength(0);
+    expect(Konva.stages).toHaveLength(1);
+  });
+
+  it.each([
+    ['layout', false], ['passive', false],
+    ['insertion', false], ['insertion', true],
+  ] as const)('reports %s cleanup errors and disposes Stage (hidden=%s)', async (kind, hidden) => {
+    const failure = new Error(`${kind} cleanup failed`);
+    const Content = () => {
+      const useEffect = kind === 'layout' ? React.useLayoutEffect : kind === 'insertion' ? React.useInsertionEffect : React.useEffect;
+      useEffect(() => () => { throw failure; }, []);
+      return <Rect />;
+    };
+    const App = () => {
+      const [mounted, setMounted] = React.useState(true);
+      const [mode, setMode] = React.useState<'visible' | 'hidden'>('visible');
+      return <>
+        <button onClick={() => setMounted(false)}>Remove</button>
+        <button onClick={() => setMode('hidden')}>Hide</button>
+        <KonvaBoundary fallback={<p>DOM fallback</p>}>
+          <span>Editor controls</span>
+          {mounted && <React.Activity mode={mode}>
+            <Stage width={50} height={50}><Layer><Content /></Layer></Stage>
+          </React.Activity>}
+        </KonvaBoundary>
+      </>;
+    };
+    const view = render(<App />);
+    if (hidden) await act(async () => { view.container.querySelectorAll('button')[1].click(); });
+    view.container.querySelector('button')!.click();
+    await vi.waitFor(() => expect(errSpy!.mock.calls.some(([error, info]) =>
+      error === failure && info?.componentStack?.includes('Content'),
+    )).toBe(true));
+    expect(view.container.querySelector('p')).toBeNull();
+    expect(view.container.querySelector('span')?.textContent).toBe('Editor controls');
+    expect(Konva.stages).toHaveLength(0);
+  });
+
+  it('reports every cleanup failure when several children throw', async () => {
+    const failures = [new Error('first cleanup failed'), new Error('second cleanup failed')];
+    const Content = ({ index }: { index: number }) => {
+      React.useLayoutEffect(() => () => { throw failures[index]; }, []);
+      return <Rect />;
+    };
+    const App = () => {
+      const [mounted, setMounted] = React.useState(true);
+      return <>
+        <button onClick={() => setMounted(false)}>Remove</button>
+        <KonvaBoundary fallback={<p>DOM fallback</p>}>
+          {mounted && <Stage width={50} height={50}><Layer><Content index={0} /><Content index={1} /></Layer></Stage>}
+        </KonvaBoundary>
+      </>;
+    };
+    const view = render(<App />);
+    view.container.querySelector('button')!.click();
+    await vi.waitFor(() => {
+      for (const failure of failures) {
+        expect(errSpy!.mock.calls.some(([error, info]) =>
+          error === failure && info?.componentStack?.includes('Content'),
+        )).toBe(true);
+      }
+    });
+    expect(view.container.querySelector('p')).toBeNull();
+    expect(Konva.stages).toHaveLength(0);
+  });
+
+  it('reports cleanup errors when deleting a Suspense-hidden Stage alongside a sibling', async () => {
+    const failure = new Error('hidden cleanup failed');
+    const never = new Promise<void>(() => {});
+    const Gate = ({ suspended }: { suspended: boolean }) => {
+      if (suspended) React.use(never);
+      return null;
+    };
+    const Content = () => {
+      React.useInsertionEffect(() => () => { throw failure; }, []);
+      return <Rect />;
+    };
+    const App = () => {
+      const [suspended, setSuspended] = React.useState(false);
+      const [mounted, setMounted] = React.useState(true);
+      return <>
+        <button onClick={() => setSuspended(true)}>Suspend</button>
+        <button onClick={() => setMounted(false)}>Remove</button>
+        <KonvaBoundary fallback={<p>DOM fallback</p>}>
+          {mounted && <>
+            <React.Suspense fallback={<span>Loading</span>}>
+              <Stage width={50} height={50}><Layer><Content /></Layer></Stage>
+              <Gate suspended={suspended} />
+            </React.Suspense>
+            <Stage width={50} height={50}><Layer><Rect /></Layer></Stage>
+          </>}
+        </KonvaBoundary>
+      </>;
+    };
+    const view = render(<App />);
+    await act(async () => { view.container.querySelectorAll('button')[0].click(); });
+    expect(view.container.querySelector('span')?.textContent).toBe('Loading');
+    view.container.querySelectorAll('button')[1].click();
+    await vi.waitFor(() => expect(errSpy!.mock.calls.some(([error, info]) =>
+      error === failure && info?.componentStack?.includes('Content'),
+    )).toBe(true));
+    expect(view.container.querySelector('p')).toBeNull();
+    expect(Konva.stages).toHaveLength(0);
   });
 
   it('§13.1 user onClick that throws — does not crash; Konva tree remains', () => {
@@ -136,6 +273,35 @@ describe('§13 error handling', () => {
     );
   });
 
+  it.each(['use', 'useActionState'])('%s rejection reaches an error boundary inside Stage', async (hook) => {
+    let reject!: (error: Error) => void;
+    const promise = new Promise<string>((_, rejectPromise) => { reject = rejectPromise; });
+    const Canvas = () => {
+      const [read, setRead] = React.useState(false);
+      const [name, submit] = React.useActionState(() => promise, 'ready');
+      if (hook === 'use' && read) React.use(promise);
+      return <Rect name={name} onClick={() => {
+        if (hook === 'use') setRead(true);
+        else React.startTransition(() => submit());
+      }} />;
+    };
+    const { stage } = render(
+      <Stage width={50} height={50}>
+        <Layer>
+          <KonvaBoundary fallback={<Rect name="failed" />}>
+            <React.Suspense fallback={<Rect name="loading" />}><Canvas /></React.Suspense>
+          </KonvaBoundary>
+        </Layer>
+      </Stage>,
+    );
+    await act(() => stage()!.findOne('.ready')!.fire('click'));
+    await act(() => reject(new Error('request failed')));
+    await vi.waitFor(() => expect(stage()!.findOne('.failed')).toBeInstanceOf(Konva.Rect));
+    expect(stage()!.findOne('.ready')).toBeUndefined();
+    expect(stage()!.findOne('.loading')).toBeUndefined();
+    expect(errSpy!.mock.calls.some(([error]) => String(error).includes('request failed'))).toBe(true);
+  });
+
   it('§13.4 unknown Konva element type — logs warning, falls back to Group, tree stays consistent', () => {
     // Source contract (src/ReactKonvaHostConfig.ts:43-50):
     //   - console.error a "no such node" warning
@@ -160,5 +326,41 @@ describe('§13 error handling', () => {
       (args) => typeof args[0] === 'string' && args[0].includes('NotARealKonvaType')
     );
     expect(warnedAboutType).toBe(true);
+  });
+
+  it.each([false, true])('§13.5 ViewTransition inside Stage reports its support boundary (ref=%s)', async (withRef) => {
+    let enable!: () => void;
+    const ref = React.createRef<React.ViewTransitionInstance>();
+    const Canvas = () => {
+      const [enabled, setEnabled] = React.useState(false);
+      enable = () => setEnabled(true);
+      const child = <Rect name="child" width={10} height={10} fill="red" />;
+      return enabled ? (
+        <React.ViewTransition ref={withRef ? ref : undefined}>
+          {withRef ? null : child}
+        </React.ViewTransition>
+      ) : child;
+    };
+    const { stage } = render(
+      <Stage width={50} height={50}>
+        <Layer>
+          <KonvaBoundary fallback={<Rect name="fallback" width={10} height={10} />}>
+            <Canvas />
+          </KonvaBoundary>
+        </Layer>
+      </Stage>
+    );
+
+    expect(stage()!.findOne('.child')).toBeInstanceOf(Konva.Rect);
+    await act(() => React.startTransition(enable));
+
+    await vi.waitFor(() => {
+      expect(stage()!.findOne('.fallback')).toBeInstanceOf(Konva.Rect);
+      expect(stage()!.findOne('.child')).toBeUndefined();
+    });
+    expect(errSpy!.mock.calls.flat().some((value) =>
+      value instanceof Error &&
+      value.message.includes('ViewTransition is not supported inside a Stage.')
+    )).toBe(true);
   });
 });
