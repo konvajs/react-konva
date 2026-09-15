@@ -1,64 +1,49 @@
-# 19.2.7: native input synchronization
+# 19.3.0: React 19.3 support
 
-This release uses the public event hook in Konva 10.5.0.
-Older Konva versions remain supported through normal asynchronous React scheduling.
+## Upgrade requirements
 
-## Changes
+Upgrade React and React DOM to matching 19.3 versions before you install this release.
+The minimum React and React DOM version is now 19.3.0.
 
-- With the new hook, native Konva input commits ordinary React state before each Konva listener returns. This includes state owned above Stage. Controlled Transformer geometry is current before the next frame.
-- Handlers within one native listener share a batch. The integration uses React DOM `flushSync` and the custom renderer's host scheduler. It uses no hidden React DOM fields or Konva method patches.
-- Stage accepts an optional `eventBatchFunc`, such as MobX `runInAction`. It wraps native Konva work inside the React batch, so reactions finish before React commits. Shared callbacks remain deduplicated across Stages.
-- Direct programmatic `fire()` and drag calls outside a native input batch use normal asynchronous React scheduling. They do not force a canvas render after each handler. This preserves batching for event bursts and avoids forced flushes from React lifecycle methods.
-- Stage refs support React ref cleanup callbacks. Removed descendants release react-konva listeners. With automatic drawing disabled, Suspense visibility changes request a draw.
-- StrictMode Stage cleanup queues canvas-tree removal before pending child updates can render. It preserves child state during effect replay and adds no forced flush.
-- Package exports route ES-module imports to the ES build and CommonJS imports to the CommonJS build. Existing minimal imports, with or without `.js`, remain supported. The ES output declares its module type.
-- Type declarations remove `getPublicInstance` and `getNativeNode`, which never existed at runtime. Code that references those declarations must use node refs. Group props use Konva's container configuration.
+```sh
+npm install react@19.3.0 react-dom@19.3.0 react-konva@19.3.0
+```
 
-## Timing and compatibility
+For React 19.2 projects, pin `react-konva` to `~19.2.7`.
+The range `^19.2.7` also allows 19.3.0, which requires the React upgrade.
+For React 18 projects, use the React Konva 18 release line.
 
-The existing Konva 7–10 peer range remains. Stage initialization checks whether
-`eventBatchFunc` is available. If it is absent, React updates use the normal
-asynchronous scheduler. There is no import error or per-handler forced flush.
-This fallback does not provide the new native-input commit deadline or fix bugs
-inside historical Konva releases. Konva 10.5+ provides the full synchronization
-and Transformer improvements. The JSX prop composes with the renderer's Stage
-hook. Replacing that hook through a ref remains unsupported.
+## Fixes and improvements
 
-With Konva 10, Node ES-module imports no longer depend on `require(ESM)` support.
-CommonJS `require('react-konva')` still needs a Node version that supports loading
-ES modules through `require`. See [Node's module compatibility documentation](https://nodejs.org/api/modules.html#loading-ecmascript-modules-using-require).
+- Fixes the `useActionState` crash inside `Stage` with React 19.3. This resolves [#859](https://github.com/konvajs/react-konva/issues/859) through [#860](https://github.com/konvajs/react-konva/pull/860).
+- Updates the bundled `react-reconciler` to 0.34.0 and `scheduler` to 0.28.0 for React 19.3.
+- Canvas roots inherit React StrictMode checks from the DOM tree.
+- Activity and Suspense preserve canvas state and node identity through hiding and reveal. Effects and refs disconnect and reconnect as each boundary requires.
+- Stage removal discards pending child updates and runs effect cleanup, including for hidden Stages.
+- Canvas components read the surrounding DOM form status through `useFormStatus`, including the submitted data and action.
+- `useId` values remain stable on updates and distinct across DOM and Stage roots.
+- Both package formats register with React DevTools. Development builds support hook state changes.
 
-DOM-owned state updated by native canvas input now commits synchronously when
-the hook is available. Large DOM updates can therefore increase event duration.
-Promises and React transitions still follow React scheduling. Direct native DOM
-dispatch from an unrelated React effect must wait until after that effect. See
-[React's flushSync lifecycle rules](https://react.dev/reference/react-dom/flushSync#im-getting-an-error-flushsync-was-called-from-inside-a-lifecycle-method).
-Programmatic Konva events from effects remain supported.
+## Renderer boundaries
 
-Each native Konva listener has its own boundary. A browser move or release can
-reach multiple listeners and cause separate commits if each schedules state.
-Event order remains intact. Empty listeners do not cause additional React commits,
-though entering their boundaries still calls `flushSync`.
+Error boundaries inside `Stage` handle canvas errors and display Konva fallbacks.
+DOM error boundaries around `Stage` do not catch errors from canvas children.
+Uncaught canvas errors appear in the console with the original error and component stack, including errors during cleanup.
 
-## Validation and performance
+Canvas Suspense boundaries display Konva fallbacks.
+Canvas suspension does not activate a surrounding DOM Suspense boundary.
+A promise read before Stage renders can activate that DOM fallback.
 
-All tests install latest published Konva, including the minimum React CI job.
-Fallback tests disable its public hook for import, server-rendering, and
-programmatic update checks. They do not validate every historical Konva release.
+A DOM `ViewTransition` can animate the Stage container.
+A `ViewTransition` inside Stage with Konva nodes or a ref throws a clear error.
+Fragment children remain supported, but Fragment refs stay `null` and provide no DOM methods.
 
-The regular suite includes all former expected-failure cases. It checks native
-mouse, touch, cancellation, multiple Stages, effects crossing between renderers,
-MobX subscriptions, unmounting, and content-to-window listener order.
+The [React compatibility matrix](docs/react-compatibility.md) lists the supported hooks, features, fallbacks, and remaining limits.
+Native input synchronization and the fallback for older Konva versions continue from [19.2.7](https://github.com/konvajs/react-konva/blob/d9c73c21a5c164d5551ca62c15d5aa150a420053/RELEASE_NOTES.md).
 
-`npm test` also enforces commit, render, geometry, and flush counts. Performance
-cases cover up to 100 selected nodes and trees with 5,000 canvas nodes and 5,000
-DOM elements. The [benchmark guide](https://github.com/konvajs/react-konva/blob/master/benchmarks/README.md) describes the timing runner and measurements.
+## Validation
 
-Validation used registry Konva 10.5.0:
-
-- Chromium, Firefox, and WebKit: 146 correctness tests in both development and production, plus 38 performance checks in each browser. No skipped or expected-failure tests.
-- Minimum React and React DOM 19.2.0: the same full Chromium suite passes. The three-browser runs use React 19.2.8.
-- Built CommonJS and ES-module imports, server rendering with and without the optional hook, consumer types, and package contents pass validation. Packed-package tests cover imports without `require(ESM)`, minimal imports, and CommonJS. TypeScript tests cover NodeNext, Bundler, and legacy Node resolution.
-
-The installed Konva files match the registry tarball. No local Konva patches are
-needed.
+CI passes with Chromium, Firefox, and WebKit in development and production.
+The minimum React and React DOM 19.3.0 job also passes.
+The suite covers 196 correctness tests per build and 38 performance checks.
+Package checks cover both module formats, server rendering, package exports, consumer types, and the DevTools protocol.
