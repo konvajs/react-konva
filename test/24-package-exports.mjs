@@ -16,9 +16,8 @@ try {
     mkdirSync(staleDirectory, { recursive: true });
     writeFileSync(join(staleDirectory, 'stale.js'), '// stale build output\n');
   }
-  execFileSync('npm', ['run', 'build'], { cwd: root, stdio: 'inherit' });
   const [{ filename, files }] = JSON.parse(execFileSync('npm', [
-    'pack', '--json', '--ignore-scripts', '--pack-destination', consumer,
+    'pack', '--json', '--foreground-scripts=false', '--pack-destination', consumer,
   ], { cwd: root, encoding: 'utf8' }));
   assert.ok(files.every(({ path }) => !/^(es|lib)\/src\//.test(path)),
     'the package must not contain stale build output');

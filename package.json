@@ -89,6 +89,7 @@
   },
   "scripts": {
     "build": "node ./build.mjs",
+    "prepack": "npm run build",
     "test:typings": "tsc --noEmit && tsc -p test/types/tsconfig.json",
     "preversion": "npm test",
     "version": "npm run build",
