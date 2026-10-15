@@ -2,7 +2,7 @@
 
 Count tests run in `npm test` and fail on extra work. The timing benchmark
 compares elapsed time without noisy millisecond thresholds. All tests and both
-benchmark variants use the same latest published Konva.
+benchmark variants use the same installed Konva.
 
 ## Required count tests
 
@@ -20,8 +20,8 @@ input. Native drag and resize must commit before dispatch returns. The fixture
 checks committed state, node geometry, anchor positions, and DOM values. A stale
 result cannot count as an optimization.
 
-The 38 cases cover live resize and drag state above Stage, at the canvas root,
-and in canvas leaves. Selection sizes range from one to 100 shapes. Other cases
+The 41 cases cover live resize and drag state above Stage, at the canvas root,
+and in canvas leaves. Selection sizes range from one to 600 shapes. Other cases
 include 1,000 changing DOM spans and a leaf beneath ten Groups beside 5,000
 canvas shapes and 5,000 static DOM spans. Ordinary state updates, direct no-op
 handlers, idle window movement, and native canvas movement are measured separately.
@@ -36,6 +36,7 @@ drag or resize.
 | `canvasCommits`, `domCommits` | React Profiler callbacks for the two renderers. |
 | `stateOwnerRenders` | Render calls in components that own changing state. |
 | `transformerUpdates` | Calls to the Transformer's public `update()`. Cached node-change refreshes can bypass it; use `anchorSetAttrs` to compare actual layout work. |
+| `transformerRefreshes`, `selectionBounds` | Actual `_update()` refreshes and `__getNodeRect()` selection measurements. When Konva provides `beginUpdateBatch()`, ordinary updates permit one of each and resize permits two, including Konva's gesture update. Multi-node drag permits one refresh and two bounds measurements. |
 | `anchorSetAttrs` | Attribute writes through `setAttrs()` on Transformer anchors. |
 | `nodeClientRects` | Selected shapes' `getClientRect()` calls. |
 | `rendererFlushes` | Explicit calls through exported `KonvaRenderer.flushSyncWork`. |
@@ -66,9 +67,11 @@ flush after every handler. The regular correctness suite checks effects crossing
 renderers and releases where separate updating listeners produce separate commits.
 Those tests verify event order, layout reads, passive effects, and final geometry.
 
-Geometry counts are workload-specific ceilings. Attribute listeners, layout
-effects, custom anchor styling, and ordinary setters must retain their synchronous
-behavior. Correctness tests check those contracts alongside the count limits.
+Geometry counts are workload-specific ceilings. Attribute changes and change
+listeners stay synchronous. Inside a change listener, Transformer bounds are
+computed on read; anchor layout may wait until the batch finishes. Layout effects
+and completed native events must see the committed anchors without forcing a
+refresh. Correctness tests check those contracts alongside the count limits.
 
 Results go to ignored `.bench-tools/counts-results.json`. To update the reviewed
 [baseline](counts-results.json) deliberately:
@@ -95,7 +98,7 @@ and raw samples. Its default output is ignored `.bench-tools/events-results.json
 Three browser runs alternate baseline/current order. Each workload has two warm-ups
 and five measured samples per run, giving 15 samples per variant.
 
-Resize workloads use 24 native pointer moves, 1/10/100 selected shapes, all three
+Resize workloads use 24 native pointer moves, 1/10/100/600 selected shapes, all three
 state locations, and 1,000 changing DOM spans. A large-tree case sends 24 native
 moves in bursts of eight with 5,000 canvas shapes and DOM spans. Separate workloads
 send 10,000 native idle or no-op moves over a drawn canvas. Resize timings dispatch

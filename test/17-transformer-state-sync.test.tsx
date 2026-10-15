@@ -243,21 +243,17 @@ describe('Transformer with controlled state', () => {
   );
 });
 
-// A commit may update many selected nodes. Public geometry reads in attribute
-// listeners and layout effects must remain fresh, even during a gesture.
+// Layout effects and completed native events see the committed anchor layout,
+// including while a resize gesture is still active.
 it.each(['dom', 'konva'] as const)(
-  'React commits expose fresh anchors to listeners and effects with %s state',
+  'controlled resize exposes committed anchors to layout effects with %s state',
   (owner) => {
     const { rect, tr, move, up, committedOutline } = setupTransformBox(owner);
-    let readInListener = 0;
-    rect().on('widthChange.probe', () => {
-      readInListener = tr().findOne('.top-center')!.x() * 2;
-    });
     try {
       move(40);
       expect(rect().width()).toBe(200);
-      expect(readInListener).toBe(200);
       expect(committedOutline()).toBe(200);
+      expect(outlineWidth(tr())).toBe(200);
     } finally {
       up(40);
     }

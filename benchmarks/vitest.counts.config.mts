@@ -87,6 +87,8 @@ export default defineConfig({
             'domCommits',
             'stateOwnerRenders',
             'transformerUpdates',
+            'transformerRefreshes',
+            'selectionBounds',
             'anchorSetAttrs',
             'nodeClientRects',
             'rendererFlushes',

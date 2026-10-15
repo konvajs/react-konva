@@ -107,7 +107,13 @@ export function commitNewChildToFragmentInstance() {}
 
 export function deleteChildFromFragmentInstance() {}
 
+let finishUpdateBatch: (() => void) | undefined;
+
 export function prepareForCommit() {
+  // Older supported Konva versions do not expose commit batching.
+  finishUpdateBatch = (Konva as typeof Konva & {
+    beginUpdateBatch?: () => () => void;
+  }).beginUpdateBatch?.();
   return null;
 }
 
@@ -116,7 +122,10 @@ export function preparePortalMount() {
 }
 
 export function resetAfterCommit() {
-  // Noop
+  const finish = finishUpdateBatch;
+  finishUpdateBatch = undefined;
+  // React layout effects must see the final Transformer geometry.
+  finish?.();
 }
 
 export function resetTextContent(domElement) {

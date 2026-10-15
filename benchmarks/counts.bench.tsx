@@ -23,7 +23,7 @@ const results = [];
 type Owner = 'canvas-root' | 'canvas-leaf' | 'above-stage';
 const owners: Owner[] = ['canvas-root', 'canvas-leaf', 'above-stage'];
 const scenarios = [
-  ...[1, 10, 100].flatMap((nodes) =>
+  ...[1, 10, 100, 600].flatMap((nodes) =>
     owners.map((owner) => ({
       operation: 'resize',
       nodes,
@@ -118,6 +118,8 @@ const emptyCounts = () => ({
   canvasCommits: 0,
   stateOwnerRenders: 0,
   transformerUpdates: 0,
+  transformerRefreshes: 0,
+  selectionBounds: 0,
   anchorSetAttrs: 0,
   nodeClientRects: 0,
   rendererFlushes: 0,
@@ -296,6 +298,20 @@ it.each(scenarios)('$name', async (scenario) => {
         return update.call(this);
       }),
     );
+    // Automatic refreshes bypass public update(); count their real work too.
+    for (const [method, counter] of [
+      ['_update', 'transformerRefreshes'],
+      ['__getNodeRect', 'selectionBounds'],
+    ] as const) {
+      const original = (tr as any)[method];
+      if (typeof original !== 'function') continue;
+      spies.push(
+        vi.spyOn(tr as any, method).mockImplementation(function (...args) {
+          counts[counter]++;
+          return original.apply(this, args);
+        }),
+      );
+    }
     for (const anchor of tr.find('._anchor')) {
       const setAttrs = anchor.setAttrs;
       spies.push(
@@ -428,6 +444,12 @@ it.each(scenarios)('$name', async (scenario) => {
       // Current ceilings, not the desired final algorithm. Improvements can use less work.
       const updateLimit = noUpdate ? 0 : operation === 'resize' ? 2 : 1;
       expect(measured.transformerUpdates).toBeLessThanOrEqual(updateLimit);
+      if (typeof (Konva as any).beginUpdateBatch === 'function') {
+        expect(measured.transformerRefreshes).toBeLessThanOrEqual(updateLimit);
+        // Multi-node drag also measures the box while positioning the nodes.
+        const boundsLimit = dragging && nodes > 1 ? 2 : updateLimit;
+        expect(measured.selectionBounds).toBeLessThanOrEqual(boundsLimit);
+      }
       // Nine anchors receive defaults and layout once per full refresh.
       expect(measured.anchorSetAttrs).toBeLessThanOrEqual(updateLimit * 18);
       const rectReadLimit = noUpdate

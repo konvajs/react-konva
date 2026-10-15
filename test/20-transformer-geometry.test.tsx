@@ -5,7 +5,7 @@ import { Stage, Layer, Rect, Transformer } from '../src/ReactKonva';
 import { render, act } from './helpers/render';
 
 it.each(['dom', 'konva'] as const)(
-  'preserves fresh anchors inside widthChange listeners with %s state',
+  'exposes fresh bounds to listeners and committed anchors to effects with %s state',
   async (owner) => {
     const refs = Array.from({ length: 20 }, () =>
       React.createRef<Konva.Rect>(),
@@ -48,13 +48,23 @@ it.each(['dom', 'konva'] as const)(
       ),
     );
     const tr = trRef.current!;
-    let readInListener = 0;
-    refs[refs.length - 1].current!.on('widthChange.probe', () => {
-      readInListener = tr.findOne('.top-center')!.x();
+    let readInListener:
+      | { nodeWidth: number; selectionWidth: number }
+      | undefined;
+    const lastNode = refs[refs.length - 1].current!;
+    lastNode.on('widthChange.probe', () => {
+      // Change listeners run during mutation. Bounds are computed on read;
+      // Konva may defer its anchor layout until the batch finishes.
+      readInListener = {
+        nodeWidth: lastNode.width(),
+        selectionWidth: tr.width(),
+      };
     });
     await act(() => change(15));
     expect(refs.every((ref) => ref.current!.width() === 15)).toBe(true);
+    expect(readInListener).toEqual({ nodeWidth: 15, selectionWidth: 395 });
+    // Raw anchor reads must be current after commit, without forcing a refresh.
     expect(readInLayout).toBe(197.5);
-    expect(readInListener).toBe(197.5);
+    expect(tr.findOne('.top-center')!.x()).toBe(197.5);
   },
 );

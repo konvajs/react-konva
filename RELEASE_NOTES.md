@@ -1,3 +1,31 @@
+# 19.3.1: Batched Transformer updates
+
+With Konva 10.9+, react-konva batches automatic Transformer updates across each
+canvas commit. Updating many selected nodes triggers one Transformer refresh
+after the mutations. Layout effects see the final anchor positions.
+
+This works automatically. Upgrade Konva to enable it:
+
+```sh
+npm install react-konva@19.3.1 konva@^10.9.0
+```
+
+Older supported Konva versions keep their existing behavior and do not require
+the new batching API. React and React DOM still require matching 19.3+ versions
+within React 19.
+
+Attribute-change listeners run during mutation. They can read the changed
+attributes and Transformer bounds synchronously. To read final anchor positions,
+use a layout effect or call `transformer.update()` explicitly in the listener.
+
+## Validation
+
+The suite covers 203 correctness tests per build and 41 performance checks,
+including resizing 600 selected shapes. Regression tests cover individual
+selections, selected Groups, layout reads, and a missing batching API.
+Package checks cover server rendering, both module formats, consumer types,
+package exports, and React DevTools.
+
 # 19.3.0: React 19.3 support
 
 ## Upgrade requirements

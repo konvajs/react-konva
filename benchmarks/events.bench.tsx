@@ -11,7 +11,7 @@ import { Stage, Layer, Rect, Transformer } from '#benchmark-source';
 
 type Owner = 'canvas-root' | 'canvas-leaf' | 'above-stage';
 const scenarios = [
-  ...[1, 10, 100].flatMap((nodes) =>
+  ...[1, 10, 100, 600].flatMap((nodes) =>
     (['canvas-root', 'canvas-leaf', 'above-stage'] as Owner[]).map((owner) => ({
       name: `transform/${nodes}/${owner}`,
       nodes,
