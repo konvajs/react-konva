@@ -242,6 +242,10 @@ export function getInstanceFromNode() {
   return null;
 }
 
+export function bindToConsole(methodName, args) {
+  return console[methodName].bind(console, ...args);
+}
+
 export function beforeActiveInstanceBlur() {}
 
 export function afterActiveInstanceBlur() {}
@@ -284,7 +288,7 @@ export function resolveEventTimeStamp() {
 
 export function requestPostPaintCallback() {}
 
-export function maySuspendCommit() {
+export function maySuspendCommit(): never {
   // React 19.3 calls this during render only for nodes inside ViewTransition.
   // Reject before commit, where a view-transition error can escape boundaries.
   throw new Error(
@@ -294,6 +298,8 @@ export function maySuspendCommit() {
 }
 
 export const createViewTransitionInstance = maySuspendCommit;
+export const maySuspendCommitOnUpdate = maySuspendCommit;
+export const maySuspendCommitInSyncRender = maySuspendCommit;
 
 // Empty ViewTransition boundaries can reach commit without any Konva nodes.
 // Finish those commits without animation so ref errors can reach a boundary.
@@ -329,6 +335,10 @@ export function suspendInstance() {}
 export function suspendOnActiveViewTransition() {}
 
 export function waitForCommitToBeReady() {
+  return null;
+}
+
+export function getSuspendedCommitReason() {
   return null;
 }
 

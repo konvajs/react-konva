@@ -146,6 +146,7 @@ const StageWrap = (props) => {
         console.error,
         console.error,
         null,
+        null,
       );
     }
 
@@ -243,14 +244,17 @@ export const version = '{VERSION}';
 
 const rendererConfig = {
   ...HostConfig,
+  // React's public context type omits fields used by the reconciler.
+  HostTransitionContext: HostConfig.HostTransitionContext as unknown as ReactFiberReconciler.ReactContext<
+    typeof HostConfig.NotPendingTransition
+  >,
   rendererVersion: version,
   rendererPackageName: 'react-konva',
+  extraDevToolsConfig: null,
 };
 
-// @ts-ignore The published types still describe react-reconciler 0.33.
 export const KonvaRenderer = ReactFiberReconciler(rendererConfig);
 
-// @ts-expect-error Metadata moved into the host config in react-reconciler 0.34.
 KonvaRenderer.injectIntoDevTools();
 
 interface StageProps extends React.RefAttributes<KonvaStage> {

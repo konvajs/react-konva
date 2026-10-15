@@ -8,7 +8,7 @@ if (browser !== 'chromium' && browser !== 'firefox' && browser !== 'webkit') {
 }
 export default defineConfig({
   optimizeDeps: {
-    include: ['react-dom/server'],
+    include: ['react-dom/server', 'react/jsx-runtime'],
   },
   test: {
     exclude: [

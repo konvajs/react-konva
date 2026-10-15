@@ -1,6 +1,6 @@
 # React compatibility
 
-This matrix covers React 19.3.0, React DOM 19.3.0, and react-reconciler 0.34.0.
+This matrix covers React and React DOM 19.3, with react-reconciler 0.34.0.
 It records renderer behavior and regression coverage. It does not guarantee every combination of React features or framework integrations.
 
 A `Stage` creates a separate React root for its canvas children. Shape refs contain Konva objects.

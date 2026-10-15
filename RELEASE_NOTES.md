@@ -14,6 +14,8 @@ Older supported Konva versions keep their existing behavior and do not require
 the new batching API. React and React DOM still require matching 19.3+ versions
 within React 19.
 
+Updates the context bridge and renderer types, with the same React 19.3.0 minimum.
+
 Attribute-change listeners run during mutation. They can read the changed
 attributes and Transformer bounds synchronously. To read final anchor positions,
 use a layout effect or call `transformer.update()` explicitly in the listener.

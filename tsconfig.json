@@ -2,7 +2,9 @@
   "compilerOptions": {
     "strict": false,
     "target": "ES2020",
-    "moduleResolution": "node",
+    "rootDir": "./src",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "jsx": "react",

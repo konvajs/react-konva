@@ -152,6 +152,8 @@ See the [release notes](RELEASE_NOTES.md) for geometry timing and compatibility 
 
 ## Development and tests
 
+Use Node.js 24 LTS for development.
+
 ```sh
 npm install
 npx playwright install chromium

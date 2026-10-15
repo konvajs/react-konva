@@ -103,13 +103,12 @@ try {
     ['module', 'NodeNext', 'NodeNext'],
     ['commonjs', 'NodeNext', 'NodeNext'],
     ['module', 'ESNext', 'Bundler'],
-    ['commonjs', 'CommonJS', 'Node10'],
   ]) {
     writeFileSync(join(consumer, 'package.json'), JSON.stringify({ type }));
     writeFileSync(join(consumer, 'tsconfig.json'), JSON.stringify({
       compilerOptions: {
         strict: true, noEmit: true, target: 'ES2020', jsx: 'react',
-        lib: ['ES2020', 'DOM', 'ESNext.Collection'], esModuleInterop: true,
+        lib: ['ES2020', 'DOM', 'ESNext.Collection', 'ESNext.Disposable'], esModuleInterop: true,
         module, moduleResolution,
       },
       files: ['consumer.tsx'],

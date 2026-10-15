@@ -4,8 +4,10 @@ import { createRequire } from 'node:module';
 
 const pkg = createRequire(import.meta.url)('./package.json');
 
-execSync('tsc -outDir ./es', { stdio: 'inherit' });
-execSync('tsc -module commonjs -outDir ./lib', { stdio: 'inherit' });
+execSync('tsc --module ESNext --moduleResolution bundler --outDir ./es', {
+  stdio: 'inherit',
+});
+execSync('tsc --outDir ./lib', { stdio: 'inherit' });
 
 for (const out of ['es', 'lib']) {
   if (out === 'es') {

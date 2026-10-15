@@ -49,8 +49,8 @@
     "url": "git+ssh://git@github.com/konvajs/react-konva.git"
   },
   "dependencies": {
-    "@types/react-reconciler": "0.33.0",
-    "its-fine": "^2.0.0",
+    "@types/react-reconciler": "0.34.0",
+    "its-fine": "^2.1.1",
     "react-reconciler": "0.34.0",
     "scheduler": "0.28.0"
   },
@@ -75,17 +75,17 @@
   },
   "devDependencies": {
     "@types/react": "19.3.0",
-    "@vitest/browser": "^4.0.18",
-    "@vitest/browser-playwright": "^4.0.18",
+    "@vitest/browser": "^5.0.4",
+    "@vitest/browser-playwright": "^5.0.4",
     "konva": "^10.9.0",
-    "mobx": "^6.13.5",
-    "mobx-react-lite": "^4.1.0",
-    "playwright": "^1.58.2",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "typescript": "^5.9.3",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
     "use-image": "^1.1.4",
-    "vitest": "^4.0.18"
+    "vitest": "^5.0.4"
   },
   "scripts": {
     "build": "node ./build.mjs",
