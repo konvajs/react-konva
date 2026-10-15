@@ -1,4 +1,5 @@
 // Test the published artifact from an external consumer, not source aliases.
+import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -9,9 +10,18 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const consumer = mkdtempSync(join(tmpdir(), 'react-konva-package-'));
 
 try {
-  const [{ filename }] = JSON.parse(execFileSync('npm', [
+  // A rebuild must discard files left by an earlier compiler configuration.
+  for (const format of ['es', 'lib']) {
+    const staleDirectory = join(root, format, 'src');
+    mkdirSync(staleDirectory, { recursive: true });
+    writeFileSync(join(staleDirectory, 'stale.js'), '// stale build output\n');
+  }
+  execFileSync('npm', ['run', 'build'], { cwd: root, stdio: 'inherit' });
+  const [{ filename, files }] = JSON.parse(execFileSync('npm', [
     'pack', '--json', '--ignore-scripts', '--pack-destination', consumer,
   ], { cwd: root, encoding: 'utf8' }));
+  assert.ok(files.every(({ path }) => !/^(es|lib)\/src\//.test(path)),
+    'the package must not contain stale build output');
   const packageDir = join(consumer, 'node_modules/react-konva');
   mkdirSync(packageDir, { recursive: true });
   execFileSync('tar', ['-xzf', join(consumer, filename), '--strip-components=1', '-C', packageDir]);

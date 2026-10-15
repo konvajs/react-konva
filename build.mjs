@@ -1,8 +1,12 @@
 import { execSync } from 'node:child_process';
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
 const pkg = createRequire(import.meta.url)('./package.json');
+
+for (const out of ['es', 'lib']) {
+  rmSync(out, { recursive: true, force: true });
+}
 
 execSync('tsc --module ESNext --moduleResolution bundler --outDir ./es', {
   stdio: 'inherit',

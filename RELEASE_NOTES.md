@@ -1,3 +1,8 @@
+# 19.3.2: Clean release artifacts
+
+Builds now clear previous output before compilation. This prevents stale,
+unused files from entering the package after a compiler configuration change.
+
 # 19.3.1: Batched Transformer updates
 
 With Konva 10.9+, react-konva batches automatic Transformer updates across each
