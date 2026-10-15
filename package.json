@@ -49,7 +49,7 @@
     "url": "git+ssh://git@github.com/konvajs/react-konva.git"
   },
   "dependencies": {
-    "@types/react-reconciler": "^0.33.0",
+    "@types/react-reconciler": "0.33.0",
     "its-fine": "^2.0.0",
     "react-reconciler": "0.34.0",
     "scheduler": "0.28.0"
